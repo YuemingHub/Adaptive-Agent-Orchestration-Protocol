@@ -39,6 +39,8 @@ jobs:
           test -f "$target/.aaop/schemas/environment-inventory.schema.json"
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
           test -f "$target/.aaop/schemas/integration-recipe.schema.json"
+          test -f "$target/.aaop/.install-manifest.json"
+          grep -qx '0.10.0' "$target/.aaop/VERSION"
 
           # AAOP's own canonical Skills must not inflate the observed external surface.
           python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor-clean.json"
@@ -117,5 +119,86 @@ jobs:
           PY
 
           python scripts/validate.py --root "$target" --package-only
-          python scripts/install.py "$target" --force
+
+      - name: Validate state-preserving upgrade behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Manifest-backed upgrade: preserve runtime/project files, back up managed edits,
+          # update only the marked bootstrap block, and keep external project rules.
+          target="$(mktemp -d)"
+          printf '# Project rules\n\nKEEP-OUTSIDE-AAOP\n' > "$target/AGENTS.md"
+          python scripts/install.py "$target"
+          mkdir -p "$target/.aaop/runtime"
+          printf 'runtime-state\n' > "$target/.aaop/runtime/state.txt"
+          printf 'project-owned-aaop-file\n' > "$target/.aaop/local-note.txt"
+          printf '\nLOCAL-MANAGED-EDIT\n' >> "$target/.aaop/ORCHESTRATOR.md"
+          python - "$target/AGENTS.md" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          text = p.read_text()
+          begin = '<!-- AAOP:BEGIN -->'
+          end = '<!-- AAOP:END -->'
+          a = text.index(begin)
+          b = text.index(end, a) + len(end)
+          p.write_text(text[:a] + begin + '\nOLD-AAOP-BOOTSTRAP\n' + end + text[b:])
+          PY
+
+          python scripts/install.py "$target" --upgrade > "$target/upgrade.out"
+          grep -q 'AAOP upgraded' "$target/upgrade.out"
+          grep -q 'version: 0.10.0' "$target/upgrade.out"
+          grep -q 'KEEP-OUTSIDE-AAOP' "$target/AGENTS.md"
+          grep -q 'adoption_review' "$target/AGENTS.md"
+          ! grep -q 'OLD-AAOP-BOOTSTRAP' "$target/AGENTS.md"
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
+          grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
+          grep -qx 'project-owned-aaop-file' "$target/.aaop/local-note.txt"
+          ! grep -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/ORCHESTRATOR.md"
+          grep -R -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/runtime/upgrade-backups"
+          python - "$target/.aaop/.install-manifest.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['aaop_version'] == '0.10.0'
+          assert d['schema_version'] == 1
+          assert 'ORCHESTRATOR.md' in d['files']
+          assert 'runtime/state.txt' not in d['files']
+          PY
+
+          # --force is now a non-destructive compatibility alias and must be idempotent.
+          python scripts/install.py "$target" --force > "$target/force.out"
+          grep -q 'AAOP upgraded' "$target/force.out"
+          grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
+          grep -qx 'project-owned-aaop-file' "$target/.aaop/local-note.txt"
+          test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
+
+          # Legacy install (no manifest): preserve runtime + target-only files and refresh
+          # current managed paths without destructive directory replacement.
+          legacy="$(mktemp -d)"
+          printf '# Legacy project\n' > "$legacy/AGENTS.md"
+          python scripts/install.py "$legacy"
+          rm "$legacy/.aaop/.install-manifest.json"
+          mkdir -p "$legacy/.aaop/runtime"
+          printf 'legacy-runtime\n' > "$legacy/.aaop/runtime/state.txt"
+          printf 'legacy-local\n' > "$legacy/.aaop/local-note.txt"
+          python scripts/install.py "$legacy" --upgrade > "$legacy/upgrade.out"
+          grep -q 'legacy upgrade:' "$legacy/upgrade.out"
+          grep -qx 'legacy-runtime' "$legacy/.aaop/runtime/state.txt"
+          grep -qx 'legacy-local' "$legacy/.aaop/local-note.txt"
+          test -f "$legacy/.aaop/.install-manifest.json"
+
+          # Malformed bootstrap markers must fail before the package is mutated.
+          broken="$(mktemp -d)"
+          printf '# Broken marker project\n' > "$broken/AGENTS.md"
+          python scripts/install.py "$broken"
+          printf '\nLOCAL-SENTINEL\n' >> "$broken/.aaop/ORCHESTRATOR.md"
+          printf '\n<!-- AAOP:BEGIN -->\n' >> "$broken/AGENTS.md"
+          if python scripts/install.py "$broken" --upgrade > "$broken/upgrade.out" 2>&1; then
+            echo 'expected malformed marker upgrade to fail' >&2
+            exit 1
+          fi
+          grep -q 'LOCAL-SENTINEL' "$broken/.aaop/ORCHESTRATOR.md"
+          grep -q 'expected exactly one matching AAOP marker pair' "$broken/upgrade.out"
+
+          python scripts/validate.py --root "$target" --package-only
