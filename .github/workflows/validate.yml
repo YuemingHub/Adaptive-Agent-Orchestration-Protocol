@@ -28,15 +28,17 @@ jobs:
           python - /tmp/aaop-source-health.json <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
+          expected = open('.aaop/VERSION').read().strip()
           assert d['state'] == 'source-tree', d
           assert d['manifest_present'] is False
-          assert d['package_version'] == '0.11.0'
+          assert d['package_version'] == expected
           assert 'tamper-proof' in d['trust_boundary']
           PY
       - name: Smoke-test installer, environment resolution, routes, recipes, adoption reviews, health, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
+          expected_version="$(cat .aaop/VERSION)"
           target="$(mktemp -d)"
           printf '# Existing project rules\n\nKeep this line.\n' > "$target/AGENTS.md"
           python scripts/install.py "$target"
@@ -55,23 +57,24 @@ jobs:
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
           test -f "$target/.aaop/schemas/integration-recipe.schema.json"
           test -f "$target/.aaop/.install-manifest.json"
-          grep -qx '0.11.0' "$target/.aaop/VERSION"
+          grep -qx "$expected_version" "$target/.aaop/VERSION"
 
           python "$target/.aaop/tools/health.py" "$target" --json > "$target/health-clean.json"
-          python - "$target/health-clean.json" "$target/.aaop/.install-manifest.json" <<'PY'
+          python - "$target/health-clean.json" "$target/.aaop/.install-manifest.json" "$expected_version" <<'PY'
           import json, sys
           health = json.load(open(sys.argv[1]))
           manifest = json.load(open(sys.argv[2]))
+          expected = sys.argv[3]
           assert health['state'] == 'healthy', health
-          assert health['package_version'] == '0.11.0'
-          assert health['manifest_version'] == '0.11.0'
+          assert health['package_version'] == expected
+          assert health['manifest_version'] == expected
           assert health['manifest_schema_version'] == 2
           assert health['managed_files']['modified'] == []
           assert health['managed_files']['missing'] == []
           assert health['bootstrap']['AGENTS.md']['status'] == 'current'
           assert health['bootstrap']['CLAUDE.md']['status'] == 'current'
           assert manifest['schema_version'] == 2
-          assert manifest['aaop_version'] == '0.11.0'
+          assert manifest['aaop_version'] == expected
           assert set(manifest['bootstrap_blocks']) == {'AGENTS.md', 'CLAUDE.md'}
           assert 'tools/health.py' in manifest['files']
           PY
@@ -158,6 +161,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          expected_version="$(cat .aaop/VERSION)"
 
           # Manifest-backed drift: managed file + bootstrap edits are detected before repair,
           # then --upgrade backs up managed edits and returns the installation to healthy.
@@ -191,7 +195,7 @@ jobs:
 
           python scripts/install.py "$target" --upgrade > "$target/upgrade.out"
           grep -q 'AAOP upgraded' "$target/upgrade.out"
-          grep -q 'version: 0.11.0' "$target/upgrade.out"
+          grep -q "version: $expected_version" "$target/upgrade.out"
           grep -q 'KEEP-OUTSIDE-AAOP' "$target/AGENTS.md"
           grep -q 'health.py' "$target/AGENTS.md"
           ! grep -q 'OLD-AAOP-BOOTSTRAP' "$target/AGENTS.md"
@@ -201,12 +205,13 @@ jobs:
           ! grep -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/ORCHESTRATOR.md"
           grep -R -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/runtime/upgrade-backups"
           python "$target/.aaop/tools/health.py" "$target" --json > "$target/health-repaired.json"
-          python - "$target/health-repaired.json" "$target/.aaop/.install-manifest.json" <<'PY'
+          python - "$target/health-repaired.json" "$target/.aaop/.install-manifest.json" "$expected_version" <<'PY'
           import json, sys
           health = json.load(open(sys.argv[1]))
           manifest = json.load(open(sys.argv[2]))
+          expected = sys.argv[3]
           assert health['state'] == 'healthy', health
-          assert manifest['aaop_version'] == '0.11.0'
+          assert manifest['aaop_version'] == expected
           assert manifest['schema_version'] == 2
           assert set(manifest['bootstrap_blocks']) == {'AGENTS.md', 'CLAUDE.md'}
           PY
