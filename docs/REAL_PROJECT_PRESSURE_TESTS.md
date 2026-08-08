@@ -13,6 +13,8 @@ A generic orchestration protocol can look correct while still making bad develop
 - treating an old issue as though it describes current head;
 - merging a deeply stale PR because its intent is still useful;
 - choosing the newest document as truth when the project has an explicit authority hierarchy;
+- recursively reading every link/reference in a governance-heavy repository until context is exhausted;
+- continuing to inventory a small handoff repository after current state and the next target are already clear;
 - copying a security issue's headline directly into a present-tense adoption verdict;
 - turning a read-only review into unrequested fixes;
 - treating a blocked network/authorization path as a reason to install more tooling;
@@ -142,6 +144,62 @@ Guards:
 - `current-source-before-conclusion`
 - `risk-is-contextual`
 - `review-is-read-only-by-default`
+
+## v0.15 bounded-discovery pressure batch
+
+This batch used three real repository shapes to test whether AAOP v0.14 knew **when to stop reading**, not only what instruction files existed.
+
+### Governance reference graph — `repo-recovery`
+
+Public source: `YuemingHub/mingos-foundation`.
+
+The repository has explicit current/canonical state and source-role records, but those authoritative documents link to a very large governance graph through `related`, `depends_on`, registries, RFCs, ADRs, and historical records.
+
+Lesson: an authoritative index is a navigation anchor, not a recursive coverage obligation. Start from the current/canonical entrypoints and follow a reference only when it can resolve a material question affecting the route, baseline, target, acceptance evidence, or risk boundary.
+
+Guards:
+
+- `source-authority-freshness`
+- `bounded-evidence-traversal`
+
+### Small handoff repository — `repo-recovery`
+
+Public source: `YuemingHub/ymai-website`.
+
+The README and handoff already describe the prototype boundary, missing real capabilities, recommended integration order, and first real end-to-end Definition of Done.
+
+Lesson: small repositories need less discovery, not the same ceremony compressed into fewer files. Once current state and one next target are defensible, stop; inspect implementation details only when the next engineering step needs them.
+
+Guard:
+
+- `bounded-evidence-traversal`
+
+### Explicit read order beats historical scan — `repo-recovery`
+
+Anonymized real-project source.
+
+The repository has a long history, release/server documents, and a production-named branch, but the root instructions explicitly declare a short first-read order and exclude historical deployment/release records from ordinary current work.
+
+Lesson: project-declared first-read and historical-exclusion rules are discovery controls. Follow them before broad scanning; branch names and old deployment artifacts do not override an explicit current-state source.
+
+Guards:
+
+- `source-authority-freshness`
+- `bounded-evidence-traversal`
+
+### General rule earned by this batch
+
+```text
+current request
+→ governing instructions
+→ declared current/canonical entrypoints
+→ material unknown
+→ one supporting reference if needed
+→ relevant implementation/test/runtime evidence
+→ stop
+```
+
+Reference graphs, directory size, and document counts do not create a duty to read more. Deeper traversal must be justified by a concrete unresolved question.
 
 ## Adding future cases
 

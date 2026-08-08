@@ -1,0 +1,41 @@
+{
+  "version": "0.15.0",
+  "id": "anonymized-explicit-read-order-beats-history-scan",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-08",
+    "privacy": "anonymized"
+  },
+  "developer_request": "This long-running product repository has old deployment records, release notes, and many prior AI edits. Understand the current state and continue the product work.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The root project instructions declare a short mandatory first-read order containing current project status, current product contract, and current implementation state.",
+    "The same instructions explicitly say historical release/deployment/server records are not current sources unless the task specifically concerns history or future release re-authorization.",
+    "The repository's branch name and historical files can misleadingly suggest an active production state even though the declared current-status source says otherwise.",
+    "The current product contract already narrows the highest-priority user journey before broad technical cleanup."
+  ],
+  "expected_first_moves": [
+    "Follow the repository-declared first-read order before broad file/history search.",
+    "Use the declared current-status and product-contract sources to establish current stage and product priority.",
+    "Inspect only the code/tests relevant to the first current product path to be stabilized.",
+    "Open historical deployment/release evidence only if a concrete current question cannot be answered without it."
+  ],
+  "must_preserve": [
+    "The repository owner's declared current-source hierarchy and explicit historical-source exclusions.",
+    "The distinction between branch/file history and current operational reality.",
+    "The current product-loop priority over broad cleanup or feature accumulation."
+  ],
+  "must_not": [
+    "Infer active production merely from a production-named branch, release documents, or server records.",
+    "Read all historical deployment material before the declared current sources.",
+    "Treat a large repository as justification for exhaustive discovery before selecting the first current product path."
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "bounded-evidence-traversal"
+  ],
+  "lessons": [
+    "Explicit project read-order and exclusion rules are themselves discovery controls and should beat generic repository-wide scanning.",
+    "Brownfield recovery should reconstruct current truth from declared authority first, then inspect only the implementation surface needed for the next high-value path."
+  ]
+}

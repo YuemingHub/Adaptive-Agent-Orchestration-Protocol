@@ -1,0 +1,42 @@
+{
+  "version": "0.15.0",
+  "id": "public-governance-reference-graph-bounded-discovery",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-foundation",
+    "reference": "README.md; governance/status/GOV-0001-current-canonical-state.md; governance/sources/GOV-0002-source-registry.md",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "Understand this standards/governance repository, tell me what is current, and identify the next useful work without reading the whole history first.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The repository README names a current project stage and points to current canonical-state and source-registry records.",
+    "The canonical-state record is accepted/current but carries a very large depends_on/related graph spanning many governance artifacts.",
+    "The source registry explicitly distinguishes canonical, official, accepted, draft, experimental, superseded, archived, and unregistered sources.",
+    "The immediate developer decision can be framed from current entrypoints before recursively visiting every referenced artifact."
+  ],
+  "expected_first_moves": [
+    "Read the README current-status section, the current canonical-state record, and the source registry as the initial authoritative entrypoint set.",
+    "Define the immediate decision horizon: current stage, authoritative source roles, and the next work target.",
+    "Follow a referenced ADR/RFC/governance artifact only when it resolves a material unknown or contradiction affecting that decision.",
+    "Stop once current state, source authority, and the next work target are defensible; keep unresolved material questions explicit."
+  ],
+  "must_preserve": [
+    "The repository's own source-status vocabulary and authority model.",
+    "The distinction between current canonical governance records and historical/external evidence."
+  ],
+  "must_not": [
+    "Recursively read every depends_on/related item merely because an accepted current-state document references it.",
+    "Treat the number of linked governance artifacts as a coverage requirement before making the next decision.",
+    "Produce an exhaustive repository history/map when a bounded current-state reconstruction is sufficient."
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "bounded-evidence-traversal"
+  ],
+  "lessons": [
+    "An authoritative index or current-state document is a navigation anchor, not an instruction to traverse its entire reference graph.",
+    "Repository reliability improves when discovery follows material questions and stops once the immediate decision is defensible."
+  ]
+}

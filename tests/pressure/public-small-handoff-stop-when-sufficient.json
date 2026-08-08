@@ -1,0 +1,41 @@
+{
+  "version": "0.15.0",
+  "id": "public-small-handoff-stop-when-sufficient",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/ymai-website",
+    "reference": "README.md; HANDOFF.md",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "Understand this small website/product prototype and tell me what should happen next.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The README already identifies the product positioning, technology stack, routes, and important non-production boundaries.",
+    "The HANDOFF explicitly separates completed prototype surfaces from missing authentication, data, AI, permissions, and payment capabilities.",
+    "The HANDOFF gives a recommended integration order and a concrete first real end-to-end Definition of Done.",
+    "There is no need to read every component or generated output before identifying the next product/integration move."
+  ],
+  "expected_first_moves": [
+    "Read README and HANDOFF as the initial project-state and transition entrypoints.",
+    "Inspect the manifest and only the implementation path relevant to the selected next integration step when needed.",
+    "Translate the handoff into one current high-value target rather than reconstructing the entire repository architecture.",
+    "Stop discovery when the current prototype boundary and one next implementation target are clear."
+  ],
+  "must_preserve": [
+    "The explicit statement that the current login/prototype does not represent real authentication, family data, model calls, or active commercial terms.",
+    "The distinction between a deployable website and the unfinished real product loop."
+  ],
+  "must_not": [
+    "Scan every component, route, generated static file, and document before naming the next useful step.",
+    "Manufacture a large project profile, architecture migration, or provider plan when the existing handoff already bounds the immediate decision.",
+    "Treat deployability of the static site as proof that the real family product is complete."
+  ],
+  "required_guard_ids": [
+    "bounded-evidence-traversal"
+  ],
+  "lessons": [
+    "Small repositories need less discovery, not the same ceremony compressed into fewer files.",
+    "When README and handoff already establish current state and the next decision, deeper traversal should be triggered by a concrete implementation question."
+  ]
+}
