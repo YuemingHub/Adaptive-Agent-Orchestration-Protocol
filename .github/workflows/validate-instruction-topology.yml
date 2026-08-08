@@ -22,6 +22,8 @@ jobs:
         run: |
           set -euo pipefail
           target="$(mktemp -d)"
+          before="$(mktemp)"
+          after="$(mktemp)"
           mkdir -p "$target/backend" "$target/services" "$target/frontend/.cursor/rules" "$target/.cursor/rules"
 
           cat > "$target/AGENTS.md" <<'EOF'
@@ -60,11 +62,13 @@ jobs:
           EOF
           printf 'legacy cursor rule\n' > "$target/.cursorrules"
 
-          find "$target" -type f -print0 | sort -z | xargs -0 sha256sum > "$target.before"
-          python .aaop/tools/instructions.py "$target" --json > "$target/topology.json"
-          find "$target" -type f ! -name 'topology.json' ! -name '*.before' ! -name '*.after' -print0 | sort -z | xargs -0 sha256sum > "$target.after"
+          find "$target" -type f -print0 | sort -z | xargs -0 sha256sum > "$before"
+          topology="$(mktemp)"
+          python .aaop/tools/instructions.py "$target" --json > "$topology"
+          find "$target" -type f -print0 | sort -z | xargs -0 sha256sum > "$after"
+          diff -u "$before" "$after"
 
-          python - "$target/topology.json" <<'PY'
+          python - "$topology" <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
           assert d['read_only'] is True
@@ -110,11 +114,6 @@ jobs:
           assert 'Inventory only' in d['boundary']
           PY
 
-          # Remove derived outputs before comparing source instruction files.
-          rm "$target/topology.json"
-          find "$target" -type f ! -name '*.before' ! -name '*.after' -print0 | sort -z | xargs -0 sha256sum > "$target.after"
-          diff -u "$target.before" "$target.after"
-
       - name: Verify installed package includes topology tool and remains healthy
         shell: bash
         run: |
@@ -132,9 +131,11 @@ jobs:
           assert d['cursor']['root_claude_cli']['aaop_block'] is True
           PY
           python "$target/.aaop/tools/health.py" "$target" --json > "$target/health.json"
-          python - "$target/health.json" <<'PY'
+          python - "$target/health.json" "$target/.aaop/.install-manifest.json" <<'PY'
           import json, sys
-          d = json.load(open(sys.argv[1]))
-          assert d['state'] == 'healthy', d
-          assert 'tools/instructions.py' in open(sys.argv[1]).read() or True
+          health = json.load(open(sys.argv[1]))
+          manifest = json.load(open(sys.argv[2]))
+          assert health['state'] == 'healthy', health
+          assert 'tools/instructions.py' in manifest['files']
+          assert 'schemas/instruction-topology.schema.json' in manifest['files']
           PY
