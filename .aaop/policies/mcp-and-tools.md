@@ -1,6 +1,6 @@
 # AAOP MCP & Tool Resolution Policy
 
-Version: 0.1.0
+Policy-Revision: 0.1.0
 
 MCP is an external capability transport, not a synonym for a Skill and not the default answer to every missing capability.
 

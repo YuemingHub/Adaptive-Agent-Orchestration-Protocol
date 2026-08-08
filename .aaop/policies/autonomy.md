@@ -1,6 +1,6 @@
 # AAOP Autonomy Policy
 
-Version: 0.18.0
+Policy-Revision: 0.18.0
 
 AAOP uses risk-based autonomy rather than a universal “ask before every step” or “do everything without asking” mode.
 
