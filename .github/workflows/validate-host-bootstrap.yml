@@ -1,0 +1,73 @@
+name: validate-host-bootstrap
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate static host bootstrap contract
+        run: python scripts/validate_host_bootstrap.py
+
+      - name: Smoke-test installed cross-host bridges
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          printf '# Existing agent rules\n\nKEEP-AGENT-RULE\n' > "$target/AGENTS.md"
+          printf '# Existing Claude rules\n\nKEEP-CLAUDE-RULE\n' > "$target/CLAUDE.md"
+
+          python scripts/install.py "$target"
+
+          grep -q 'KEEP-AGENT-RULE' "$target/AGENTS.md"
+          grep -q 'KEEP-CLAUDE-RULE' "$target/CLAUDE.md"
+          grep -q '.aaop/ORCHESTRATOR.md' "$target/AGENTS.md"
+          grep -q '.aaop/skills/developer-intake/SKILL.md' "$target/AGENTS.md"
+          grep -q '.aaop/skills/route-execution/SKILL.md' "$target/AGENTS.md"
+          grep -q '.aaop/ORCHESTRATOR.md' "$target/CLAUDE.md"
+          grep -q '.aaop/skills/developer-intake/SKILL.md' "$target/CLAUDE.md"
+          grep -q '.aaop/skills/route-execution/SKILL.md' "$target/CLAUDE.md"
+          grep -q 'This block is intentionally small' "$target/CLAUDE.md"
+          test ! -d "$target/.cursor/rules"
+
+          python - "$target/AGENTS.md" "$target/CLAUDE.md" <<'PY'
+          from pathlib import Path
+          import sys
+
+          begin = '<!-- AAOP:BEGIN -->'
+          end = '<!-- AAOP:END -->'
+
+          def block(path):
+              text = Path(path).read_text()
+              a = text.index(begin)
+              b = text.index(end, a) + len(end)
+              return text[a:b]
+
+          agents = block(sys.argv[1])
+          claude = block(sys.argv[2])
+          agents_lines = [x for x in agents.splitlines() if x.strip()]
+          claude_lines = [x for x in claude.splitlines() if x.strip()]
+          assert len(claude_lines) < len(agents_lines) * 0.55, (len(agents_lines), len(claude_lines))
+          assert 'Agent/MCP/RAG/vector DB/graph/memory' in agents
+          assert 'Agent/MCP/RAG/vector DB/graph/memory' not in claude
+          PY
+
+          python "$target/.aaop/tools/health.py" "$target" --json > "$target/health.json"
+          python - "$target/health.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'healthy', d
+          assert d['bootstrap']['AGENTS.md']['status'] == 'current'
+          assert d['bootstrap']['CLAUDE.md']['status'] == 'current'
+          PY
