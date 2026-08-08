@@ -22,7 +22,7 @@ from pathlib import Path
 AAOP_BEGIN = "<!-- AAOP:BEGIN -->"
 AAOP_END = "<!-- AAOP:END -->"
 MANIFEST_NAME = ".install-manifest.json"
-MANIFEST_SCHEMA_VERSION = 1
+MANIFEST_SCHEMA_VERSION = 2
 
 AGENTS_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
@@ -45,6 +45,12 @@ and remain read-only unless mutation is explicitly requested.
 Establish the relevant current baseline/source authority before treating old issues,
 PRs, branches, status files, or prior AI conclusions as current truth. Apply route
 pressure guards when their condition is present.
+
+Before relying on an existing AAOP installation when integrity is uncertain, use
+`python .aaop/tools/health.py . --json`. Treat `drifted`, `incomplete`, or invalid
+manifest/bootstrap states as evidence to review, not permission to overwrite local
+state. The health check is best-effort accidental-drift detection, not a security
+trust root.
 
 Reuse current host/repository capabilities first. If work is blocked, distinguish
 missing evidence, environment/network limits, authorization, credentials, external
@@ -73,11 +79,13 @@ For ideas, outcome and a learning-bearing first slice come before architecture;
 implementation vocabulary is not automatically a requirement. For reviews, frame
 the decision, verify current evidence, contextualize risk, and do not mutate by
 default. Reconcile stale artifacts with the current baseline, apply route pressure
-guards, and classify blockers before calling them capability gaps. Do not add
-providers merely because they are listed; prove a technical gap first. Re-check any
-applicable Recipe `adoption_review` against current upstream/context before adoption.
-Do not fabricate completion when an environment/permission/evidence blocker requires
-a legitimate unblock.
+guards, and classify blockers before calling them capability gaps. If AAOP install
+integrity is uncertain, use `.aaop/tools/health.py` before trusting modified/missing
+protocol files; do not silently repair drift. Do not add providers merely because
+they are listed; prove a technical gap first. Re-check any applicable Recipe
+`adoption_review` against current upstream/context before adoption. Do not fabricate
+completion when an environment/permission/evidence blocker requires a legitimate
+unblock.
 {AAOP_END}
 """
 
@@ -88,6 +96,10 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
 def aaop_version(source_package: Path) -> str:
@@ -136,6 +148,10 @@ def write_manifest(destination: Path, version: str, files: dict[str, Path]) -> N
         "aaop_version": version,
         "managed_by": "AAOP installer",
         "files": {relative: sha256_file(destination / relative) for relative in sorted(files)},
+        "bootstrap_blocks": {
+            "AGENTS.md": sha256_text(AGENTS_BLOCK.rstrip("\n")),
+            "CLAUDE.md": sha256_text(CLAUDE_BLOCK.rstrip("\n")),
+        },
     }
     (destination / MANIFEST_NAME).write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
@@ -313,6 +329,7 @@ def main() -> int:
         print("  legacy upgrade: no prior install manifest; runtime/target-only files were preserved, current managed paths were refreshed")
     print("  third-party providers installed: none")
     print("  secrets requested: none")
+    print("Optional health: python .aaop/tools/health.py .")
     print("Optional inventory: python .aaop/tools/doctor.py .")
     print("Optional route packs: python .aaop/tools/route.py list")
     print("Optional provider recipes: python .aaop/tools/recipe.py list")
