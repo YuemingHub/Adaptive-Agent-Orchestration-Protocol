@@ -1,7 +1,7 @@
 {
-  "version": "0.16.0",
+  "version": "0.17.0",
   "route_id": "repo-recovery",
-  "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then make one evidence-backed improvement without broad speculative cleanup or automatic cross-repository expansion.",
+  "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
   "stages": [
     {
@@ -14,19 +14,19 @@
     },
     {
       "id": "truth-reconstruction",
-      "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown and external-repository evidence without erasing conflicts, and identify the highest-leverage blocker.",
+      "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown and external-repository evidence without erasing conflicts, and determine whether a current local execution delta actually exists.",
       "required_capabilities": ["cross-evidence-synthesis", "architecture-understanding", "risk-prioritization", "conflict-preservation"],
       "optional_capabilities": ["runtime-probing", "security-risk-review"],
-      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "external repository source/revision/status when a material claim is owned there", "explicit unresolved conflicts when no justified winner exists"],
-      "exit_when": "A concise current-state model and prioritized recovery target are defensible from evidence, with repository boundaries, conflicts, and uncertainty preserved rather than silently expanded or resolved."
+      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "external repository source/revision/status when a material claim is owned there", "observable desired state versus current state", "explicit unresolved conflicts when no justified winner exists"],
+      "exit_when": "A concise current-state model is defensible and the next result is classified as a current authorized local delta, a reroute, a blocker, or a verified no-op/no-local-mutation-justified outcome."
     },
     {
       "id": "stabilize-one-path",
-      "purpose": "Fix or stabilize one high-value path in the active work target before broad refactoring, using the reconstructed current baseline rather than stale artifacts or external repositories as accidental implementation authority.",
+      "purpose": "When truth reconstruction proves a current authorized local delta still owned by repo-recovery, fix or stabilize one high-value path before broad refactoring. If no such delta exists, skip mutation and close recovery with the verified no-op/no-local-mutation evidence instead of manufacturing work.",
       "required_capabilities": ["targeted-implementation", "regression-validation"],
       "optional_capabilities": ["specification-management", "browser-validation"],
-      "evidence": ["before/after behavior", "tests or runtime checks", "scope-limited diff", "evidence that the chosen path follows the current source of truth", "explicit separate authorization if another repository also requires mutation"],
-      "exit_when": "One meaningful path is more trustworthy and the next recovery priority is clearer without unrequested cross-repository mutation."
+      "evidence": ["proven local execution delta when mutation occurs", "before/after behavior", "tests or runtime checks", "scope-limited diff", "evidence that the chosen path follows the current source of truth", "or evidence that the requested/current state already holds or that meaningful next work is conditional/externally owned", "explicit separate authorization if another repository also requires mutation"],
+      "exit_when": "One meaningful local path is more trustworthy and verified, or evidence proves no current local mutation is justified; no cosmetic or unrequested cross-repository change was created."
     }
   ],
   "pressure_guards": [
@@ -40,33 +40,56 @@
     },
     {
       "id": "bounded-evidence-traversal",
-      "rule": "Start from explicit project first-read/current/canonical entrypoints when available. Treat links, related/depends_on metadata, registries, indexes, historical release lists, directory inventories, and repository maps as navigation rather than mandatory coverage. Follow an edge only when it can change the immediate route, baseline, target, acceptance evidence, dependency status, or risk boundary; stop once the recovery target is defensible."
+      "rule": "Start from explicit project first-read/current/canonical entrypoints when available. Treat links, related/depends_on metadata, registries, indexes, historical release lists, directory inventories, and repository maps as navigation rather than mandatory coverage. Follow an edge only when it can change the immediate route, baseline, target, acceptance evidence, dependency status, or risk boundary; stop once the recovery decision is defensible."
     },
     {
       "id": "cross-repository-scope-boundary",
       "rule": "A referenced upstream/downstream repository is evidence or dependency scope, not automatically an active work target. Cross repositories only when a material claim is owned there or a local dependency/coordination record is stale, ambiguous, or insufficient; read the smallest authoritative source/revision needed, then return to the active repository. Evidence access does not authorize mutation, and product evidence must not be silently promoted into shared protocol/governance by cross-repository edits."
+    },
+    {
+      "id": "prove-delta-before-mutation",
+      "rule": "Do not mutate merely because the user authorized continued work or because repo-recovery has a stabilization stage. First prove a current observable delta in the active repository. If a local authorized delta exists, execute or reroute to the owning route; if the desired state already holds or meaningful next work is conditional/externally owned, return a verified no-op/no-local-mutation result instead of inventing a diff."
     }
   ],
   "escalations": [
     {
-      "when": "The project needs durable reconstruction of intent/specifications before continued feature work.",
+      "when": "The project needs durable reconstruction of intent/specifications before continued feature work and a current local specification delta is proven.",
       "capability_gap": "brownfield specification and artifact alignment",
       "provider_candidates": ["spec-kit"],
-      "selection_rule": "Prefer core Spec Kit existing-project/evolving-spec workflows first; treat community brownfield extensions as untrusted candidates until source and permissions are reviewed."
+      "selection_rule": "Prefer core Spec Kit existing-project/evolving-spec workflows first; treat community brownfield extensions as untrusted candidates until source and permissions are reviewed. Do not add specification machinery merely because recovery produced no local change."
     },
     {
-      "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems after bounded discovery has already identified the relevant surface.",
+      "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems after bounded discovery has already identified a real current execution surface.",
       "capability_gap": "long-horizon repository execution",
       "provider_candidates": ["deepagents", "openhands"],
-      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy, cross-referenced, or exposes a large reference graph."
+      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy, cross-referenced, or has no immediate local delta."
     },
     {
-      "when": "Recovery reveals that the immediate blocker is a bounded reproducible defect.",
+      "when": "Recovery reveals that the immediate current delta is a bounded reproducible defect.",
       "capability_gap": "bounded issue-resolution loop",
       "provider_candidates": ["mini-swe-agent"],
-      "selection_rule": "Reroute to bug-fix first; use mini-SWE-agent only if the issue is clear and verifiable."
+      "selection_rule": "Reroute to bug-fix first; use mini-SWE-agent only if the issue is current, clear, and verifiable."
     }
   ],
-  "verification": ["current-state claims are grounded in repository/runtime evidence", "material sources have authority/freshness considered rather than being flattened into one truth", "explicit project entrypoints/exclusions were respected", "reference/repository graphs were traversed only for material unresolved questions", "active repository/work target remained explicit", "external repository reads were justified by claim ownership or stale/insufficient local dependency evidence", "cross-repository writes did not occur without separate scope/authorization", "unresolved conflicts remain explicit", "one prioritized improvement is verified", "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"],
-  "reroute_signals": ["a specific failing behavior becomes primary -> bug-fix", "a desired new behavior becomes primary -> feature-change", "the user only needs a decision/review -> understand-review"]
+  "verification": [
+    "current-state claims are grounded in repository/runtime evidence",
+    "material sources have authority/freshness considered rather than being flattened into one truth",
+    "explicit project entrypoints/exclusions were respected",
+    "reference/repository graphs were traversed only for material unresolved questions",
+    "active repository/work target remained explicit",
+    "external repository reads were justified by claim ownership or stale/insufficient local dependency evidence",
+    "cross-repository writes did not occur without separate scope/authorization",
+    "a mutation occurred only after a current local execution delta was proven",
+    "when no current local delta existed, verified no-op/no-local-mutation evidence was accepted instead of manufacturing a change",
+    "when recovery exposed a concrete bug or desired behavior, the route executed or rerouted instead of remaining in analysis mode",
+    "unresolved conflicts remain explicit",
+    "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"
+  ],
+  "reroute_signals": [
+    "a specific current failing behavior becomes primary -> bug-fix",
+    "a current desired new behavior becomes primary -> feature-change",
+    "the user only needs a decision/review -> understand-review",
+    "the supposed local next step is already satisfied or not currently justified -> verified no-op / no-local-mutation, do not invent work",
+    "the meaningful next delta belongs to another repository -> preserve cross-repository scope and establish separate work scope there"
+  ]
 }

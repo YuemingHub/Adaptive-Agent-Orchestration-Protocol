@@ -32,15 +32,13 @@ Read any `pressure_guards` in the pack as route-level invariants derived from re
 
 ## Step 2 — Inventory before matching
 
-When `.aaop/tools/doctor.py` is available, prefer a read-only inventory before guessing what the environment contains:
+When `.aaop/tools/doctor.py` is available, prefer a read-only inventory before guessing what the environment contains **when that inventory can change the current decision**:
 
 ```bash
 python .aaop/tools/doctor.py . --route <route-id> --json
 ```
 
-The doctor reads provider detection hints from Integration Recipes, so its `provider_detection` evidence is preferable to hard-coded assumptions about installed frameworks.
-
-Treat the inventory as **presence evidence, not a recommendation**. A detected provider can still be irrelevant; a non-detected provider can still be unnecessary.
+Treat the inventory as **presence evidence, not a recommendation or mandatory ceremony**. A detected provider can still be irrelevant; a non-detected provider can still be unnecessary.
 
 For the current stage, map each `required_capabilities` entry against:
 
@@ -51,13 +49,11 @@ For the current stage, map each `required_capabilities` entry against:
 5. detected existing providers/runtimes;
 6. specialist/subagent capability already available.
 
-If the capability is already available, use it.
-
-A provider candidate in the route pack is **not** a default dependency.
+If the capability is already available, use it. A provider candidate in the route pack is **not** a default dependency.
 
 ## Step 3 — Work stage by stage, evidence first
 
-For each stage:
+For each applicable stage:
 
 - understand its `purpose`;
 - collect the smallest useful `evidence`;
@@ -67,7 +63,35 @@ For each stage:
 
 Do not manufacture documents merely because a stage exists. Evidence may be code, a failing test, runtime behavior, a decision, a short spec, a browser trace, a historical artifact classified by freshness/authority, or a validated deployment state.
 
-## Step 4 — Classify blockers before declaring a capability gap
+A stage can become **not applicable** when evidence proves its intended mutation is unnecessary, belongs to another route/repository, or is outside current authorization. Do not execute a stage only to show activity.
+
+## Step 4 — Prove the execution delta before mutation
+
+Authorization to work is not proof that a change is necessary.
+
+Before a material code/config/document mutation, compare the route's observable outcome with current evidence and classify the delta:
+
+- `local-delta` — a current, evidence-backed difference exists in the active work target and the requested action class authorizes changing it;
+- `verified-no-op` — the requested/route outcome is already true, or recovery shows no current local mutation is justified;
+- `reroute` — the real delta exists but belongs to another route, repository, or action class;
+- `blocked` — the delta may exist, but evidence, environment, authorization, credential, external dependency, or product decision prevents legitimate execution.
+
+Rules:
+
+1. `local-delta` → execute the smallest coherent change and verify it.
+2. `verified-no-op` → do not create a diff for appearances. Record the evidence that makes no mutation the correct result.
+3. `reroute` → move the immediate outcome to the correct route; for another repository, preserve the cross-repository scope boundary and require separate mutation scope there.
+4. `blocked` → classify the blocker precisely and state the smallest legitimate unblock.
+
+For `repo-recovery`, perform this gate after current truth is reconstructed and **before** forcing the stabilization stage. Recovery may legitimately end with `verified-no-op` / `no-local-mutation-justified` when the repository is current and the next meaningful work is conditional, externally owned, or not yet supported by evidence.
+
+Conversely, when recovery exposes a concrete local defect or desired behavior already supported by current project evidence, do not remain in analysis mode: stabilize it directly when still owned by `repo-recovery`, or reroute to `bug-fix` / `feature-change` and continue execution.
+
+“Continue”, “fix it”, or broad implementation authorization gives permission within its risk/action class; it does not create an obligation to invent a change when no delta is proven.
+
+Project-declared engineering gates still apply. Proving a delta does not authorize bypassing a repository's required planning, tests, review, or release process.
+
+## Step 5 — Classify blockers before declaring a capability gap
 
 When work cannot proceed, diagnose the blocker before searching for another tool/framework.
 
@@ -77,15 +101,15 @@ Common blocker classes:
 - `environment` — sandbox/network/OS/runtime constraints prevent the intended action;
 - `authorization` — the action is outside granted scope or requires approval;
 - `credential` — required secret/account/token is unavailable;
-- `external-dependency` — an external service/system is down, unavailable, or outside control;
+- `external-dependency` — an external service/system is down, unavailable, outside control, or must produce new evidence first;
 - `product-decision` — two materially different product outcomes remain and repository evidence cannot choose;
 - `capability-gap` — the action is authorized/reachable but the current execution system genuinely lacks a technical ability.
 
 Only the last class directly justifies provider selection.
 
-Do **not** respond to environment/authorization/credential/external/product blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, or alternate access path. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
+Do **not** respond to environment/authorization/credential/external/product blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, alternate access path, or unrelated local change. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
 
-## Step 5 — Prove a gap before escalation
+## Step 6 — Prove a gap before escalation
 
 Use an escalation only when its `when` condition is actually present, the blocker is truly a `capability-gap`, and the named `capability_gap` remains unresolved.
 
@@ -102,7 +126,7 @@ Then:
 
 If no provider is justified, keep using the current host.
 
-## Step 6 — Prefer provider surfaces, not provider brands
+## Step 7 — Prefer provider surfaces, not provider brands
 
 When a provider exposes several surfaces, select only the one needed.
 
@@ -115,26 +139,28 @@ Examples:
 
 Do not install a provider's entire ecosystem to obtain one narrow capability.
 
-## Step 7 — Treat community catalogs as discovery, not trust
+## Step 8 — Treat community catalogs as discovery, not trust
 
 Before adopting a community extension/plugin/bundle check source repository and publisher, maintenance, install scripts/hooks, filesystem/network/write permissions, credentials/data egress, and rollback/removal path.
 
 Catalog presence alone is never sufficient authorization.
 
-## Step 8 — Correct the route when evidence changes the situation
+## Step 9 — Correct the route when evidence changes the situation
 
-Evaluate `reroute_signals` after meaningful discoveries.
+Evaluate `reroute_signals` after meaningful discoveries and after the execution-delta gate.
 
 Examples:
 
 - feature request is actually a regression → `bug-fix`;
 - bug cannot be localized because the repository is contradictory → `repo-recovery`;
 - feature implementation is complete and deployment becomes the blocker → `release-operations`;
-- review becomes an explicit implementation request → `feature-change` or `bug-fix`.
+- review becomes an explicit implementation request → `feature-change` or `bug-fix`;
+- repository recovery exposes a current local feature gap → `feature-change`;
+- repository recovery shows the supposed next local change is already satisfied or not currently justified → verified no-op rather than invented work.
 
 Re-routing is progress, not failure. Keep queued secondary intents, but only one route should normally own the immediate outcome.
 
-## Step 9 — Verify route completion
+## Step 10 — Verify route completion
 
 Use the pack's `verification` list as the final route-level evidence contract.
 
@@ -142,17 +168,21 @@ Also verify separately that any provider added during execution actually closed 
 
 A safely blocked task is not a successful outcome, but it can be a correct execution result when the route preserves unknown state, does not widen authorization, and identifies the precise minimal unblock.
 
+A **verified no-op is a successful engineering result** when evidence proves the requested observable state already holds or no current mutation is justified. Do not call it a blocker and do not create a cosmetic diff to avoid reporting no-op.
+
 Remove or disable unnecessary provider machinery when the task can return to a simpler layer.
 
 ## Completion criterion
 
 Route execution is complete when:
 
-- the current route's observable outcome is supported by evidence, or the task is explicitly and safely blocked with no fabricated completion;
-- material evidence freshness/authority has been respected where relevant;
+- the current route's observable outcome is supported by evidence, the task is explicitly and safely blocked, or a verified no-op is the correct result;
+- any material mutation was preceded by evidence of a real execution delta;
+- material evidence freshness/authority and repository scope have been respected where relevant;
 - required capabilities were satisfied with the smallest practical integration surface;
 - existing environment capability was reused instead of duplicated;
-- non-capability blockers were not disguised as reasons to install more machinery;
+- non-capability blockers were not disguised as reasons to install more machinery or invent unrelated work;
 - any escalation was justified, verified, and reversible;
 - route corrections were applied when evidence required them;
+- project-declared engineering/release gates were preserved;
 - the user did not have to manage the orchestration machinery.
