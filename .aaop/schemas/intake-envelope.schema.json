@@ -32,6 +32,30 @@
       "uniqueItems": true
     },
     "constraints_observed": {"type": "array", "items": {"type": "string"}},
+    "solution_vocabulary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["term", "status"],
+        "properties": {
+          "term": {"type": "string", "minLength": 1},
+          "status": {"enum": ["hard-constraint", "preference", "hypothesis"]},
+          "reason": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "decision_frame": {
+      "type": "object",
+      "required": ["decision", "mutation_boundary"],
+      "properties": {
+        "decision": {"type": "string", "minLength": 1},
+        "usage_context": {"type": "string"},
+        "materiality": {"type": "string"},
+        "mutation_boundary": {"enum": ["read-only", "write-authorized", "unclear"]}
+      },
+      "additionalProperties": false
+    },
     "ambiguities": {"type": "array", "items": {"type": "string"}},
     "route": {
       "type": "string",
