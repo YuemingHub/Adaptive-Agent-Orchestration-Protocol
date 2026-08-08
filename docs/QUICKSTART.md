@@ -49,6 +49,39 @@ Safe upgrade rules:
 
 Legacy installations created before install manifests existed can also be upgraded. Their runtime and target-only files are preserved, but because old hashes are unavailable, the installer cannot distinguish local edits to legacy AAOP-managed paths before refreshing those current paths.
 
+### Safely remove AAOP
+
+AAOP should also be easy to leave without making the developer understand which files are safe to delete.
+
+For a manifest-tracked installation:
+
+```bash
+python scripts/install.py /path/to/your-project --uninstall
+```
+
+Safe removal rules:
+
+- remove only files listed as AAOP-owned in `.aaop/.install-manifest.json`;
+- remove only the marked AAOP blocks from `AGENTS.md` / `CLAUDE.md`;
+- preserve all text outside those markers;
+- preserve `.aaop/runtime/`;
+- preserve project-owned files under `.aaop/` that are not in the manifest;
+- back up locally modified AAOP-managed files under `.aaop/runtime/uninstall-backups/` before removing their canonical path;
+- leave third-party providers, MCP configuration, project dependencies, and other ecosystem tools untouched;
+- refuse malformed/duplicated bootstrap markers before deleting package files;
+- refuse automatic uninstall when no install manifest exists, because ownership cannot be inferred safely.
+
+For a legacy no-manifest installation, first run a trusted safe upgrade to establish explicit ownership, then uninstall:
+
+```bash
+python scripts/install.py /path/to/your-project --upgrade
+python scripts/install.py /path/to/your-project --uninstall
+```
+
+If runtime history or project-owned `.aaop` files remain after uninstall, the `.aaop/` directory intentionally remains. If nothing project-owned remains, empty AAOP directories may disappear.
+
+Safe removal does **not** uninstall Playwright, MCP servers, AutoAgent, Deep Agents, or any other provider. Those resources were not installed merely because AAOP referenced or selected them, and their lifecycle must follow their own provenance/ownership.
+
 ## 3. Check installation health before repairing it
 
 An installed AAOP can be inspected without changing anything:
