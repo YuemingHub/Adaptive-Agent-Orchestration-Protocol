@@ -287,9 +287,9 @@ If the concern is fixed upstream or irrelevant to the selected surface, it shoul
 
 This is **remembered review debt**, not a security vulnerability database.
 
-## Safe install and upgrade
+## Safe lifecycle: install, upgrade, inspect, remove
 
-AAOP should not become easy to try but risky to keep current.
+AAOP should not become easy to try but risky to keep current—or difficult to leave.
 
 Initial install:
 
@@ -303,29 +303,38 @@ Upgrade an existing installation:
 python scripts/install.py /path/to/project --upgrade
 ```
 
-The installer separates AAOP-owned state from project-owned state:
+Safely remove a manifest-tracked installation:
+
+```bash
+python scripts/install.py /path/to/project --uninstall
+```
+
+The lifecycle keeps AAOP-owned state separate from project-owned state:
 
 ```text
-AAOP-managed protocol files        → upgraded
+AAOP-managed protocol files        → upgrade/remove by manifest ownership
 .aaop/runtime/                     → preserved
 project-only files inside .aaop/   → preserved
 AGENTS/CLAUDE text outside markers → preserved
-AAOP text inside markers           → updated
+AAOP text inside markers           → update/remove only inside marker boundary
+third-party providers              → untouched
 ```
 
-An install manifest records hashes for AAOP-managed files and the canonical marked bootstrap blocks. When a managed file has been locally edited, the installer backs it up under `.aaop/runtime/upgrade-backups/` before replacing it with the canonical version. If a future AAOP release starts managing a path that collides with an existing project-owned file, that file is backed up before AAOP claims the path.
+An install manifest records hashes for AAOP-managed files and the canonical marked bootstrap blocks. On upgrade, locally edited managed files are backed up under `.aaop/runtime/upgrade-backups/` before canonical replacement. On uninstall, locally edited managed files are backed up under `.aaop/runtime/uninstall-backups/` before the manifest-owned path is removed.
 
-Malformed or duplicated bootstrap markers fail preflight **before package mutation**.
+Malformed or duplicated bootstrap markers fail preflight **before package mutation/removal**.
 
 `--force` remains a backward-compatible alias for `--upgrade`; it no longer deletes and replaces the whole `.aaop` directory.
 
-Legacy installations without a manifest can still upgrade while preserving runtime and target-only files. Because their original managed-file hashes are unknown, local changes inside legacy AAOP-managed paths cannot be distinguished before those current paths are refreshed.
+Legacy installations without a manifest can be upgraded while preserving runtime and target-only files, but automatic uninstall refuses to guess ownership. Upgrade a legacy installation first to establish explicit managed-file ownership, then uninstall.
+
+Safe AAOP removal does **not** remove Playwright, MCP servers, AutoAgent, Deep Agents, project dependencies, or other provider resources. AAOP references/selects those ecosystems; it does not claim ownership of them merely because a Recipe exists.
 
 See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
 ## Installation health: observe drift before repair
 
-v0.11 adds a read-only health check for the installed AAOP package itself:
+AAOP includes a read-only health check for the installed AAOP package itself:
 
 ```bash
 python .aaop/tools/health.py .
@@ -366,7 +375,7 @@ Important boundary: this is **best-effort accidental-drift detection**, not a cr
 - blocker classification;
 - progressive provider selection and least privilege;
 - scoped provider-adoption review debt and re-verification policy;
-- state-preserving AAOP install/upgrade semantics;
+- manifest-scoped install/upgrade/uninstall semantics with low lock-in;
 - read-only AAOP installation health and accidental-drift visibility;
 - verification, replanning, and route correction;
 - graceful degradation across hosts.
@@ -405,6 +414,12 @@ After installation, a read-only local integrity check is available with:
 python .aaop/tools/health.py .
 ```
 
+If AAOP is no longer wanted, use manifest-scoped removal rather than deleting `.aaop` by hand:
+
+```bash
+python scripts/install.py /path/to/project --uninstall
+```
+
 Then open the project in the AI host you already use and describe what you want in ordinary language.
 
 ## Repository map
@@ -430,7 +445,7 @@ CLAUDE.md
     └── recipe.py
 
 tests/pressure/                      # source-repo regression cases
-scripts/install.py                   # state-preserving install/upgrade
+scripts/install.py                   # state-preserving install/upgrade/uninstall
 scripts/validate.py
 scripts/validate_pressure.py
 docs/QUICKSTART.md
@@ -452,19 +467,20 @@ docs/QUICKSTART.md
 12. Re-check applicable provider adoption debt before consequential use; never turn it into a permanent label.
 13. Upgrade AAOP-owned files without deleting runtime or project-owned state.
 14. Observe AAOP installation drift before repairing it; never treat health evidence as authorization to overwrite.
-15. Prefer mature upstream implementations over copies.
-16. Select the minimum provider surface.
-17. Verify outcomes; do not fabricate completion when safely blocked.
-18. Let real-project regressions improve the protocol before adding theoretical completeness.
-19. Hide orchestration complexity without lowering engineering rigor.
+15. Remove only what AAOP can prove it owns; preserve runtime, project-owned state, and provider independence.
+16. Prefer mature upstream implementations over copies.
+17. Select the minimum provider surface.
+18. Verify outcomes; do not fabricate completion when safely blocked.
+19. Let real-project regressions improve the protocol before adding theoretical completeness.
+20. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.11.0 — installation health and self-integrity visibility.**
+**v0.12.0 — manifest-scoped safe removal and low-lock-in lifecycle.**
 
-v0.11 adds a read-only installation health contract, manifest v2 bootstrap hashes, managed-file/bootstrap drift detection, explicit legacy/upgrade-recommended states, and CI regressions for healthy, drifted, incomplete, legacy, old-manifest, and malformed-marker installations.
+v0.12 completes the first AAOP package lifecycle: install, state-preserving upgrade, read-only health/drift visibility, and manifest-scoped uninstall. Safe removal deletes only manifest-owned protocol files and marked AAOP bootstrap blocks, preserves runtime/project-owned state, backs up locally modified managed files, refuses legacy ownership guesses, and leaves third-party providers untouched.
 
-This is an observability/continuity release. It does not add remote auto-update, latest-version checking, cryptographic attestation, a package registry, or a new provider/framework/runtime.
+This is a reversibility/lock-in release. It does not add remote auto-update, provider cleanup, a package registry, or a new provider/framework/runtime.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Install or safely upgrade AAOP in another project without external dependencies.
+"""Install, safely upgrade, or safely remove AAOP without external dependencies.
 
 Usage:
     python scripts/install.py /path/to/project
     python scripts/install.py /path/to/project --upgrade
+    python scripts/install.py /path/to/project --uninstall
 
-The installer copies only AAOP-managed protocol files, preserves `.aaop/runtime/`,
-leaves target-only files untouched, and owns only the marked AAOP blocks inside
-AGENTS.md / CLAUDE.md. It installs no third-party provider and requests no secret.
+AAOP owns only manifest-tracked package files and marked bootstrap blocks. Upgrade
+and uninstall preserve `.aaop/runtime/`, target-only `.aaop` files, and project
+rules outside AAOP markers. No third-party provider is installed or removed.
 """
 
 from __future__ import annotations
@@ -109,7 +110,6 @@ def aaop_version(source_package: Path) -> str:
         if version:
             return version
 
-    # Backward-compatible fallback for source trees created before VERSION existed.
     orchestrator = source_package / "ORCHESTRATOR.md"
     for line in orchestrator.read_text(encoding="utf-8").splitlines():
         if line.startswith("Version:"):
@@ -136,9 +136,9 @@ def read_manifest(destination: Path) -> dict[str, object] | None:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:  # noqa: BLE001
-        raise SystemExit(f"Cannot safely upgrade: invalid {path}: {exc}") from exc
+        raise SystemExit(f"Cannot safely manage AAOP: invalid {path}: {exc}") from exc
     if not isinstance(payload, dict) or not isinstance(payload.get("files"), dict):
-        raise SystemExit(f"Cannot safely upgrade: unsupported manifest shape in {path}")
+        raise SystemExit(f"Cannot safely manage AAOP: unsupported manifest shape in {path}")
     return payload
 
 
@@ -177,7 +177,8 @@ def validate_block_markers(path: Path) -> None:
         return
     if begin_count != 1 or end_count != 1:
         raise SystemExit(
-            f"Cannot safely update {path}: expected exactly one matching AAOP marker pair, found begin={begin_count}, end={end_count}."
+            f"Cannot safely update {path}: expected exactly one matching AAOP marker pair, "
+            f"found begin={begin_count}, end={end_count}."
         )
     start = text.index(AAOP_BEGIN)
     end = text.index(AAOP_END)
@@ -185,7 +186,41 @@ def validate_block_markers(path: Path) -> None:
         raise SystemExit(f"Cannot safely update {path}: malformed AAOP marker order")
 
 
-def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tuple[str, list[str], bool]:
+def extract_block(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8")
+    if AAOP_BEGIN not in text and AAOP_END not in text:
+        return None
+    start = text.index(AAOP_BEGIN)
+    end = text.index(AAOP_END, start) + len(AAOP_END)
+    return text[start:end]
+
+
+def backup_bootstrap_block(
+    destination: Path,
+    project_file: Path,
+    expected_hash: str | None,
+    backup_root: Path,
+) -> str | None:
+    block = extract_block(project_file)
+    if block is None:
+        return None
+    current_hash = sha256_text(block)
+    if expected_hash is not None and current_hash == expected_hash:
+        return None
+
+    target = backup_root / "project-rules" / f"{project_file.name}.aaop-block.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(block + "\n", encoding="utf-8")
+    return target.relative_to(destination).as_posix()
+
+
+def copy_managed_files(
+    source_package: Path,
+    target: Path,
+    upgrade: bool,
+) -> tuple[str, list[str], bool]:
     destination = target / ".aaop"
     files = source_files(source_package)
     version = aaop_version(source_package)
@@ -203,7 +238,8 @@ def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tup
 
     if not upgrade:
         raise SystemExit(
-            f"AAOP already exists at {destination}. Re-run with --upgrade to update managed files while preserving runtime and project-owned files."
+            f"AAOP already exists at {destination}. Re-run with --upgrade to update managed files "
+            "while preserving runtime and project-owned files."
         )
 
     manifest = read_manifest(destination)
@@ -218,7 +254,6 @@ def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tup
     backup_root = destination / "runtime" / "upgrade-backups" / f"to-{version}-{stamp}"
 
     if previous_files:
-        # Back up locally modified previously-managed files before replacement/removal.
         for relative, previous_hash in previous_files.items():
             target_file = destination / relative
             if not target_file.is_file():
@@ -226,22 +261,16 @@ def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tup
             if sha256_file(target_file) != previous_hash:
                 backups.append(backup_file(destination, relative, backup_root))
 
-        # A path can be project-owned today and become AAOP-managed in a future release.
-        # Back it up before claiming that path.
         for relative in sorted(set(files) - set(previous_files)):
             target_file = destination / relative
             if target_file.is_file():
                 backups.append(backup_file(destination, relative, backup_root))
 
-        # Remove files that the previous installer managed but the new package no longer owns.
         for relative in sorted(set(previous_files) - set(files)):
             target_file = destination / relative
             if target_file.is_file():
                 target_file.unlink()
 
-    # A legacy installation has no hash manifest, so we cannot distinguish edits to old
-    # managed files. Preserve runtime/ and target-only paths, then refresh only paths that
-    # exist in the current source package.
     for relative, source in files.items():
         target_file = destination / relative
         target_file.parent.mkdir(parents=True, exist_ok=True)
@@ -266,7 +295,6 @@ def upsert_block(path: Path, block: str) -> str:
         path.write_text(text + separator + block, encoding="utf-8")
         return "appended"
 
-    # Marker shape was preflighted before package mutation.
     start = text.index(AAOP_BEGIN)
     end = text.index(AAOP_END, start) + len(AAOP_END)
     existing = text[start:end]
@@ -274,18 +302,159 @@ def upsert_block(path: Path, block: str) -> str:
     if existing == replacement:
         return "already-current"
 
-    new_text = text[:start] + replacement + text[end:]
-    path.write_text(new_text, encoding="utf-8")
+    path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
     return "updated"
 
 
+def remove_block(path: Path) -> str:
+    if not path.exists():
+        return "missing-file"
+    text = path.read_text(encoding="utf-8")
+    if AAOP_BEGIN not in text and AAOP_END not in text:
+        return "absent"
+
+    start = text.index(AAOP_BEGIN)
+    end = text.index(AAOP_END, start) + len(AAOP_END)
+    path.write_text(text[:start] + text[end:], encoding="utf-8")
+    return "removed"
+
+
+def prune_empty_package_dirs(destination: Path) -> None:
+    if not destination.exists():
+        return
+    directories = [path for path in destination.rglob("*") if path.is_dir()]
+    for path in sorted(directories, key=lambda item: len(item.parts), reverse=True):
+        relative = path.relative_to(destination)
+        if relative.parts and relative.parts[0] == "runtime":
+            continue
+        try:
+            path.rmdir()
+        except OSError:
+            pass
+    try:
+        destination.rmdir()
+    except OSError:
+        pass
+
+
+def remaining_project_files(destination: Path) -> list[str]:
+    if not destination.exists():
+        return []
+    found: list[str] = []
+    for path in destination.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(destination)
+        if relative.parts and relative.parts[0] == "runtime":
+            continue
+        found.append(relative.as_posix())
+    return sorted(found)
+
+
+def uninstall_aaop(target: Path) -> dict[str, object]:
+    destination = target / ".aaop"
+    if not destination.exists():
+        raise SystemExit(f"AAOP is not installed at {destination}")
+
+    manifest = read_manifest(destination)
+    if manifest is None:
+        raise SystemExit(
+            "Cannot safely uninstall a legacy AAOP package without "
+            ".aaop/.install-manifest.json; managed files cannot be distinguished from "
+            "project-owned files. Upgrade first to establish ownership, then uninstall."
+        )
+
+    raw_files = manifest.get("files", {})
+    files = {str(key): str(value) for key, value in raw_files.items()}
+    raw_bootstrap = manifest.get("bootstrap_blocks", {})
+    bootstrap_hashes = (
+        {str(key): str(value) for key, value in raw_bootstrap.items()}
+        if isinstance(raw_bootstrap, dict)
+        else {}
+    )
+    version = str(manifest.get("aaop_version") or "unknown")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    backup_root = destination / "runtime" / "uninstall-backups" / f"from-{version}-{stamp}"
+
+    backups: list[str] = []
+    bootstrap_backups: list[str] = []
+    removed: list[str] = []
+    missing: list[str] = []
+
+    for relative, installed_hash in sorted(files.items()):
+        path = destination / relative
+        if not path.exists():
+            missing.append(relative)
+            continue
+        if not path.is_file():
+            continue
+        try:
+            changed = sha256_file(path) != installed_hash
+        except OSError:
+            changed = True
+        if changed:
+            backups.append(backup_file(destination, relative, backup_root))
+
+    for name in ("AGENTS.md", "CLAUDE.md"):
+        expected = bootstrap_hashes.get(name)
+        backed_up = backup_bootstrap_block(
+            destination,
+            target / name,
+            expected if expected else None,
+            backup_root,
+        )
+        if backed_up:
+            bootstrap_backups.append(backed_up)
+
+    for relative in sorted(files):
+        path = destination / relative
+        if path.is_file():
+            path.unlink()
+            removed.append(relative)
+
+    manifest_path = destination / MANIFEST_NAME
+    if manifest_path.is_file():
+        manifest_path.unlink()
+
+    agents_status = remove_block(target / "AGENTS.md")
+    claude_status = remove_block(target / "CLAUDE.md")
+    prune_empty_package_dirs(destination)
+
+    return {
+        "version": version,
+        "removed": removed,
+        "missing": missing,
+        "backups": sorted(set(backups)),
+        "bootstrap_backups": sorted(set(bootstrap_backups)),
+        "agents_status": agents_status,
+        "claude_status": claude_status,
+        "runtime_preserved": (destination / "runtime").exists(),
+        "project_files_preserved": remaining_project_files(destination),
+        "package_dir_remaining": destination.exists(),
+    }
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Install or safely upgrade AAOP in a project")
+    parser = argparse.ArgumentParser(
+        description="Install, safely upgrade, or safely remove AAOP in a project"
+    )
     parser.add_argument("target", type=Path, help="Target project directory")
-    parser.add_argument(
+    actions = parser.add_mutually_exclusive_group()
+    actions.add_argument(
         "--upgrade",
         action="store_true",
-        help="Upgrade AAOP-managed files while preserving .aaop/runtime, project-owned files, and non-AAOP rule text.",
+        help=(
+            "Upgrade AAOP-managed files while preserving .aaop/runtime, project-owned "
+            "files, and non-AAOP rule text."
+        ),
+    )
+    actions.add_argument(
+        "--uninstall",
+        action="store_true",
+        help=(
+            "Remove only manifest-owned AAOP files and marked bootstrap blocks; preserve "
+            "runtime and project-owned files."
+        ),
     )
     parser.add_argument(
         "--force",
@@ -294,16 +463,47 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.uninstall and args.force:
+        parser.error("--force is an upgrade alias and cannot be combined with --uninstall")
+
     source = Path(__file__).resolve().parents[1]
     source_package = source / ".aaop"
     target = args.target.expanduser().resolve()
-    target.mkdir(parents=True, exist_ok=True)
 
+    if args.uninstall:
+        if not target.exists():
+            raise SystemExit(f"Target project does not exist: {target}")
+        validate_block_markers(target / "AGENTS.md")
+        validate_block_markers(target / "CLAUDE.md")
+        result = uninstall_aaop(target)
+        print("AAOP uninstalled")
+        print(f"  installed version removed: {result['version']}")
+        print(f"  managed files removed: {len(result['removed'])}")
+        print(f"  managed files already missing: {len(result['missing'])}")
+        print(f"  modified managed files backed up: {len(result['backups'])}")
+        print(
+            "  modified/untracked bootstrap blocks backed up: "
+            f"{len(result['bootstrap_backups'])}"
+        )
+        if result["backups"] or result["bootstrap_backups"]:
+            print("  backup scope: .aaop/runtime/uninstall-backups/")
+        print(f"  AGENTS.md AAOP block: {result['agents_status']}")
+        print(f"  CLAUDE.md AAOP block: {result['claude_status']}")
+        print(
+            f"  .aaop/runtime preserved: {'yes' if result['runtime_preserved'] else 'not present'}"
+        )
+        print(f"  target-only .aaop files preserved: {len(result['project_files_preserved'])}")
+        print(
+            f"  .aaop directory remaining: {'yes' if result['package_dir_remaining'] else 'no'}"
+        )
+        print("  third-party providers removed: none")
+        return 0
+
+    target.mkdir(parents=True, exist_ok=True)
     required = source_package / "ORCHESTRATOR.md"
     if not required.exists():
         raise SystemExit(f"AAOP source package is incomplete: missing {required}")
 
-    # Preflight project-owned rule files before mutating the installed package.
     validate_block_markers(target / "AGENTS.md")
     validate_block_markers(target / "CLAUDE.md")
 
@@ -326,14 +526,21 @@ def main() -> int:
     if backups:
         print("  backup scope: .aaop/runtime/upgrade-backups/")
     if legacy_upgrade:
-        print("  legacy upgrade: no prior install manifest; runtime/target-only files were preserved, current managed paths were refreshed")
+        print(
+            "  legacy upgrade: no prior install manifest; runtime/target-only files were "
+            "preserved, current managed paths were refreshed"
+        )
     print("  third-party providers installed: none")
     print("  secrets requested: none")
     print("Optional health: python .aaop/tools/health.py .")
     print("Optional inventory: python .aaop/tools/doctor.py .")
     print("Optional route packs: python .aaop/tools/route.py list")
     print("Optional provider recipes: python .aaop/tools/recipe.py list")
-    print("Next: open the target project in your existing AI host and describe what you want in ordinary language.")
+    print("Safe removal: python scripts/install.py /path/to/project --uninstall")
+    print(
+        "Next: open the target project in your existing AI host and describe what you "
+        "want in ordinary language."
+    )
     return 0
 
 
