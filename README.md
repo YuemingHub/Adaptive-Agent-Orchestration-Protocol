@@ -153,12 +153,14 @@ Lower-level tools such as `health.py`, `doctor.py`, `route.py`, `recipe.py`, and
 
 Run the same bootstrap command again.
 
-A recognizable AAOP installation is upgraded through the existing state-preserving installer:
+A recognizable AAOP installation is upgraded through the existing state-preserving installer. Bootstrap requires actual AAOP ownership evidence before it will claim an existing `.aaop/` directory: a managed install manifest is sufficient; for legacy no-manifest installs, the Orchestrator must contain a recognizable AAOP identity. A generic `.aaop` directory name or standalone `VERSION` file is **not** ownership evidence.
 
-- `.aaop/runtime/` is preserved;
-- project-owned files under `.aaop/` are preserved;
-- non-AAOP text in `AGENTS.md` / `CLAUDE.md` is preserved;
-- locally modified managed files are backed up before canonical replacement;
+Upgrade preserves:
+
+- `.aaop/runtime/`;
+- project-owned files under `.aaop/`;
+- non-AAOP text in `AGENTS.md` / `CLAUDE.md`;
+- locally modified managed files as backups before canonical replacement;
 - malformed bootstrap markers fail before package mutation.
 
 ## Remove AAOP
@@ -262,9 +264,9 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.20.0 — usable baseline.**
+**v0.20.1 — usable baseline with ownership-safe bootstrap.**
 
-The focus of v0.20 is not another orchestration abstraction. It closes the human entry loop: zero-clone bootstrap, safe repeat-upgrade/removal through the same surface, one installed user CLI, readiness feedback, and a copyable natural-language starting point.
+v0.20 closes the human entry loop: zero-clone bootstrap, safe repeat-upgrade/removal through the same surface, one installed user CLI, readiness feedback, and a copyable natural-language starting point. v0.20.1 tightens bootstrap ownership proof so an existing unrelated `.aaop/` directory cannot be auto-claimed merely because it contains a generic version-like file.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
