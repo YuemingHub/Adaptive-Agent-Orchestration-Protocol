@@ -1,6 +1,6 @@
 # AAOP Runtime Protocol
 
-Version: 0.8.0
+Version: 0.9.0
 Status: Normative baseline
 
 ## 1. Mission
@@ -32,7 +32,8 @@ Keep these concepts separate:
 - **Skill** — how repeatable work should be performed.
 - **Tool / MCP** — what concrete external resource can be read or changed.
 - **Provider** — an upstream standard, tool family, runtime, development harness, discovery service, or workspace AAOP may reuse.
-- **Recipe** — normalized lazy integration and detection knowledge for one provider; never an automatic install instruction.
+- **Recipe** — normalized lazy integration/detection knowledge for one provider; may include scoped time-stamped adoption review debt, but is never an automatic install instruction or permanent provider verdict.
+- **Adoption Review** — optional remembered review debt for one provider surface/context that must be rechecked against current upstream and actual deployment conditions before consequential adoption when applicable.
 - **Policy** — what is allowed, under what risk/permission conditions, and what evidence is required.
 
 ## 3. Non-goals
@@ -50,7 +51,8 @@ AAOP MUST NOT become:
 - a second hard-coded provider detector separate from Integration Recipes;
 - an organizational permissions/audit workspace;
 - a system that treats more tooling as the default answer to every blocker;
-- a review system that mutates projects merely because it found a fixable issue.
+- a review system that mutates projects merely because it found a fixable issue;
+- a vulnerability database, provider allow/deny list, certification system, or permanent safe/unsafe registry.
 
 When an upstream system already solves one of these layers well enough, integrate it.
 
@@ -78,7 +80,7 @@ Prefer open interfaces where possible: Agent Skills for reusable procedure, MCP 
 
 Mature software-engineering providers may include Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, or others only when a proven capability gap justifies them.
 
-External providers evolve independently. Re-check upstream status, license, security posture, install/configuration instructions, and permissions before consequential adoption.
+External providers evolve independently. Re-check upstream status, license, security posture, install/configuration instructions, permissions, and any applicable Recipe adoption review before consequential adoption.
 
 ## 5. Developer-first orchestration cycle
 
@@ -237,7 +239,7 @@ Do not turn environment/network policy, missing authorization/credentials, unava
 
 When blocked, preserve unknown state, record what was and was not attempted, and identify the smallest legitimate unblock condition.
 
-### Phase 6 — Progressive gap resolution
+### Phase 6 — Progressive gap resolution and adoption re-check
 
 Only when a Route Capability Pack escalation condition is true **and** the blocker is a genuine `capability-gap`:
 
@@ -246,12 +248,16 @@ Only when a Route Capability Pack escalation condition is true **and** the block
 3. inspect `.aaop/registries/providers.json`;
 4. load the matching `.aaop/recipes/<provider-id>.json` when available;
 5. re-check upstream source of truth before consequential installation;
-6. choose the smallest provider surface;
-7. apply autonomy/permission policy;
-8. integrate through upstream package manager/host configuration;
-9. verify the original task-level gap actually closed.
+6. if the Recipe has `adoption_review`, decide whether its `scope` matches the selected provider surface/context;
+7. when it applies, re-check the review's sources/required checks against current upstream and the actual network/permission/data/deployment context;
+8. choose the smallest provider surface that closes the gap and satisfies the current adoption decision;
+9. apply autonomy/permission policy;
+10. integrate through upstream package manager/host configuration;
+11. verify the original task-level gap actually closed and, when applicable, that the enabled surface matches the assumptions/mitigations used in the adoption decision.
 
 Provider detection after installation proves presence, not task success.
+
+An `adoption_review` is remembered review debt, not a permanent safe/unsafe label. If the old concern is fixed or irrelevant to the chosen surface/context, do not block adoption because of stale metadata; update/retire the review when maintaining the Recipe. If the concern remains materially relevant and cannot be mitigated, narrow/isolate the provider, choose another provider, or defer adoption instead of bypassing the review.
 
 ### Phase 7 — Ownership / team construction
 
@@ -282,16 +288,18 @@ For `idea-to-build`, verification includes whether the first slice reduced a mat
 
 For `understand-review`, verification includes whether the decision is explicit, material claims are current/evidence-linked, risk is contextualized, uncertainty is visible, and no mutation occurred without authorization.
 
+For a newly adopted provider with an applicable `adoption_review`, verification includes whether current evidence and the actual enabled surface still satisfy the adoption conditions used in the decision.
+
 A safely blocked task is **not complete**, but it can be a correct execution result when the system preserves uncertainty, does not widen permission, and states the precise unblock.
 
 ### Phase 10 — Replan / reroute
 
-Replan when evidence disproves assumptions, the baseline differs from the report, a provider is insufficient, a blocker class changes, permissions block the path, review finds a direction error, or the user outcome changes.
+Replan when evidence disproves assumptions, the baseline differs from the report, a provider is insufficient, a blocker class changes, an adoption review changes provider suitability, permissions block the path, review finds a direction error, or the user outcome changes.
 
 Evaluate `reroute_signals` after meaningful discoveries.
 
 ```text
-Observe → Diagnose → Reclassify blocker/route if needed → Reconfigure → Execute → Verify
+Observe → Diagnose → Reclassify blocker/route/provider suitability if needed → Reconfigure → Execute → Verify
 ```
 
 Re-routing is progress when evidence changes the problem.
@@ -306,6 +314,7 @@ Report only what helps the developer:
 - Result or explicit blocker;
 - Key decisions;
 - material providers reused/added/avoided;
+- applicable provider adoption condition when it materially affected the decision;
 - verification evidence;
 - remaining risks/unknowns;
 - genuine user decision/permission still required;
@@ -313,7 +322,7 @@ Report only what helps the developer:
 
 For greenfield work, do not mistake architecture artifacts for product progress. For review work, do not bury the recommendation under repository summary.
 
-Promote a new Pressure Guard only when a real task exposes a repeatable orchestration error or dangerous near-miss. Do not add guards merely to make the protocol look comprehensive.
+Promote a new Pressure Guard only when a real task exposes a repeatable orchestration error or dangerous near-miss. Add or update a Recipe `adoption_review` only when a real adoption review exposes a provider-specific, scope-specific concern likely to recur. Do not copy every issue/advisory into Recipes.
 
 ## 6. Real-project pressure discipline
 
@@ -335,7 +344,22 @@ Each case binds to one or more route `pressure_guards`. A guard cannot be silent
 
 From v0.8 onward, all six routes must retain at least one real pressure case. This protects an earned regression baseline; it is not permission to invent artificial cases merely for coverage.
 
-## 7. Prime directive
+## 7. Provider adoption review discipline
+
+Recipes may contain optional `adoption_review` metadata conforming to `.aaop/schemas/integration-recipe.schema.json`.
+
+Use it sparingly. A good adoption review is:
+
+- time-stamped;
+- scoped to a provider mode/surface/context;
+- grounded in revisitable public/first-party evidence where possible;
+- explicit about what was observed versus what depends on deployment context;
+- explicit about what future adoption must re-check;
+- removable when fixed or no longer relevant.
+
+It must not become a vulnerability mirror, permanent provider verdict, or excuse to avoid current evidence.
+
+## 8. Prime directive
 
 Optimize for:
 
@@ -345,6 +369,6 @@ Outcome Quality × Reliability × Intent Preservation × Explainability × Learn
 User Orchestration Burden × Unnecessary Integration Surface × Complexity
 ```
 
-Do not optimize for agent count, framework count, tool count, code volume, document volume, or apparent completeness.
+Do not optimize for agent count, framework count, tool count, code volume, document volume, security-warning count, or apparent completeness.
 
-AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, turn broad ideas into evidence-bearing first slices, receive reviews tied to real decisions, distinguish current truth from stale evidence, reuse capability already present, avoid mistaking blockers for capability gaps, and reach the strongest verified next result without learning the agent ecosystem first.
+AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, turn broad ideas into evidence-bearing first slices, receive reviews tied to real decisions, distinguish current truth from stale evidence, reuse capability already present, avoid mistaking blockers for capability gaps, remember provider-specific adoption concerns without freezing them into permanent labels, and reach the strongest verified next result without learning the agent ecosystem first.
