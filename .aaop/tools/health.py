@@ -155,8 +155,15 @@ def inspect_installation(root: Path | None = None) -> dict[str, Any]:
         for name in BOOTSTRAP_FILES:
             report["bootstrap"][name] = marker_status(root / name, None)
         if is_source_tree(package):
-            report["state"] = "source-tree"
-            report["next_action"] = "This is the AAOP source tree, not a manifest-tracked installation. Validate the repository before publishing or installing it."
+            if version is None:
+                report["state"] = "incomplete"
+                report["problems"] = [
+                    "authoritative package release identity .aaop/VERSION is missing, empty, or unreadable"
+                ]
+                report["next_action"] = "Restore .aaop/VERSION from a trusted source before validating or installing this AAOP source package. Do not infer the package release from component documents."
+            else:
+                report["state"] = "source-tree"
+                report["next_action"] = "This is the AAOP source tree, not a manifest-tracked installation. Validate the repository before publishing or installing it."
         else:
             report["state"] = "legacy-install"
             report["next_action"] = "Upgrade from a trusted AAOP source to establish a managed-file and bootstrap integrity baseline while preserving runtime/project-owned files."
@@ -262,6 +269,8 @@ def render(report: dict[str, Any]) -> None:
             if isinstance(item, dict):
                 print(f"  {name}: {item.get('status')}")
 
+    for problem in report.get("problems", []):
+        print(f"  problem: {problem}")
     print(f"  next: {report['next_action']}")
     print(f"  trust: {report['trust_boundary']}")
 
