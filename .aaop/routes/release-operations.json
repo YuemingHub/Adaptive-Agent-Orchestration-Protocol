@@ -1,37 +1,47 @@
 {
-  "version": "0.5.0",
+  "version": "0.7.0",
   "route_id": "release-operations",
   "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, and authorization-aware execution.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "environment-truth",
-      "purpose": "Identify the target environment, current deployed/runtime state, CI/CD path, configuration, dependencies, and authorization boundary.",
-      "required_capabilities": ["environment-inspection", "ci-cd-inspection", "permission-awareness"],
+      "purpose": "Identify the target environment, current deployed/runtime state, CI/CD path, configuration, dependencies, authorization boundary, and whether the current execution environment can actually reach the authorized target.",
+      "required_capabilities": ["environment-inspection", "ci-cd-inspection", "permission-awareness", "reachability-check", "blocker-classification"],
       "optional_capabilities": ["runtime-observability"],
-      "evidence": ["deployment configuration", "CI status/logs", "runtime/version evidence", "target environment identity"],
-      "exit_when": "The system knows what environment will change, how it is currently behaving, and which actions are consequential."
+      "evidence": ["deployment configuration", "CI status/logs", "runtime/version evidence", "target environment identity", "authorized access path", "reachability result", "explicit unknown state when direct evidence cannot be obtained"],
+      "exit_when": "The system knows the target environment, the allowed access path, whether that path is usable from the current execution context, and which facts remain unknown."
     },
     {
       "id": "preflight-and-rollback",
-      "purpose": "Define preflight checks, failure thresholds, rollback or restore path, and any required user authorization before writes.",
+      "purpose": "If execution is actually reachable and authorized, define preflight checks, failure thresholds, rollback or restore path, and any required user authorization before writes; otherwise record the blocker and minimal unblock condition without widening access.",
       "required_capabilities": ["release-validation", "rollback-planning", "risk-classification"],
       "optional_capabilities": ["migration-analysis", "smoke-test-design"],
-      "evidence": ["preflight results", "backup/rollback path", "migration reversibility", "explicit authorization when required"],
-      "exit_when": "The change can be attempted with bounded blast radius and a credible recovery path."
+      "evidence": ["preflight results", "backup/rollback path", "migration reversibility", "explicit authorization when required", "or a bounded blocker record when the route cannot proceed"],
+      "exit_when": "The change can be attempted with bounded blast radius and recovery, or the exact blocker/minimal unblock is recorded and execution stops safely."
     },
     {
       "id": "execute-and-observe",
-      "purpose": "Perform only the authorized operational change and verify production/target behavior against acceptance and rollback thresholds.",
+      "purpose": "Perform only the authorized operational change or read-only verification and validate target behavior against acceptance and rollback thresholds; never infer production facts from repository/local evidence when target evidence is unavailable.",
       "required_capabilities": ["controlled-execution", "post-change-validation"],
       "optional_capabilities": ["browser-smoke-testing", "observability-query"],
-      "evidence": ["deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals"],
-      "exit_when": "The operational objective is reached and healthy, or rollback has restored a known-good state."
+      "evidence": ["deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals", "or explicit not-executed status when blocked"],
+      "exit_when": "The operational objective is reached and healthy, rollback restored a known-good state, or the task is safely blocked with target state preserved as unknown where appropriate."
+    }
+  ],
+  "pressure_guards": [
+    {
+      "id": "blocker-not-capability-gap",
+      "rule": "A network policy, missing authorization, absent credential, inaccessible external system, or required product decision is a blocker class—not automatically a missing technical capability. Do not search for/install providers to bypass the blocker unless an authorized capability gap genuinely exists."
+    },
+    {
+      "id": "preserve-unknown-operational-state",
+      "rule": "When direct target evidence cannot be obtained, keep deployment/runtime facts unknown. Git state, CI success, local health, or guessed public behavior must not be promoted into verified target-environment facts."
     }
   ],
   "escalations": [
     {
-      "when": "Browser-visible smoke validation is required and the current release pipeline lacks a reliable check.",
+      "when": "Browser-visible smoke validation is required, the target is reachable/authorized, and the current release pipeline lacks a reliable check.",
       "capability_gap": "browser production/staging smoke validation",
       "provider_candidates": ["playwright"],
       "selection_rule": "Prefer a durable Playwright smoke test when the check should repeat; use interactive agent browser control only when exploration is genuinely needed."
@@ -55,6 +65,6 @@
       "selection_rule": "Review community extension source/provenance/permissions before adoption; catalog presence alone is not trust."
     }
   ],
-  "verification": ["target environment identity and final state are explicit", "preflight and post-change evidence are recorded", "rollback was defined before consequential writes", "no production write exceeded the granted authorization scope"],
+  "verification": ["target environment identity and final state are explicit or intentionally unknown when direct evidence is blocked", "preflight and post-change evidence are recorded when execution occurred", "rollback was defined before consequential writes", "no production write exceeded the granted authorization scope", "environment/authorization blockers were not bypassed by unauthorized provider or network workarounds"],
   "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery"]
 }
