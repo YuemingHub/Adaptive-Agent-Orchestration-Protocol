@@ -18,6 +18,18 @@ ROUTE_IDS = {
     "understand-review",
     "release-operations",
 }
+GENERIC_PROVIDER_DETECT_FILES = {
+    "package.json",
+    "pyproject.toml",
+    "requirements.txt",
+    "requirements*.txt",
+    "Cargo.toml",
+    "go.mod",
+    "pom.xml",
+    "Gemfile",
+    "composer.json",
+}
+DETECT_HINT_KEYS = ("commands", "python_packages", "node_packages", "files")
 
 REQUIRED = [
     "AGENTS.md",
@@ -33,6 +45,7 @@ REQUIRED = [
     ".aaop/schemas/intake-envelope.schema.json",
     ".aaop/schemas/route-capability-pack.schema.json",
     ".aaop/schemas/environment-profile.schema.json",
+    ".aaop/schemas/environment-inventory.schema.json",
     ".aaop/schemas/project-profile.schema.json",
     ".aaop/schemas/capability-matrix.schema.json",
     ".aaop/schemas/team-plan.schema.json",
@@ -196,6 +209,28 @@ def validate_provider_model(root: Path, errors: list[str], ids: set[str]) -> Non
                     error(errors, f"{profiles_path}: unknown provider reference {provider_id!r}")
 
 
+def validate_detect_contract(path: Path, detect: object, errors: list[str]) -> None:
+    if not isinstance(detect, dict):
+        error(errors, f"{path}: detect must be an object")
+        return
+
+    for key in DETECT_HINT_KEYS:
+        values = detect.get(key, [])
+        if not isinstance(values, list):
+            error(errors, f"{path}: detect.{key} must be a list")
+            continue
+        for value in values:
+            if not isinstance(value, str) or not value:
+                error(errors, f"{path}: detect.{key} values must be non-empty strings")
+
+    for pattern in detect.get("files", []) if isinstance(detect.get("files", []), list) else []:
+        if pattern in GENERIC_PROVIDER_DETECT_FILES:
+            error(
+                errors,
+                f"{path}: detect.files contains generic project signal {pattern!r}; use a provider-specific command/package/file instead",
+            )
+
+
 def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> set[str]:
     recipe_root = root / ".aaop/recipes"
     recipes = sorted(recipe_root.glob("*.json")) if recipe_root.exists() else []
@@ -223,6 +258,7 @@ def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> set[str]:
         for required in ("last_verified", "source_of_truth", "selection", "detect", "install", "verify", "rollback"):
             if required not in payload:
                 error(errors, f"{path}: missing required field {required!r}")
+        validate_detect_contract(path, payload.get("detect"), errors)
         install = payload.get("install")
         if not isinstance(install, dict) or "mode" not in install:
             error(errors, f"{path}: install.mode is required")
