@@ -1,0 +1,54 @@
+{
+  "version": "0.5.0",
+  "route_id": "idea-to-build",
+  "objective": "Turn a rough idea into the smallest real, testable product slice without forcing the user to design the engineering process.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "outcome-discovery",
+      "purpose": "Identify the user, problem, desired observable outcome, constraints, and the smallest valuable slice.",
+      "required_capabilities": ["intent-resolution", "product-reasoning"],
+      "optional_capabilities": ["market-or-domain-research"],
+      "evidence": ["user statement", "available domain/project context", "explicit constraints"],
+      "exit_when": "One small outcome can be built and judged without inventing a large speculative roadmap."
+    },
+    {
+      "id": "behavior-contract",
+      "purpose": "Define what the first slice must visibly do before choosing architecture.",
+      "required_capabilities": ["acceptance-criteria", "interface-definition"],
+      "optional_capabilities": ["specification-management"],
+      "evidence": ["observable user flow", "acceptance examples", "known non-goals"],
+      "exit_when": "The first slice has a clear behavior contract and non-goals."
+    },
+    {
+      "id": "implementation",
+      "purpose": "Choose the minimum technical shape, implement the slice, and keep decisions reversible where possible.",
+      "required_capabilities": ["architecture-fit", "implementation", "local-validation"],
+      "optional_capabilities": ["browser-validation"],
+      "evidence": ["working artifact", "tests or runtime evidence", "documented material decisions"],
+      "exit_when": "The slice works and is ready for real evaluation."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "The idea or feature is large enough that intent, plan, and implementation are repeatedly drifting.",
+      "capability_gap": "durable specification and structured intent-to-implementation workflow",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Use Spec Kit only when durable artifacts reduce real ambiguity or coordination loss; do not initialize it for a tiny prototype."
+    },
+    {
+      "when": "The first slice requires deterministic browser-visible validation that the host/project cannot already provide.",
+      "capability_gap": "browser verification",
+      "provider_candidates": ["playwright"],
+      "selection_rule": "Prefer existing Playwright tests, then CLI+Skills for coding-agent validation; use MCP when a persistent exploratory browser loop is materially useful."
+    },
+    {
+      "when": "Implementation requires a dedicated autonomous software-engineering runtime rather than the current host.",
+      "capability_gap": "dedicated autonomous coding environment",
+      "provider_candidates": ["openhands", "deepagents"],
+      "selection_rule": "Choose only if the missing runtime property is explicit; do not add a second general coding agent for novelty."
+    }
+  ],
+  "verification": ["the first slice is usable or executable", "acceptance behavior is observable", "the next product decision can be based on evidence rather than speculation"],
+  "reroute_signals": ["a trustworthy existing implementation is discovered -> feature-change or repo-recovery", "an observed failure becomes the blocker -> bug-fix", "deployment becomes the immediate blocker -> release-operations"]
+}
