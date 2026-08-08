@@ -16,6 +16,8 @@ A generic orchestration protocol can look correct while still making bad develop
 - recursively reading every link/reference in a governance-heavy repository until context is exhausted;
 - treating every referenced repository as a mandatory read or active work target;
 - continuing to inventory a small handoff repository after current state and the next target are already clear;
+- creating a cosmetic or unrelated diff because the user said “continue” even though no current local delta is proven;
+- using “verified no-op” as an excuse to stay in analysis after a concrete local delta is already visible;
 - copying a security issue's headline directly into a present-tense adoption verdict;
 - turning a read-only review into unrequested fixes;
 - treating a blocked network/authorization path as a reason to install more tooling;
@@ -240,6 +242,65 @@ local decision
 ```
 
 Evidence access does not authorize mutation. A product finding does not become shared protocol/governance merely because AAOP can access both repositories.
+
+## v0.17 execution-delta pressure batch
+
+This batch tests what should happen **after** recovery has reconstructed enough truth to act.
+
+### No local delta → do not invent work — `repo-recovery`
+
+Public source: `YuemingHub/MingOS` current cross-repository coordination state.
+
+At capture time, the shared protocol/kernel repository had recently merged its coordination refresh. The current coordination order says the family product should continue generating real/product evidence, and only cross-scenario patterns that repeatedly generalize should rise into MingOS protocol candidates.
+
+Lesson: “continue autonomously” is execution authorization, not evidence that a new local protocol/schema/document change must exist. If current evidence shows meaningful next work is conditional on evidence that has not arrived yet, a verified no-local-mutation result is more correct than manufacturing a diff.
+
+Guards:
+
+- `bounded-evidence-traversal`
+- `cross-repository-scope-boundary`
+- `prove-delta-before-mutation`
+
+### Concrete local delta → leave analysis and execute — `repo-recovery`
+
+Public source: `YuemingHub/ymai-website` (`HANDOFF.md`, `data/site.ts`) plus the current accepted Foundation repository identity.
+
+The handoff says the site should preserve its current product language and progressively integrate real capabilities rather than be broadly rewritten. At capture time, its centralized site configuration still defaulted the Foundation link to historical `YuemingHub/Ming-Foundation`, while the current accepted repository identity is `YuemingHub/mingos-foundation`.
+
+Lesson: the no-op rule must not become analysis paralysis. Once recovery proves a current local delta inside the requested action class, AAOP should make the smallest coherent change or reroute to the owning implementation route and continue through verification.
+
+Guards:
+
+- `source-authority-freshness`
+- `bounded-evidence-traversal`
+- `prove-delta-before-mutation`
+
+### General rule earned by v0.17
+
+Before a material mutation, classify the difference between the desired/route outcome and current evidence:
+
+```text
+local-delta
+→ execute smallest coherent change and verify
+
+verified-no-op
+→ desired state already holds / no local mutation currently justified
+→ record evidence; do not manufacture a diff
+
+reroute
+→ real delta exists but belongs to another route/repository/action class
+
+blocked
+→ delta may exist but legitimate execution lacks evidence, environment, authorization,
+   credential, external dependency, or product decision
+```
+
+The rule cuts both ways:
+
+- **no proven delta** → do not mutate merely to demonstrate progress;
+- **proven local authorized delta** → do not remain in analysis merely to avoid risk.
+
+Repository-specific planning, testing, review, and release gates still apply after a delta is proven.
 
 ## Adding future cases
 
