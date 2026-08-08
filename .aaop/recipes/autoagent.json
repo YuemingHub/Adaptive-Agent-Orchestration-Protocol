@@ -8,8 +8,7 @@
     "avoid_when": ["existing skills/tools/agents already satisfy the task", "only orchestration policy is needed"]
   },
   "detect": {
-    "commands": ["auto"],
-    "files": ["pyproject.toml"]
+    "commands": ["auto"]
   },
   "install": {
     "mode": "clone",
