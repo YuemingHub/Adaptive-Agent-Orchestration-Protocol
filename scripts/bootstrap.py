@@ -33,6 +33,10 @@ REPO = "Adaptive-Agent-Orchestration-Protocol"
 DEFAULT_REF = "main"
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
 USER_AGENT = "AAOP-bootstrap/1"
+LEGACY_ORCHESTRATOR_MARKERS = (
+    "# AAOP Runtime Protocol",
+    "Adaptive Agent Orchestration Protocol (AAOP)",
+)
 
 
 def official_archive_url(ref: str) -> str:
@@ -129,23 +133,40 @@ def source_version(source: Path) -> str:
     return value
 
 
+def legacy_aaop_identity(package: Path) -> bool:
+    """Return whether an unmanifested package proves it is a legacy AAOP install.
+
+    A generic VERSION file is never ownership evidence. For pre-manifest installs,
+    require a recognizable AAOP Orchestrator marker before allowing bootstrap to
+    refresh the directory as legacy AAOP state.
+    """
+    orchestrator = package / "ORCHESTRATOR.md"
+    if not orchestrator.is_file():
+        return False
+    try:
+        text = orchestrator.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return False
+    header = text[:4096]
+    return any(marker in header for marker in LEGACY_ORCHESTRATOR_MARKERS)
+
+
 def target_mode(target: Path) -> str:
     package = target / ".aaop"
     if not package.exists():
         return "install"
 
-    recognizable = (
-        (package / ".install-manifest.json").is_file()
-        or (package / "ORCHESTRATOR.md").is_file()
-        or (package / "VERSION").is_file()
+    if (package / ".install-manifest.json").is_file():
+        return "upgrade"
+    if legacy_aaop_identity(package):
+        return "upgrade"
+
+    raise SystemExit(
+        f"AAOP bootstrap: {package} already exists but AAOP ownership cannot be proven. "
+        "A generic VERSION file or directory name is not sufficient. Refusing to claim "
+        "it automatically; review the directory and use the canonical installer explicitly "
+        "if migration is intended."
     )
-    if not recognizable:
-        raise SystemExit(
-            f"AAOP bootstrap: {package} already exists but is not recognizable as AAOP. "
-            "Refusing to claim it automatically; review the directory and use the canonical "
-            "installer explicitly if migration is intended."
-        )
-    return "upgrade"
 
 
 def run_installer(source: Path, target: Path, mode: str) -> None:
