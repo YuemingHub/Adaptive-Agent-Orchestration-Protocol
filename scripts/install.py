@@ -22,12 +22,14 @@ AAOP_END = "<!-- AAOP:END -->"
 AGENTS_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
 
-For non-trivial work, read `.aaop/ORCHESTRATOR.md` before substantive changes.
-Start from capabilities already present in this project/host. Derive required
-capabilities before creating agents or adding integrations. Install nothing new
-unless a concrete capability gap is proven; then select the smallest justified
-Skill, MCP, discovery standard, runtime, or workspace. Apply risk-based autonomy
-and verify the requested outcome before declaring completion.
+For non-trivial developer work, read `.aaop/ORCHESTRATOR.md` and begin with
+`.aaop/skills/developer-intake/SKILL.md`. Infer the user's current situation and
+primary development route from ordinary language plus available project evidence;
+do not make the user choose an Agent, workflow, Skill, MCP server, or runtime.
+Read accessible repository/log/test evidence before asking questions. Then derive
+required capabilities, reuse what already exists, and install nothing new unless
+a concrete capability gap is proven. Apply risk-based autonomy and verify the
+requested observable outcome before declaring completion.
 
 Canonical orchestration Skills live under `.aaop/skills/`.
 {AAOP_END}
@@ -36,10 +38,12 @@ Canonical orchestration Skills live under `.aaop/skills/`.
 CLAUDE_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
 
-Read `AGENTS.md` and `.aaop/ORCHESTRATOR.md` for non-trivial work. Load only the
-relevant `.aaop/skills/*/SKILL.md` procedures. Prefer existing Claude Code/native
-capabilities. Do not create a fixed team or add MCP/runtime dependencies by
-default; prove the capability gap first and use progressive integration.
+Read `AGENTS.md`, `.aaop/ORCHESTRATOR.md`, and for developer requests start with
+`.aaop/skills/developer-intake/SKILL.md`. Accept natural language, inspect the
+workspace before asking the user for technical facts that are already available,
+and route internally to the appropriate development path. Prefer existing Claude
+Code/native capabilities. Do not create a fixed team or add MCP/runtime
+dependencies by default; prove the capability gap first.
 {AAOP_END}
 """
 
@@ -97,7 +101,7 @@ def main() -> int:
     print("  third-party providers installed: none")
     print("  secrets requested: none")
     print("Optional inventory: python .aaop/tools/doctor.py .")
-    print("Next: open the target project in your existing AI host and state the desired outcome.")
+    print("Next: open the target project in your existing AI host and describe what you want in ordinary language.")
     return 0
 
 
