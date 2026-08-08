@@ -50,8 +50,6 @@ jobs:
                       continue
                   rel = path.relative_to(root)
                   z.write(path, (Path('aaop-source') / rel).as_posix())
-              # Explicitly replay a local source checkout polluted by interpreter caches.
-              # These generated files must never become AAOP-managed install content.
               z.writestr('aaop-source/.aaop/tools/__pycache__/regression.cpython-312.pyc', b'generated-cache')
               z.writestr('aaop-source/.aaop/tools/regression.pyo', b'generated-cache')
           print(out)
@@ -129,20 +127,41 @@ jobs:
           grep -q 'KEEP-ME' "$target/AGENTS.md"
           test ! -d "$target/.aaop/tools/__pycache__"
 
-      - name: Bootstrap refuses to claim unrelated .aaop directory
+      - name: Recognizable legacy AAOP can establish manifest ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          legacy="$(mktemp -d)"
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$legacy" --skip-ready > /tmp/bootstrap-legacy-install.out
+          rm "$legacy/.aaop/.install-manifest.json"
+          test -f "$legacy/.aaop/ORCHESTRATOR.md"
+          grep -q '# AAOP Runtime Protocol' "$legacy/.aaop/ORCHESTRATOR.md"
+
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$legacy" 2>&1 | tee /tmp/bootstrap-legacy-upgrade.out
+          grep -q 'AAOP bootstrap: upgrade' /tmp/bootstrap-legacy-upgrade.out
+          grep -q 'legacy upgrade:' /tmp/bootstrap-legacy-upgrade.out
+          grep -q 'AAOP READY' /tmp/bootstrap-legacy-upgrade.out
+          test -f "$legacy/.aaop/.install-manifest.json"
+
+      - name: Bootstrap refuses unproven .aaop ownership
         shell: bash
         run: |
           set -euo pipefail
           target="$(mktemp -d)"
           mkdir -p "$target/.aaop"
+          printf '9.9.9\n' > "$target/.aaop/VERSION"
+          printf '# Another Tool Orchestrator\n\nNot AAOP.\n' > "$target/.aaop/ORCHESTRATOR.md"
           printf 'unrelated\n' > "$target/.aaop/owner.txt"
+
           if python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" > /tmp/bootstrap-refuse.out 2>&1; then
-            echo 'expected unrelated .aaop bootstrap to fail' >&2
+            echo 'expected unproven .aaop ownership to fail' >&2
             exit 1
           fi
-          grep -q 'not recognizable as AAOP' /tmp/bootstrap-refuse.out
+          grep -q 'ownership cannot be proven' /tmp/bootstrap-refuse.out
+          grep -qx '9.9.9' "$target/.aaop/VERSION"
+          grep -q 'Another Tool Orchestrator' "$target/.aaop/ORCHESTRATOR.md"
           grep -qx 'unrelated' "$target/.aaop/owner.txt"
-          test ! -f "$target/.aaop/VERSION"
+          test ! -f "$target/.aaop/.install-manifest.json"
 
       - name: Safe removal through the same bootstrap surface
         shell: bash
