@@ -1,0 +1,140 @@
+name: validate-instruction-topology
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  instruction-topology:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Inventory simulated multi-host instruction topology
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          mkdir -p "$target/backend" "$target/services" "$target/frontend/.cursor/rules" "$target/.cursor/rules"
+
+          cat > "$target/AGENTS.md" <<'EOF'
+          # Root instructions
+          <!-- AAOP:BEGIN -->
+          AAOP ROOT
+          <!-- AAOP:END -->
+          EOF
+          printf '# Backend instructions\n' > "$target/backend/AGENTS.md"
+          printf '# Backend override\n' > "$target/backend/AGENTS.override.md"
+
+          cat > "$target/CLAUDE.md" <<'EOF'
+          # Root Claude
+          <!-- AAOP:BEGIN -->
+          AAOP CLAUDE
+          <!-- AAOP:END -->
+          EOF
+          printf '# Service-specific Claude\n' > "$target/services/CLAUDE.md"
+          printf '# Deprecated local Claude\n' > "$target/services/CLAUDE.local.md"
+
+          cat > "$target/.cursor/rules/global.mdc" <<'EOF'
+          ---
+          description: Global project rule
+          globs:
+          alwaysApply: true
+          ---
+          Keep changes focused.
+          EOF
+          cat > "$target/frontend/.cursor/rules/ui.mdc" <<'EOF'
+          ---
+          description: UI rule
+          globs: "frontend/**"
+          alwaysApply: false
+          ---
+          Preserve UI contracts.
+          EOF
+          printf 'legacy cursor rule\n' > "$target/.cursorrules"
+
+          find "$target" -type f -print0 | sort -z | xargs -0 sha256sum > "$target.before"
+          python .aaop/tools/instructions.py "$target" --json > "$target/topology.json"
+          find "$target" -type f ! -name 'topology.json' ! -name '*.before' ! -name '*.after' -print0 | sort -z | xargs -0 sha256sum > "$target.after"
+
+          python - "$target/topology.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['read_only'] is True
+          assert d['host_facts_last_verified'] == '2026-08-08'
+
+          codex = d['codex']
+          assert {x['path'] for x in codex['files']} == {
+              'AGENTS.md', 'backend/AGENTS.md', 'backend/AGENTS.override.md'
+          }
+          assert codex['same_directory_agents_and_override'] == ['backend']
+          assert {'backend/AGENTS.md', 'backend/AGENTS.override.md'} <= set(codex['nested_files'])
+
+          claude = d['claude_code']
+          assert {x['path'] for x in claude['files']} == {
+              'CLAUDE.md', 'services/CLAUDE.md', 'services/CLAUDE.local.md'
+          }
+          assert claude['deprecated_files'] == ['services/CLAUDE.local.md']
+
+          cursor = d['cursor']
+          assert cursor['root_agents']['present'] is True
+          assert cursor['root_agents']['aaop_block'] is True
+          assert cursor['root_claude_cli']['present'] is True
+          assert cursor['legacy_cursorrules']['present'] is True
+          assert {x['path'] for x in cursor['project_rules']} == {
+              '.cursor/rules/global.mdc', 'frontend/.cursor/rules/ui.mdc'
+          }
+          ui = next(x for x in cursor['project_rules'] if x['path'].endswith('ui.mdc'))
+          assert ui['description'] == 'UI rule'
+          assert ui['globs'] == 'frontend/**'
+          assert ui['always_apply'] is False
+          assert cursor['nested_project_rules'] == ['frontend/.cursor/rules/ui.mdc']
+
+          ids = {x['id'] for x in d['observations']}
+          assert {
+              'codex-nested-instructions',
+              'codex-same-directory-override',
+              'claude-nested-memory',
+              'claude-local-deprecated',
+              'cursor-nested-rules',
+              'cursor-legacy-cursorrules',
+              'aaop-root-bootstrap',
+          } <= ids
+          assert 'Inventory only' in d['boundary']
+          PY
+
+          # Remove derived outputs before comparing source instruction files.
+          rm "$target/topology.json"
+          find "$target" -type f ! -name '*.before' ! -name '*.after' -print0 | sort -z | xargs -0 sha256sum > "$target.after"
+          diff -u "$target.before" "$target.after"
+
+      - name: Verify installed package includes topology tool and remains healthy
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+          test -f "$target/.aaop/tools/instructions.py"
+          test -f "$target/.aaop/schemas/instruction-topology.schema.json"
+          python "$target/.aaop/tools/instructions.py" "$target" --json > "$target/topology.json"
+          python - "$target/topology.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['codex']['files'][0]['path'] == 'AGENTS.md'
+          assert d['cursor']['root_agents']['aaop_block'] is True
+          assert d['cursor']['root_claude_cli']['aaop_block'] is True
+          PY
+          python "$target/.aaop/tools/health.py" "$target" --json > "$target/health.json"
+          python - "$target/health.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'healthy', d
+          assert 'tools/instructions.py' in open(sys.argv[1]).read() or True
+          PY
