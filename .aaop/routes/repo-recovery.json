@@ -1,0 +1,54 @@
+{
+  "version": "0.5.0",
+  "route_id": "repo-recovery",
+  "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then make one evidence-backed improvement without broad speculative cleanup.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "preserve-and-inventory",
+      "purpose": "Preserve current state and inventory instructions, manifests, modules, tests, CI, deployment, and recent history.",
+      "required_capabilities": ["repository-inspection", "git-history-analysis", "build-test-discovery"],
+      "optional_capabilities": ["architecture-mapping"],
+      "evidence": ["working tree and branch state", "instruction files", "manifests", "test/CI configuration", "recent commits"],
+      "exit_when": "The current technical surface and obvious sources of truth are known."
+    },
+    {
+      "id": "truth-reconstruction",
+      "purpose": "Separate intended product behavior from accidental or stale implementation and identify the highest-leverage blocker.",
+      "required_capabilities": ["cross-evidence-synthesis", "architecture-understanding", "risk-prioritization"],
+      "optional_capabilities": ["runtime-probing", "security-risk-review"],
+      "evidence": ["README/spec versus code comparison", "tests versus runtime behavior", "issue/roadmap/history context"],
+      "exit_when": "A concise current-state model and prioritized recovery target are defensible from evidence."
+    },
+    {
+      "id": "stabilize-one-path",
+      "purpose": "Fix or stabilize one high-value path before broad refactoring.",
+      "required_capabilities": ["targeted-implementation", "regression-validation"],
+      "optional_capabilities": ["specification-management", "browser-validation"],
+      "evidence": ["before/after behavior", "tests or runtime checks", "scope-limited diff"],
+      "exit_when": "One meaningful path is more trustworthy and the next recovery priority is clearer."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "The project needs durable reconstruction of intent/specifications before continued feature work.",
+      "capability_gap": "brownfield specification and artifact alignment",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Prefer core Spec Kit existing-project/evolving-spec workflows first; treat community brownfield extensions as untrusted candidates until source and permissions are reviewed."
+    },
+    {
+      "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems.",
+      "capability_gap": "long-horizon repository execution",
+      "provider_candidates": ["deepagents", "openhands"],
+      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy."
+    },
+    {
+      "when": "Recovery reveals that the immediate blocker is a bounded reproducible defect.",
+      "capability_gap": "bounded issue-resolution loop",
+      "provider_candidates": ["mini-swe-agent"],
+      "selection_rule": "Reroute to bug-fix first; use mini-SWE-agent only if the issue is clear and verifiable."
+    }
+  ],
+  "verification": ["current-state claims are grounded in repository/runtime evidence", "one prioritized improvement is verified", "broad cleanup was avoided unless evidence justified it"],
+  "reroute_signals": ["a specific failing behavior becomes primary -> bug-fix", "a desired new behavior becomes primary -> feature-change", "the user only needs a decision/review -> understand-review"]
+}
