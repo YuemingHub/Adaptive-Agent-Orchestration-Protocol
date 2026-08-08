@@ -20,7 +20,20 @@ jobs:
         run: python scripts/validate.py
       - name: Validate real-project pressure regressions
         run: python scripts/validate_pressure.py
-      - name: Smoke-test installer, environment resolution, routes, recipes, adoption reviews, and project-rule preservation
+      - name: Validate AAOP source-tree health semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .aaop/tools/health.py . --json > /tmp/aaop-source-health.json
+          python - /tmp/aaop-source-health.json <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'source-tree', d
+          assert d['manifest_present'] is False
+          assert d['package_version'] == '0.11.0'
+          assert 'tamper-proof' in d['trust_boundary']
+          PY
+      - name: Smoke-test installer, environment resolution, routes, recipes, adoption reviews, health, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
@@ -31,16 +44,37 @@ jobs:
           grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
           grep -q 'route-execution' "$target/AGENTS.md"
           test -f "$target/.aaop/tools/doctor.py"
+          test -f "$target/.aaop/tools/health.py"
           test -f "$target/.aaop/tools/route.py"
           test -f "$target/.aaop/tools/recipe.py"
           test -f "$target/.aaop/routes/bug-fix.json"
           test -f "$target/.aaop/routes/idea-to-build.json"
           test -f "$target/.aaop/routes/understand-review.json"
           test -f "$target/.aaop/schemas/environment-inventory.schema.json"
+          test -f "$target/.aaop/schemas/installation-health.schema.json"
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
           test -f "$target/.aaop/schemas/integration-recipe.schema.json"
           test -f "$target/.aaop/.install-manifest.json"
-          grep -qx '0.10.0' "$target/.aaop/VERSION"
+          grep -qx '0.11.0' "$target/.aaop/VERSION"
+
+          python "$target/.aaop/tools/health.py" "$target" --json > "$target/health-clean.json"
+          python - "$target/health-clean.json" "$target/.aaop/.install-manifest.json" <<'PY'
+          import json, sys
+          health = json.load(open(sys.argv[1]))
+          manifest = json.load(open(sys.argv[2]))
+          assert health['state'] == 'healthy', health
+          assert health['package_version'] == '0.11.0'
+          assert health['manifest_version'] == '0.11.0'
+          assert health['manifest_schema_version'] == 2
+          assert health['managed_files']['modified'] == []
+          assert health['managed_files']['missing'] == []
+          assert health['bootstrap']['AGENTS.md']['status'] == 'current'
+          assert health['bootstrap']['CLAUDE.md']['status'] == 'current'
+          assert manifest['schema_version'] == 2
+          assert manifest['aaop_version'] == '0.11.0'
+          assert set(manifest['bootstrap_blocks']) == {'AGENTS.md', 'CLAUDE.md'}
+          assert 'tools/health.py' in manifest['files']
+          PY
 
           # AAOP's own canonical Skills must not inflate the observed external surface.
           python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor-clean.json"
@@ -120,13 +154,13 @@ jobs:
 
           python scripts/validate.py --root "$target" --package-only
 
-      - name: Validate state-preserving upgrade behavior
+      - name: Validate installation-health drift classification and state-preserving repair
         shell: bash
         run: |
           set -euo pipefail
 
-          # Manifest-backed upgrade: preserve runtime/project files, back up managed edits,
-          # update only the marked bootstrap block, and keep external project rules.
+          # Manifest-backed drift: managed file + bootstrap edits are detected before repair,
+          # then --upgrade backs up managed edits and returns the installation to healthy.
           target="$(mktemp -d)"
           printf '# Project rules\n\nKEEP-OUTSIDE-AAOP\n' > "$target/AGENTS.md"
           python scripts/install.py "$target"
@@ -146,35 +180,45 @@ jobs:
           p.write_text(text[:a] + begin + '\nOLD-AAOP-BOOTSTRAP\n' + end + text[b:])
           PY
 
+          python "$target/.aaop/tools/health.py" "$target" --json > "$target/health-drift.json"
+          python - "$target/health-drift.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'drifted', d
+          assert 'ORCHESTRATOR.md' in d['managed_files']['modified']
+          assert d['bootstrap']['AGENTS.md']['status'] == 'modified'
+          PY
+
           python scripts/install.py "$target" --upgrade > "$target/upgrade.out"
           grep -q 'AAOP upgraded' "$target/upgrade.out"
-          grep -q 'version: 0.10.0' "$target/upgrade.out"
+          grep -q 'version: 0.11.0' "$target/upgrade.out"
           grep -q 'KEEP-OUTSIDE-AAOP' "$target/AGENTS.md"
-          grep -q 'adoption_review' "$target/AGENTS.md"
+          grep -q 'health.py' "$target/AGENTS.md"
           ! grep -q 'OLD-AAOP-BOOTSTRAP' "$target/AGENTS.md"
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
           grep -qx 'project-owned-aaop-file' "$target/.aaop/local-note.txt"
           ! grep -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/ORCHESTRATOR.md"
           grep -R -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/runtime/upgrade-backups"
-          python - "$target/.aaop/.install-manifest.json" <<'PY'
+          python "$target/.aaop/tools/health.py" "$target" --json > "$target/health-repaired.json"
+          python - "$target/health-repaired.json" "$target/.aaop/.install-manifest.json" <<'PY'
           import json, sys
-          d = json.load(open(sys.argv[1]))
-          assert d['aaop_version'] == '0.10.0'
-          assert d['schema_version'] == 1
-          assert 'ORCHESTRATOR.md' in d['files']
-          assert 'runtime/state.txt' not in d['files']
+          health = json.load(open(sys.argv[1]))
+          manifest = json.load(open(sys.argv[2]))
+          assert health['state'] == 'healthy', health
+          assert manifest['aaop_version'] == '0.11.0'
+          assert manifest['schema_version'] == 2
+          assert set(manifest['bootstrap_blocks']) == {'AGENTS.md', 'CLAUDE.md'}
           PY
 
-          # --force is now a non-destructive compatibility alias and must be idempotent.
+          # --force remains a non-destructive compatibility alias and must be idempotent.
           python scripts/install.py "$target" --force > "$target/force.out"
           grep -q 'AAOP upgraded' "$target/force.out"
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
           grep -qx 'project-owned-aaop-file' "$target/.aaop/local-note.txt"
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
 
-          # Legacy install (no manifest): preserve runtime + target-only files and refresh
-          # current managed paths without destructive directory replacement.
+          # Legacy no-manifest installation is observable, then becomes healthy after safe upgrade.
           legacy="$(mktemp -d)"
           printf '# Legacy project\n' > "$legacy/AGENTS.md"
           python scripts/install.py "$legacy"
@@ -182,18 +226,73 @@ jobs:
           mkdir -p "$legacy/.aaop/runtime"
           printf 'legacy-runtime\n' > "$legacy/.aaop/runtime/state.txt"
           printf 'legacy-local\n' > "$legacy/.aaop/local-note.txt"
+          python "$legacy/.aaop/tools/health.py" "$legacy" --json > "$legacy/health-before.json"
+          python - "$legacy/health-before.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'legacy-install', d
+          PY
           python scripts/install.py "$legacy" --upgrade > "$legacy/upgrade.out"
           grep -q 'legacy upgrade:' "$legacy/upgrade.out"
           grep -qx 'legacy-runtime' "$legacy/.aaop/runtime/state.txt"
           grep -qx 'legacy-local' "$legacy/.aaop/local-note.txt"
-          test -f "$legacy/.aaop/.install-manifest.json"
+          python "$legacy/.aaop/tools/health.py" "$legacy" --json > "$legacy/health-after.json"
+          python - "$legacy/health-after.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'healthy', d
+          PY
 
-          # Malformed bootstrap markers must fail before the package is mutated.
+          # v0.10-style manifest schema lacks bootstrap hashes; classify as upgrade-recommended,
+          # not false local drift, even if its historical version field differs.
+          old="$(mktemp -d)"
+          python scripts/install.py "$old"
+          python - "$old/.aaop/.install-manifest.json" <<'PY'
+          import json, sys
+          p = sys.argv[1]
+          d = json.load(open(p))
+          d['schema_version'] = 1
+          d['aaop_version'] = '0.9.0'
+          d.pop('bootstrap_blocks', None)
+          with open(p, 'w') as f:
+              json.dump(d, f, indent=2, sort_keys=True)
+              f.write('\n')
+          PY
+          python "$old/.aaop/tools/health.py" "$old" --json > "$old/health.json"
+          python - "$old/health.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'upgrade-recommended', d
+          assert d['version_mismatch'] is True
+          assert d['bootstrap']['AGENTS.md']['status'] == 'present-untracked'
+          PY
+
+          # Missing managed content is incomplete, not silently healthy.
+          incomplete="$(mktemp -d)"
+          python scripts/install.py "$incomplete"
+          rm "$incomplete/.aaop/routes/bug-fix.json"
+          python "$incomplete/.aaop/tools/health.py" "$incomplete" --json > "$incomplete/health.json"
+          python - "$incomplete/health.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'incomplete', d
+          assert 'routes/bug-fix.json' in d['managed_files']['missing']
+          PY
+
+          # Malformed bootstrap markers are visible to health and upgrade still fails before
+          # mutating an edited managed sentinel.
           broken="$(mktemp -d)"
           printf '# Broken marker project\n' > "$broken/AGENTS.md"
           python scripts/install.py "$broken"
           printf '\nLOCAL-SENTINEL\n' >> "$broken/.aaop/ORCHESTRATOR.md"
           printf '\n<!-- AAOP:BEGIN -->\n' >> "$broken/AGENTS.md"
+          python "$broken/.aaop/tools/health.py" "$broken" --json > "$broken/health.json"
+          python - "$broken/health.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['state'] == 'drifted', d
+          assert d['bootstrap']['AGENTS.md']['status'] == 'malformed-markers'
+          PY
           if python scripts/install.py "$broken" --upgrade > "$broken/upgrade.out" 2>&1; then
             echo 'expected malformed marker upgrade to fail' >&2
             exit 1
