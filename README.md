@@ -1,27 +1,23 @@
 # Adaptive Agent Orchestration Protocol (AAOP)
 
-AAOP is a host-agnostic **developer intake, decision, policy, and integration layer**.
+AAOP is a host-agnostic **developer intake, routing, decision, policy, and integration layer**.
 
 Its purpose is simple:
 
-> A developer should be able to arrive with an idea, a messy repository, a bug, a feature request, a review question, or a deployment problem — describe it in ordinary language — and let AAOP route the work without first learning the agent ecosystem.
+> A developer should be able to arrive with an idea, a messy repository, a bug, a feature request, a review question, or a deployment problem — describe it in ordinary language — and let AAOP route and compose the work without first learning the agent ecosystem.
 
 AAOP does not try to become another all-in-one agent framework.
 
 ```text
 Natural-language developer request
               ↓
-What do they have right now?
-idea / repo / files / runtime
+Developer intake
               ↓
-What situation are they in?
-idea / recovery / bug / feature / review / operations
+Primary development route
               ↓
-What should observably become true?
+Route Capability Pack
               ↓
-Route-specific discovery
-              ↓
-Required capabilities
+What capabilities are needed now?
               ↓
 Reuse what already exists
               ↓
@@ -33,10 +29,9 @@ Reuse what already exists
    keep it      │   select one mature
    simple       │   provider + recipe
                 │        ↓
-                │ Skill / MCP / ARD / A2A
-                │ Runtime / Workspace
+                │ upstream implementation
                 ↓
-        Execute → Verify → Replan
+        Execute → Verify → Re-route/Replan
 ```
 
 ## The developer front door
@@ -52,7 +47,7 @@ AAOP accepts minimal language such as:
 “Get this ready to deploy.”
 ```
 
-The user does **not** choose a workflow, Agent, Skill, MCP server, or runtime.
+The user does **not** choose a workflow, Agent, Skill, MCP server, runtime, or framework.
 
 AAOP first routes internally to one primary development path:
 
@@ -73,17 +68,41 @@ If the workspace, repository, logs, tests, issue, or deployment evidence can ans
 
 When clarification is genuinely necessary, ask **one concrete question** only when the answer can materially change the route, observable outcome, product choice, or safety/permission class.
 
-The internal intake object is defined by `.aaop/schemas/intake-envelope.schema.json`; the user never fills it out.
+## Route Capability Packs
+
+Once a route is selected, AAOP loads exactly one internal Route Capability Pack from `.aaop/routes/`.
+
+A pack describes:
+
+- the route's engineering stages and purpose;
+- normally required capabilities;
+- the evidence that should move the work forward;
+- stage exit conditions;
+- specific capability gaps that may justify escalation;
+- mature provider candidates for those gaps;
+- route-level verification;
+- signals that mean evidence has changed the situation and the route should change.
+
+A Route Capability Pack is **not** a workflow engine or install bundle. The same pack must still describe sound engineering if every external provider disappeared tomorrow.
+
+Browse the installed packs:
+
+```bash
+python .aaop/tools/route.py list
+python .aaop/tools/route.py show bug-fix
+```
+
+See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
 
 ## Why AAOP exists
 
-The agent ecosystem is capable but fragmented. Developers may encounter Agent Skills, MCP, A2A, ARD, AutoAgent, Deep Agents, Microsoft Agent Framework, CAMEL, AgentSpace, and many other systems — each solving a real layer of the problem.
+The agent ecosystem is capable but fragmented. Developers may encounter Agent Skills, MCP, A2A, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, AutoAgent, Deep Agents, Microsoft Agent Framework, CAMEL, AgentSpace, and many other systems — each solving a real layer of the problem.
 
 The answer should not be to reinstall or reimplement all of them in every project.
 
 AAOP's job is:
 
-> **Understand the developer's actual situation first, then reuse the current environment and integrate only the mature capability that becomes necessary.**
+> **Understand the developer's actual situation first, derive the capabilities the route needs, then integrate only the mature capability that is actually missing.**
 
 ## Progressive adoption
 
@@ -92,9 +111,9 @@ AAOP defaults to **zero third-party provider installation**.
 ```text
 Level 0  AAOP protocol only
 Level 1  Existing AI IDE / host-native capabilities
-Level 2  Agent Skills / MCP / local scripts
+Level 2  Existing/local Skills, tests, scripts, tools, MCP
 Level 3  ARD / A2A / trusted discovery
-Level 4  One justified specialized runtime
+Level 4  One justified specialized runtime/harness
 Level 5  Governed workspace/control plane
 ```
 
@@ -120,14 +139,23 @@ Browse recipes without installing anything:
 
 ```bash
 python .aaop/tools/recipe.py list
-python .aaop/tools/recipe.py show deepagents
+python .aaop/tools/recipe.py show spec-kit
+python .aaop/tools/recipe.py show playwright
 ```
 
-Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
+Current recipes include Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
+
+### Examples of progressive provider use
+
+- **Spec Kit** — use when durable intent/specification artifacts or a reviewed route-relevant extension actually reduce drift; do not duplicate its SDD/extension/bundle machinery inside AAOP.
+- **Playwright** — choose the smallest surface: Test for durable E2E, CLI+Skills for many coding-agent browser workflows, MCP for persistent introspective browser loops.
+- **mini-SWE-agent** — use for a bounded, reproducible, testable software issue when a dedicated minimal SWE loop is useful; not for ambiguous product discovery or repository recovery.
+- **OpenHands** — use when a dedicated autonomous coding runtime/SDK or isolated workspace is the missing capability; not simply because the task involves code.
 
 ## What AAOP owns
 
 - natural-language developer intake and internal routing;
+- Route Capability Packs;
 - project/environment discovery policy;
 - outcome and constraint resolution;
 - capability-first planning;
@@ -144,16 +172,19 @@ Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Fra
 | --- | --- |
 | Reusable procedures | Agent Skills |
 | External tool/service access | MCP |
-| MCP discovery metadata | Official MCP Registry |
 | Cross-agent interoperability | A2A |
 | Broad agentic resource discovery | ARD |
+| Structured spec-driven SDLC | GitHub Spec Kit when justified |
+| Browser E2E / agent browser automation | Playwright surface appropriate to the task |
+| Bounded issue-solving SWE agent | mini-SWE-agent when justified |
+| General autonomous coding runtime/SDK | OpenHands when justified |
 | Long-horizon/subagent harness | Deep Agents or another justified runtime |
 | Production workflow runtime | Microsoft Agent Framework or another justified runtime |
 | Dynamic workforce patterns | CAMEL or another justified runtime |
 | Generate/test new agents/tools/workflows | AutoAgent when justified |
 | Shared agents, permissions, approvals, audit, routing | AgentSpace or another mature control plane |
 
-See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md).
+See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md) and [`docs/RESEARCH_V0_5.md`](docs/RESEARCH_V0_5.md).
 
 ## Quick start
 
@@ -167,13 +198,14 @@ The installer:
 
 - copies the `.aaop` protocol package;
 - appends a compact bootstrap to existing `AGENTS.md` / `CLAUDE.md` without replacing project rules;
-- installs **no** third-party runtime, MCP server, or Skill marketplace;
+- installs **no** third-party runtime, MCP server, Skill marketplace, or route provider;
 - requests **no** secret.
 
-Optional inventory:
+Optional inventory/browsing:
 
 ```bash
 python .aaop/tools/doctor.py .
+python .aaop/tools/route.py list
 python .aaop/tools/recipe.py list
 ```
 
@@ -192,12 +224,21 @@ CLAUDE.md
 │   ├── capabilities.json
 │   ├── providers.json
 │   └── adoption-profiles.json
-├── recipes/
+├── routes/                          # route capability packs
+│   ├── idea-to-build.json
+│   ├── repo-recovery.json
+│   ├── bug-fix.json
+│   ├── feature-change.json
+│   ├── understand-review.json
+│   └── release-operations.json
+├── recipes/                         # lazy provider integration knowledge
 ├── schemas/
-│   ├── intake-envelope.schema.json  # internal intake state
+│   ├── intake-envelope.schema.json
+│   ├── route-capability-pack.schema.json
 │   └── ...
 ├── skills/
 │   ├── developer-intake/            # natural-language front door
+│   ├── route-execution/             # execute current pack progressively
 │   ├── project-discovery/
 │   ├── capability-planning/
 │   ├── provider-selection/
@@ -206,9 +247,11 @@ CLAUDE.md
 │   └── verification-loop/
 └── tools/
     ├── doctor.py
+    ├── route.py
     └── recipe.py
 
 docs/DEVELOPER_ENTRYPOINT.md
+docs/ROUTE_CAPABILITY_PACKS.md
 adapters/
 examples/
 scripts/
@@ -219,20 +262,21 @@ scripts/
 1. Situation before machinery.
 2. Read available evidence before asking the user.
 3. Route by the next observable outcome, not by developer jargon.
-4. Derive capabilities before inventing roles.
-5. Start with what the developer already has.
-6. Install nothing new without a proven capability gap.
-7. Prefer open standards and mature upstream implementations over copies.
-8. Use the minimum sufficient team and integration surface.
-9. Discovery never equals silent installation.
-10. Verify outcomes; correct the route/plan when evidence changes the situation.
-11. Hide orchestration complexity from the user without lowering engineering rigor.
+4. Use Route Capability Packs as thin engineering maps, not proprietary workflows.
+5. Derive capabilities before inventing roles or choosing providers.
+6. Start with what the developer already has.
+7. Install nothing new without a proven capability gap.
+8. Prefer mature upstream implementations over copies.
+9. Select the minimum provider surface, not the whole ecosystem.
+10. Community catalogs are discovery surfaces, not automatic trust boundaries.
+11. Verify outcomes and verify every provider actually closes the gap that justified it.
+12. Hide orchestration complexity from the user without lowering engineering rigor.
 
 ## Status
 
-**v0.4.0 — developer intake and natural-language routing baseline.**
+**v0.5.0 — route capability packs and mature SDLC provider composition.**
 
-v0.4 makes the developer's real situation the first-class entry point. AAOP now routes ideas, repository recovery, bugs, features, reviews, and release/operations work before capability/provider orchestration.
+v0.5 moves route execution out of the monolithic orchestrator and into six thin capability packs. It adds route-aware mature providers and recipes for Spec Kit, Playwright, mini-SWE-agent, and OpenHands, while keeping host-native execution as the default.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
