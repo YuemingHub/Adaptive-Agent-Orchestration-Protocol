@@ -1,97 +1,239 @@
 # AAOP Quick Start
 
-## 1. Use AAOP inside this repository
+This guide is for a developer who wants to **use AAOP now**, not study the whole protocol first.
 
-Open the repository in an AI host that reads project instructions and state an outcome, for example:
+## 1. Install AAOP into the project you want to work on
 
-> Review this project and make the orchestration protocol actually usable across Codex, Claude Code and Cursor. Resolve ordinary implementation details autonomously and verify the result.
+Open a terminal in that project.
 
-The host should read `AGENTS.md` / `CLAUDE.md`, then `.aaop/ORCHESTRATOR.md`, discover the project, derive capabilities, and choose the minimum sufficient execution structure.
-
-## 2. Install AAOP into another project
-
-From a clone of this repository:
+### macOS / Linux
 
 ```bash
-python scripts/install.py /path/to/your-project
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target .
 ```
 
-The installer:
+### Windows PowerShell
 
-- copies the canonical AAOP-managed files into `.aaop/`;
-- creates or appends a marked AAOP bootstrap block in `AGENTS.md`;
-- creates or appends a marked AAOP bootstrap block in `CLAUDE.md`;
-- does not replace unrelated existing project rules;
-- records a managed-file + bootstrap integrity baseline in `.aaop/.install-manifest.json`;
+```powershell
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target .
+```
+
+If your Python command is `python`, use it instead of `py` / `python3`.
+
+The bootstrap:
+
+- downloads the official AAOP repository archive into a temporary directory;
+- validates that the archive contains a recognizable AAOP source package;
+- uses the canonical `scripts/install.py` for all target mutation;
+- preserves unrelated project rules in `AGENTS.md` / `CLAUDE.md`;
+- writes AAOP under `.aaop/` and records ownership in `.aaop/.install-manifest.json`;
 - installs no third-party provider;
-- does not copy or request secrets.
+- requests no secret;
+- runs a readiness check after installation.
 
-### Upgrade an existing AAOP installation
+### Inspect-first option
 
-If the target already contains `.aaop/`, use:
-
-```bash
-python scripts/install.py /path/to/your-project --upgrade
-```
-
-Safe upgrade rules:
-
-- `.aaop/runtime/` is preserved;
-- files inside `.aaop/` that were not installed/managed by AAOP are preserved;
-- AAOP bootstrap text between `<!-- AAOP:BEGIN -->` / `<!-- AAOP:END -->` is updated in place while surrounding project rules remain untouched;
-- an install manifest tracks hashes of AAOP-managed files and the canonical marked bootstrap blocks;
-- if a managed file was locally modified, it is backed up under `.aaop/runtime/upgrade-backups/` before the canonical version replaces it;
-- if a future AAOP release starts managing a path that already belongs to the project, that colliding file is backed up before AAOP claims the path;
-- malformed/duplicated bootstrap markers fail preflight before package mutation;
-- target-only project files are never removed merely because an AAOP release does not know about them.
-
-`--force` remains as a compatibility alias for `--upgrade`; it no longer means destructive replacement of the whole `.aaop` directory.
-
-Legacy installations created before install manifests existed can also be upgraded. Their runtime and target-only files are preserved, but because old hashes are unavailable, the installer cannot distinguish local edits to legacy AAOP-managed paths before refreshing those current paths.
-
-### Safely remove AAOP
-
-AAOP should also be easy to leave without making the developer understand which files are safe to delete.
-
-For a manifest-tracked installation:
+If you do not want to pipe a remote script directly into Python:
 
 ```bash
-python scripts/install.py /path/to/your-project --uninstall
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py -o aaop-bootstrap.py
+python3 aaop-bootstrap.py --target .
 ```
 
-Safe removal rules:
+Review the downloaded file before executing it.
 
-- remove only files listed as AAOP-owned in `.aaop/.install-manifest.json`;
-- remove only the marked AAOP blocks from `AGENTS.md` / `CLAUDE.md`;
-- preserve all text outside those markers;
-- preserve `.aaop/runtime/`;
-- preserve project-owned files under `.aaop/` that are not in the manifest;
-- back up locally modified AAOP-managed files under `.aaop/runtime/uninstall-backups/` before removing their canonical path;
-- leave third-party providers, MCP configuration, project dependencies, and other ecosystem tools untouched;
-- refuse malformed/duplicated bootstrap markers before deleting package files;
-- refuse automatic uninstall when no install manifest exists, because ownership cannot be inferred safely.
+### Pin a specific revision
 
-For a legacy no-manifest installation, first run a trusted safe upgrade to establish explicit ownership, then uninstall:
+The default `--ref main` means “current main branch.” For reproducibility, pin a commit or tag:
 
 ```bash
-python scripts/install.py /path/to/your-project --upgrade
-python scripts/install.py /path/to/your-project --uninstall
+python3 aaop-bootstrap.py --target . --ref <commit-or-tag>
 ```
 
-If runtime history or project-owned `.aaop` files remain after uninstall, the `.aaop/` directory intentionally remains. If nothing project-owned remains, empty AAOP directories may disappear.
-
-Safe removal does **not** uninstall Playwright, MCP servers, AutoAgent, Deep Agents, or any other provider. Those resources were not installed merely because AAOP referenced or selected them, and their lifecycle must follow their own provenance/ownership.
-
-## 3. Check installation health before repairing it
-
-An installed AAOP can be inspected without changing anything:
+## 2. Confirm AAOP is ready
 
 ```bash
-python .aaop/tools/health.py .
-python .aaop/tools/health.py . --json
+python .aaop/tools/aaop.py ready .
 ```
 
-The health tool compares the current installation with its local install baseline and reports states such as:
+A normal installed project should report:
+
+```text
+AAOP READY
+  version: <installed version>
+  project: <your project>
+  health: healthy
+```
+
+The readiness command also summarizes visible project evidence and prints a starter prompt.
+
+If it says `REVIEW REQUIRED`, follow the `Next:` line instead of blindly reinstalling.
+
+## 3. Open the project in your normal AI coding host
+
+AAOP is designed to enter through project instruction surfaces your host already understands.
+
+Supported target shapes include:
+
+- Codex → `AGENTS.md` and scoped project rules;
+- Claude Code → `CLAUDE.md` plus project rules;
+- Cursor → root project instructions and relevant scoped rules;
+- other coding agents that can read project files/instructions → generic AAOP bootstrap path.
+
+You do not select an “AAOP mode.”
+
+## 4. Say what you want in ordinary language
+
+A broad continuation prompt:
+
+```text
+Understand this project and its current rules, determine the highest-value current executable step toward my goal, and continue autonomously. Reuse what already exists, preserve project intent, make ordinary engineering decisions yourself, verify the result, and ask only for genuinely missing authorization, credentials, or material product decisions.
+```
+
+Concrete tasks are better when you have one:
+
+```text
+Login returns 500. Fix it and verify the regression.
+```
+
+```text
+Add family invitations while preserving the existing product rules and tests.
+```
+
+```text
+This repository is messy. Reconstruct the current state, identify the real next executable work, and continue without cosmetic rewrites.
+```
+
+```text
+Review this change and tell me whether it is safe to merge. Stay read-only unless I ask for implementation.
+```
+
+You do **not** need to tell AAOP which Agent, Skill, MCP server, runtime, framework, or team topology to use.
+
+## 5. The one user CLI
+
+Normal human-facing commands use:
+
+```bash
+python .aaop/tools/aaop.py <command>
+```
+
+### Readiness
+
+```bash
+python .aaop/tools/aaop.py ready .
+```
+
+### Installation health
+
+```bash
+python .aaop/tools/aaop.py status .
+```
+
+### Environment/project evidence
+
+```bash
+python .aaop/tools/aaop.py doctor .
+```
+
+For one known route:
+
+```bash
+python .aaop/tools/aaop.py doctor . --route feature-change
+```
+
+### Starter prompt
+
+```bash
+python .aaop/tools/aaop.py prompt
+```
+
+### Version
+
+```bash
+python .aaop/tools/aaop.py version
+```
+
+Lower-level tools remain available under `.aaop/tools/`, but ordinary use should not require memorizing them.
+
+## 6. What the agent should do after your request
+
+Internally, expect approximately this reasoning shape:
+
+```text
+your request
+→ understand current project/rules
+→ select one primary route
+→ read only enough evidence for the current decision
+→ compare desired outcome with current state
+→ prove whether a real execution delta exists
+→ reuse current capabilities
+→ add a provider only for a real capability gap
+→ execute
+→ revalidate the target before consequential write/merge
+→ verify
+→ reroute/replan if evidence changes the problem
+```
+
+Important consequences:
+
+- “continue” does not mean “manufacture a diff”;
+- finding a fix does not authorize mutation during a read-only review;
+- a referenced repository does not automatically become a mutation target;
+- a stale write precondition means re-read/reconcile, not force overwrite;
+- a network/credential/product-decision blocker is not automatically a capability gap;
+- a detected provider is not automatically needed.
+
+## 7. Upgrade
+
+Run the **same bootstrap command again**.
+
+The bootstrap recognizes an existing AAOP installation and delegates to safe `--upgrade` behavior.
+
+Upgrade preserves:
+
+- `.aaop/runtime/`;
+- project-owned files under `.aaop/`;
+- project text outside AAOP markers in `AGENTS.md` / `CLAUDE.md`;
+- local managed-file edits as backups before canonical replacement;
+- third-party providers and project dependencies.
+
+Malformed/duplicated AAOP marker pairs fail before package mutation.
+
+## 8. Remove AAOP
+
+Use the same bootstrap surface with `--uninstall`.
+
+### macOS / Linux
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target . --uninstall
+```
+
+### Windows PowerShell
+
+```powershell
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target . --uninstall
+```
+
+Safe removal:
+
+- removes only files listed as AAOP-owned in the install manifest;
+- removes only marked AAOP blocks from `AGENTS.md` / `CLAUDE.md`;
+- preserves text outside those markers;
+- preserves `.aaop/runtime/`;
+- preserves project-owned files under `.aaop/`;
+- backs up modified managed files before removal;
+- leaves Playwright, MCP servers, OpenHands, AutoAgent, Deep Agents, and other providers untouched;
+- refuses automatic uninstall when ownership cannot be established safely.
+
+## 9. Health semantics
+
+`aaop.py status` / `health.py` answer:
+
+> Does this local AAOP package still match the baseline installed or upgraded here?
+
+Typical states include:
 
 ```text
 healthy
@@ -101,89 +243,53 @@ drifted
 incomplete
 invalid-manifest
 unsupported-manifest
+source-tree
 ```
 
-It checks:
+Health is best-effort accidental-drift detection. It is **not**:
 
-- package VERSION vs the tracked manifest version;
-- missing/modified/unreadable AAOP-managed files;
-- `AGENTS.md` / `CLAUDE.md` AAOP marker shape;
-- whether the marked bootstrap block still matches what the installer wrote;
-- whether the integrity manifest is an older compatible baseline.
+- a cryptographic trust root;
+- a guarantee that your package is the latest upstream version;
+- permission to overwrite local changes.
 
-Important boundary:
+## 10. If a provider is genuinely needed
 
-> **Health means “matches this installation baseline,” not “latest upstream” and not “cryptographically trusted.”**
+AAOP should first determine the missing **capability**, then check what is already present.
 
-The tool is for accidental/local drift caused by edits, partial copies, stale bootstrap blocks, or interrupted maintenance. A modified `health.py` itself could lie, so it is not an adversarial tamper-proof trust root.
+Only a real `capability-gap` directly justifies provider selection.
 
-Do not silently repair `drifted` or `incomplete` installations. Review the listed differences first. When canonical repair is intended, run `--upgrade` from a trusted AAOP source; locally modified managed files are backed up before replacement.
+When an external provider is actually needed, AAOP should tell you:
 
-## 4. Give the outcome, not the team design
+- what capability is missing;
+- why existing options are insufficient;
+- which upstream provider/surface is recommended;
+- minimum permissions required;
+- credentials/cost/data exposure;
+- current verification/adoption checks;
+- rollback/removal path.
 
-Prefer:
+The user should not have to answer “Which MCP do you want?” as the first step.
 
-> Make the signup flow production-ready, including validation and regression checks. Preserve the current product principles. Handle ordinary engineering decisions yourself; ask only if you need a new credential or a material product decision.
+## 11. Developing AAOP itself
 
-Instead of:
-
-> Create a PM agent, frontend agent, backend agent and QA agent, then use Playwright MCP.
-
-AAOP is supposed to derive the required capabilities and provider mix from the project.
-
-## 5. What the agent should do
-
-For a meaningful task, expect this internal sequence:
-
-1. when AAOP integrity is uncertain, inspect installation health before trusting or repairing local protocol files;
-2. inspect environment and project evidence;
-3. resolve intended outcome and acceptance evidence;
-4. derive required capabilities;
-5. match existing Skills/tools/MCP/scripts;
-6. resolve only real capability gaps;
-7. decide whether one agent or multiple owners are justified;
-8. execute dependency-aware work;
-9. verify independently;
-10. replan if evidence fails;
-11. deliver results and remaining risks.
-
-The agent does not need to show every runtime artifact to the user. The schemas exist to improve rigor and interoperability.
-
-## 6. If an MCP/provider is needed
-
-AAOP should not ask “Which MCP do you want?” by default.
-
-It should first check whether the required capability already exists. If not, it should recommend the lowest-risk sufficient provider and tell you exactly:
-
-- why it is needed;
-- where it comes from;
-- what to install/connect;
-- minimum permission required;
-- whether credentials or cost are involved;
-- what data/action access it gains;
-- whether the selected Recipe carries a scoped adoption review that must be rechecked for this use.
-
-You provide the authorization that only you can provide; the orchestrator does the rest.
-
-## 7. Validate AAOP
-
-From the AAOP repository:
+Inside the AAOP source repository:
 
 ```bash
 python scripts/validate.py
 python scripts/validate_pressure.py
-python .aaop/tools/health.py .
+python .aaop/tools/aaop.py ready .
 ```
 
-The first two commands verify source package structure and real-project pressure regressions. In the AAOP source repository, `health.py` reports `source-tree` because source development is not an installed manifest-tracked package.
+Source-tree readiness is valid but is different from a manifest-tracked installation.
 
-## 8. Native host integration
+The end-to-end usability gate additionally exercises bootstrap install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
 
-See:
+## More detail
 
-- `adapters/codex.md`
-- `adapters/claude-code.md`
-- `adapters/cursor.md`
-- `adapters/generic.md`
-
-Host adapters may evolve more quickly than the core protocol. Keep host-specific paths and permission knobs out of `.aaop/ORCHESTRATOR.md` unless they become genuinely portable concepts.
+- `docs/DEVELOPER_ENTRYPOINT.md`
+- `docs/ROUTE_CAPABILITY_PACKS.md`
+- `docs/REAL_PROJECT_PRESSURE_TESTS.md`
+- `docs/PROGRESSIVE_ADOPTION.md`
+- `docs/HOST_BOOTSTRAP_CONFORMANCE.md`
+- `docs/INSTRUCTION_TOPOLOGY.md`
+- `docs/ECOSYSTEM_MAP.md`
