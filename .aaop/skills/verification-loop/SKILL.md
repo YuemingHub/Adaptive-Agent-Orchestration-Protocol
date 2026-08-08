@@ -2,8 +2,6 @@
 name: verification-loop
 description: Define acceptance evidence, execute the strongest practical checks, review independently, and replan when evidence contradicts the implementation. Use before declaring any non-trivial task complete, especially code, architecture, deployment, migration, or externally visible changes.
 license: Apache-2.0
-metadata:
-  aaop-version: "0.1.0"
 ---
 
 # Verification Loop

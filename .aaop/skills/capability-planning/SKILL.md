@@ -2,8 +2,6 @@
 name: capability-planning
 description: Convert a user outcome and project profile into required capabilities, dependencies, acceptance evidence, and a capability matrix before choosing agents. Use for multi-step work, unfamiliar tasks, or whenever the right team/tools are not obvious.
 license: Apache-2.0
-metadata:
-  aaop-version: "0.1.0"
 ---
 
 # Capability Planning

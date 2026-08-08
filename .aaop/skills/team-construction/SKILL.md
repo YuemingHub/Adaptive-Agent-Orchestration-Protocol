@@ -2,8 +2,6 @@
 name: team-construction
 description: Build the minimum sufficient main-agent/subagent ownership structure from a capability matrix. Use when work may benefit from specialization, context isolation, independent review, parallel execution, or distinct permissions.
 license: Apache-2.0
-metadata:
-  aaop-version: "0.1.0"
 ---
 
 # Team Construction

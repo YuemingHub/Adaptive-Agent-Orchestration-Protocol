@@ -2,8 +2,6 @@
 name: tool-resolution
 description: Resolve missing external capabilities safely by preferring existing/native providers before MCP, evaluating provenance and permissions, and asking the user only for the minimum required connection or credential. Use when a task needs GitHub, browser, database, cloud, SaaS, files, or another external system.
 license: Apache-2.0
-metadata:
-  aaop-version: "0.1.0"
 ---
 
 # Tool Resolution

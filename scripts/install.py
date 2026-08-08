@@ -99,17 +99,26 @@ def sha256_text(value: str) -> str:
 
 
 def aaop_version(source_package: Path) -> str:
-    version_file = source_package / "VERSION"
-    if version_file.exists():
-        version = version_file.read_text(encoding="utf-8").strip()
-        if version:
-            return version
+    """Return the sole installable AAOP package release identity.
 
-    orchestrator = source_package / "ORCHESTRATOR.md"
-    for line in orchestrator.read_text(encoding="utf-8").splitlines():
-        if line.startswith("Version:"):
-            return line.split(":", 1)[1].strip()
-    return "unknown"
+    `.aaop/VERSION` is authoritative. Component documents may carry independent
+    revision markers and must never be used to infer an install/manifest version.
+    """
+    version_file = source_package / "VERSION"
+    if not version_file.is_file():
+        raise SystemExit(
+            "AAOP source package is incomplete: missing authoritative release identity "
+            f"{version_file}. Do not infer package version from component documents."
+        )
+    try:
+        version = version_file.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise SystemExit(f"Cannot read AAOP release identity {version_file}: {exc}") from exc
+    if not version:
+        raise SystemExit(
+            f"AAOP source package is incomplete: authoritative release identity {version_file} is empty."
+        )
+    return version
 
 
 def source_files(source_package: Path) -> dict[str, Path]:
