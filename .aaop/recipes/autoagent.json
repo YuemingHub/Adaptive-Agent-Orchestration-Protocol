@@ -1,0 +1,28 @@
+{
+  "id": "autoagent",
+  "provider_id": "autoagent",
+  "last_verified": "2026-08-08",
+  "source_of_truth": "https://github.com/HKUDS/AutoAgent",
+  "selection": {
+    "use_when": ["natural-language generation and testing of new tools, agents, or workflows is itself the required capability"],
+    "avoid_when": ["existing skills/tools/agents already satisfy the task", "only orchestration policy is needed"]
+  },
+  "detect": {
+    "commands": ["auto"],
+    "files": ["pyproject.toml"]
+  },
+  "install": {
+    "mode": "clone",
+    "minimal_commands": ["git clone https://github.com/HKUDS/AutoAgent.git", "python -m pip install -e ./AutoAgent"],
+    "notes": ["Use an isolated environment or dedicated checkout rather than vendoring AutoAgent into the target product repository by default.", "Some modes use Docker and model/provider credentials; enable only the mode needed for the selected task."]
+  },
+  "credentials": ["model-provider credential required by the selected AutoAgent configuration", "GitHub token only when a selected AutoAgent workflow actually requires it"],
+  "permissions": ["Docker/host execution only when the chosen mode requires it", "repository write scope only when self-modification is intentionally enabled"],
+  "verify": {
+    "checks": ["run the relevant AutoAgent CLI mode in an isolated test context", "create/test one representative agent/tool/workflow", "confirm the generated artifact closes the original capability gap"]
+  },
+  "rollback": {
+    "steps": ["remove the isolated AutoAgent environment/checkout", "revoke credentials created only for the integration", "remove generated artifacts not intentionally adopted by the project"]
+  },
+  "warnings": ["AutoAgent can create code/tools and may use Docker; treat self-modification and broad repository writes as higher-risk capabilities."]
+}
