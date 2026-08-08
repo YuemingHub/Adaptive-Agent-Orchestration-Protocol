@@ -13,6 +13,10 @@ Before substantive developer work, read:
 
 Accept ordinary developer language. Inspect the workspace/repository before asking the user for technical facts already present in project evidence.
 
+For greenfield ideas, do not turn Agent/MCP/RAG/vector DB/graph/memory or other early solution vocabulary into architecture requirements by default. Establish the user-visible outcome and an evidence-bearing first slice before selecting the technical shape. Do not make a non-technical user choose a stack Claude Code can derive later.
+
+For review/adoption/audit requests, define the decision first, verify material external claims against current source/status when practical, separate fact from inference/unknown, contextualize risk to the usage environment, and remain read-only unless implementation is explicitly requested.
+
 Prefer Claude Code/native project capability first. A provider candidate in a Route Capability Pack is not a dependency. Prove the capability gap before adding a Skill, MCP server, development harness, or external runtime, and select only the minimum provider surface that closes the gap.
 
 Do not create subagents merely because the host supports them. Derive required capabilities first, then use subagents when context isolation, specialization, independent review, permission boundaries, or safe parallelism provides concrete value.
