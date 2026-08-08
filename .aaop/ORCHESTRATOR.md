@@ -1,6 +1,7 @@
 # AAOP Runtime Protocol
 
-Version: 0.9.0
+Protocol-Revision: 0.9.0
+Package-Release: see `.aaop/VERSION`
 Status: Normative baseline
 
 ## 1. Mission
