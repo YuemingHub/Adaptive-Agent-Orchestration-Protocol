@@ -144,6 +144,24 @@ def backup_file(destination: Path, relative: str, backup_root: Path) -> str:
     return relative
 
 
+def validate_block_markers(path: Path) -> None:
+    if not path.exists():
+        return
+    text = path.read_text(encoding="utf-8")
+    begin_count = text.count(AAOP_BEGIN)
+    end_count = text.count(AAOP_END)
+    if begin_count == 0 and end_count == 0:
+        return
+    if begin_count != 1 or end_count != 1:
+        raise SystemExit(
+            f"Cannot safely update {path}: expected exactly one matching AAOP marker pair, found begin={begin_count}, end={end_count}."
+        )
+    start = text.index(AAOP_BEGIN)
+    end = text.index(AAOP_END)
+    if end <= start:
+        raise SystemExit(f"Cannot safely update {path}: malformed AAOP marker order")
+
+
 def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tuple[str, list[str], bool]:
     destination = target / ".aaop"
     files = source_files(source_package)
@@ -176,13 +194,20 @@ def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tup
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup_root = destination / "runtime" / "upgrade-backups" / f"to-{version}-{stamp}"
 
-    # Back up locally modified previously-managed files before replacing/removing them.
     if previous_files:
+        # Back up locally modified previously-managed files before replacement/removal.
         for relative, previous_hash in previous_files.items():
             target_file = destination / relative
             if not target_file.is_file():
                 continue
             if sha256_file(target_file) != previous_hash:
+                backups.append(backup_file(destination, relative, backup_root))
+
+        # A path can be project-owned today and become AAOP-managed in a future release.
+        # Back it up before claiming that path.
+        for relative in sorted(set(files) - set(previous_files)):
+            target_file = destination / relative
+            if target_file.is_file():
                 backups.append(backup_file(destination, relative, backup_root))
 
         # Remove files that the previous installer managed but the new package no longer owns.
@@ -200,7 +225,7 @@ def copy_managed_files(source_package: Path, target: Path, upgrade: bool) -> tup
         shutil.copy2(source, target_file)
 
     write_manifest(destination, version, files)
-    return "upgraded", backups, legacy_upgrade
+    return "upgraded", sorted(set(backups)), legacy_upgrade
 
 
 def upsert_block(path: Path, block: str) -> str:
@@ -218,16 +243,9 @@ def upsert_block(path: Path, block: str) -> str:
         path.write_text(text + separator + block, encoding="utf-8")
         return "appended"
 
-    if begin_count != 1 or end_count != 1:
-        raise SystemExit(
-            f"Cannot safely update {path}: expected exactly one matching AAOP marker pair, found begin={begin_count}, end={end_count}."
-        )
-
+    # Marker shape was preflighted before package mutation.
     start = text.index(AAOP_BEGIN)
     end = text.index(AAOP_END, start) + len(AAOP_END)
-    if end <= start:
-        raise SystemExit(f"Cannot safely update {path}: malformed AAOP marker order")
-
     existing = text[start:end]
     replacement = block.rstrip("\n")
     if existing == replacement:
@@ -262,6 +280,10 @@ def main() -> int:
     if not required.exists():
         raise SystemExit(f"AAOP source package is incomplete: missing {required}")
 
+    # Preflight project-owned rule files before mutating the installed package.
+    validate_block_markers(target / "AGENTS.md")
+    validate_block_markers(target / "CLAUDE.md")
+
     mode, backups, legacy_upgrade = copy_managed_files(
         source_package,
         target,
@@ -277,7 +299,7 @@ def main() -> int:
     print(f"  CLAUDE.md: {claude_status}")
     print("  .aaop/runtime preserved: yes")
     print("  target-only .aaop files preserved: yes")
-    print(f"  modified managed files backed up: {len(backups)}")
+    print(f"  modified/colliding managed files backed up: {len(backups)}")
     if backups:
         print("  backup scope: .aaop/runtime/upgrade-backups/")
     if legacy_upgrade:
