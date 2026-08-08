@@ -18,6 +18,8 @@ A generic orchestration protocol can look correct while still making bad develop
 - continuing to inventory a small handoff repository after current state and the next target are already clear;
 - creating a cosmetic or unrelated diff because the user said “continue” even though no current local delta is proven;
 - using “verified no-op” as an excuse to stay in analysis after a concrete local delta is already visible;
+- replaying stale whole-file content after a conditional write says the target moved;
+- merging/deploying from review or CI evidence that belongs to an older head/revision;
 - copying a security issue's headline directly into a present-tense adoption verdict;
 - turning a read-only review into unrequested fixes;
 - treating a blocked network/authorization path as a reason to install more tooling;
@@ -126,7 +128,7 @@ Guards:
 
 Anonymized real-project case.
 
-Lesson: early mentions of Agent, MCP, RAG, vector DB, graph orchestration, memory, or similar concepts may be exploration vocabulary. Classify them as hard constraint, preference, or hypothesis before architecture. If an essential user-owned product fact is still missing, ask one concrete question rather than handing the user a requirements form.
+Lesson: early mentions of Agent, MCP, RAG, vector DB, graph orchestration, memory, or similar concepts may be exploration vocabulary. Classify them as hard constraint, preference, or hypothesis before architecture. If an essential user-owned fact still prevents a meaningful first slice, ask one concrete question rather than handing the user a requirements form.
 
 Guards:
 
@@ -204,8 +206,6 @@ This batch tested a related but distinct failure: **repository relevance can sil
 
 Public source: `YuemingHub/MingOS` (`README.md`, `docs/CROSS_REPOSITORY_COORDINATION.md`, `docs/FOUNDATION_DEPENDENCY.md`).
 
-The repository explicitly separates principle/governance, shared protocol/kernel, and family-product responsibilities. Its coordination record is Proposed navigation, not a replacement for each repository's current fact sources. The downstream Foundation dependency record is also Proposed and requires an upstream refresh only when a new release/protocol/cross-repository claim makes the recorded baseline material.
-
 Lesson: repository maps define ownership and dependency edges. They do not automatically create a multi-repository task. Use the local dependency/coordination record while it is current and sufficient; cross to the claim owner only when material evidence is missing/stale, read the smallest authoritative source/revision, then return to the active repository.
 
 Guards:
@@ -217,8 +217,6 @@ Guards:
 ### External repository evidence is not an active work target — `repo-recovery`
 
 Public source: `YuemingHub/mingos-foundation` source registry.
-
-The source registry distinguishes canonical Foundation governance from scope-limited product/implementation evidence and explicitly prevents external product repositories from becoming automatic active work targets.
 
 Lesson: being useful evidence and being a mutation target are different states. Cross-repository reads require a material evidence reason; cross-repository writes require separate requested scope plus the target repository's own instructions and merge/risk gates.
 
@@ -251,8 +249,6 @@ This batch tests what should happen **after** recovery has reconstructed enough 
 
 Public source: `YuemingHub/MingOS` current cross-repository coordination state.
 
-At capture time, the shared protocol/kernel repository had recently merged its coordination refresh. The current coordination order says the family product should continue generating real/product evidence, and only cross-scenario patterns that repeatedly generalize should rise into MingOS protocol candidates.
-
 Lesson: “continue autonomously” is execution authorization, not evidence that a new local protocol/schema/document change must exist. If current evidence shows meaningful next work is conditional on evidence that has not arrived yet, a verified no-local-mutation result is more correct than manufacturing a diff.
 
 Guards:
@@ -265,8 +261,6 @@ Guards:
 
 Public source: `YuemingHub/ymai-website` (`HANDOFF.md`, `data/site.ts`) plus the current accepted Foundation repository identity.
 
-The handoff says the site should preserve its current product language and progressively integrate real capabilities rather than be broadly rewritten. At capture time, its centralized site configuration still defaulted the Foundation link to historical `YuemingHub/Ming-Foundation`, while the current accepted repository identity is `YuemingHub/mingos-foundation`.
-
 Lesson: the no-op rule must not become analysis paralysis. Once recovery proves a current local delta inside the requested action class, AAOP should make the smallest coherent change or reroute to the owning implementation route and continue through verification.
 
 Guards:
@@ -276,8 +270,6 @@ Guards:
 - `prove-delta-before-mutation`
 
 ### General rule earned by v0.17
-
-Before a material mutation, classify the difference between the desired/route outcome and current evidence:
 
 ```text
 local-delta
@@ -295,12 +287,57 @@ blocked
    credential, external dependency, or product decision
 ```
 
-The rule cuts both ways:
+The rule cuts both ways: no proven delta means no progress-theater mutation; a proven local authorized delta means AAOP should not remain in analysis.
 
-- **no proven delta** → do not mutate merely to demonstrate progress;
-- **proven local authorized delta** → do not remain in analysis merely to avoid risk.
+## v0.18 write-precondition pressure batch
 
-Repository-specific planning, testing, review, and release gates still apply after a delta is proven.
+This batch tests what happens when an execution delta was valid when discovered, but the target changes before the mutation lands.
+
+### Stale file write → re-read and reconcile — `feature-change`
+
+Anonymized real AAOP repository operation.
+
+A bounded README/current-doc edit was computed from content version A. Before the update landed, another repository change moved the same file to version B. GitHub rejected the stale conditional update because the expected content SHA no longer matched.
+
+Lesson: the 409/precondition failure is new baseline evidence. Re-read B, preserve concurrent work, recompute the intended delta against B, and retry conditionally only if that delta still exists. Replaying the stale whole-file content from A—or forcing it through—would turn autonomy into data loss.
+
+Guard:
+
+- `revalidate-write-precondition`
+
+### Stale PR head → old review is revision-scoped — `feature-change`
+
+Public source: `YuemingHub/MingOS` PR #16 (`docs: establish three-repository coordination contract`).
+
+The historical PR explicitly recorded that its branch had baseline drift and required re-check before merge. It stayed Draft/closed unmerged; later coordination work rebuilt the still-valid intent against a current baseline rather than treating the stale commit graph as the deliverable.
+
+Lesson: review and CI evidence belong to the exact head/revision they validated. If the PR head or base moves, do not merge from stale evidence. Reconcile current main, salvage behavior/invariants/rationale, re-prove the delta, and merge only the newly validated head.
+
+Guards:
+
+- `stale-artifact-salvage`
+- `behavior-over-commits`
+- `revalidate-write-precondition`
+
+### General rule earned by v0.18
+
+```text
+read baseline A
+→ prove execution delta
+→ before consequential write require/revalidate A
+→ still A? write + verify
+→ target is now B?
+    re-read B
+    preserve concurrent state
+    recompute the intended delta
+    rerun the execution-delta gate
+    re-check authorization/risk if the action changed
+    retry conditionally from B only if still justified
+```
+
+Use the strongest available native precondition: content/blob SHA, expected branch/PR head, ref ancestry, ETag/`If-Match`, resource version/generation, row version, lease/lock token, or deployment revision.
+
+A precondition failure is first a **baseline/concurrency problem**, not a capability gap. `force` is a separate higher-risk decision, not the default recovery path.
 
 ## Adding future cases
 
