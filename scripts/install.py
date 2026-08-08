@@ -7,6 +7,7 @@ Usage:
 
 The installer copies the canonical `.aaop` package and adds compact bootstrap
 blocks to AGENTS.md and CLAUDE.md without replacing existing project rules.
+It installs no third-party runtime, Skill collection, MCP server, or workspace.
 """
 
 from __future__ import annotations
@@ -22,8 +23,10 @@ AGENTS_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
 
 For non-trivial work, read `.aaop/ORCHESTRATOR.md` before substantive changes.
-Derive required capabilities before creating agents; use the minimum sufficient
-team; prefer existing Skills/tools before adding MCP; apply risk-based autonomy;
+Start from capabilities already present in this project/host. Derive required
+capabilities before creating agents or adding integrations. Install nothing new
+unless a concrete capability gap is proven; then select the smallest justified
+Skill, MCP, discovery standard, runtime, or workspace. Apply risk-based autonomy
 and verify the requested outcome before declaring completion.
 
 Canonical orchestration Skills live under `.aaop/skills/`.
@@ -34,9 +37,9 @@ CLAUDE_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
 
 Read `AGENTS.md` and `.aaop/ORCHESTRATOR.md` for non-trivial work. Load only the
-relevant `.aaop/skills/*/SKILL.md` procedures. Use native Claude Code subagents,
-Skills, MCP and permissions only as providers for the capability plan; do not
-create a fixed team by default.
+relevant `.aaop/skills/*/SKILL.md` procedures. Prefer existing Claude Code/native
+capabilities. Do not create a fixed team or add MCP/runtime dependencies by
+default; prove the capability gap first and use progressive integration.
 {AAOP_END}
 """
 
@@ -91,8 +94,10 @@ def main() -> int:
     print(f"  package: {package_path}")
     print(f"  AGENTS.md: {agents_status}")
     print(f"  CLAUDE.md: {claude_status}")
-    print("  secrets: none copied or requested")
-    print("Next: open the target project in your AI host and state the desired outcome.")
+    print("  third-party providers installed: none")
+    print("  secrets requested: none")
+    print("Optional inventory: python .aaop/tools/doctor.py .")
+    print("Next: open the target project in your existing AI host and state the desired outcome.")
     return 0
 
 
