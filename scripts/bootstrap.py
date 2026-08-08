@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install or safely upgrade AAOP from the official GitHub repository.
+"""Install, upgrade, or safely remove AAOP from the official GitHub repository.
 
 This script is intentionally standard-library only so it can be executed directly
 from stdin, for example:
@@ -10,17 +10,16 @@ Windows PowerShell (with the Python launcher):
 
     curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target .
 
-The bootstrap downloads one official repository archive into a temporary directory,
-validates the expected AAOP source shape, delegates all target mutation to the
-canonical state-preserving scripts/install.py, then runs the installed AAOP ready
-check. It installs no third-party provider and requests no secret.
+Re-running the same install command upgrades a recognizable AAOP installation
+through the canonical state-preserving installer. Add --uninstall for manifest-
+scoped removal. The bootstrap installs no third-party provider and requests no
+secret.
 """
 
 from __future__ import annotations
 
 import argparse
 import io
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -149,10 +148,12 @@ def target_mode(target: Path) -> str:
     return "upgrade"
 
 
-def run_install(source: Path, target: Path, mode: str) -> None:
+def run_installer(source: Path, target: Path, mode: str) -> None:
     command = [sys.executable, str(source / "scripts" / "install.py"), str(target)]
     if mode == "upgrade":
         command.append("--upgrade")
+    elif mode == "uninstall":
+        command.append("--uninstall")
     completed = subprocess.run(command, check=False)
     if completed.returncode != 0:
         raise SystemExit(completed.returncode)
@@ -171,7 +172,7 @@ def run_ready(target: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Install or safely upgrade AAOP in a project without cloning the AAOP repository"
+        description="Install, safely upgrade, or safely remove AAOP without cloning its repository"
     )
     parser.add_argument(
         "--target",
@@ -182,7 +183,12 @@ def main() -> int:
     parser.add_argument(
         "--ref",
         default=DEFAULT_REF,
-        help="Official GitHub ref to install (default: main; use a commit/tag for pinning)",
+        help="Official GitHub ref to use (default: main; use a commit/tag for pinning)",
+    )
+    parser.add_argument(
+        "--uninstall",
+        action="store_true",
+        help="Safely remove only manifest-owned AAOP files and marked bootstrap blocks",
     )
     parser.add_argument(
         "--archive",
@@ -197,8 +203,13 @@ def main() -> int:
     args = parser.parse_args()
 
     target = args.target.expanduser().resolve()
-    target.mkdir(parents=True, exist_ok=True)
-    mode = target_mode(target)
+    if args.uninstall:
+        if not target.exists():
+            raise SystemExit(f"AAOP bootstrap: target project does not exist: {target}")
+        mode = "uninstall"
+    else:
+        target.mkdir(parents=True, exist_ok=True)
+        mode = target_mode(target)
 
     if args.archive:
         data = load_archive(args.archive.expanduser().resolve())
@@ -210,8 +221,12 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix="aaop-bootstrap-") as tmp:
         source = extract_source(data, Path(tmp))
         version = source_version(source)
-        print(f"AAOP bootstrap: {mode} {version} from {source_label}")
-        run_install(source, target, mode)
+        print(f"AAOP bootstrap: {mode} using {version} from {source_label}")
+        run_installer(source, target, mode)
+
+    if mode == "uninstall":
+        print("AAOP bootstrap removal complete")
+        return 0
 
     if args.skip_ready:
         print("AAOP bootstrap complete")
