@@ -79,6 +79,30 @@ AAOP does not generate `.cursor/rules` merely to repeat root bootstrap context.
 
 See [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md).
 
+## One package release identity
+
+AAOP has exactly one installable package release identity:
+
+```text
+.aaop/VERSION
+```
+
+Other version-like fields have narrower meanings:
+
+```text
+.aaop/VERSION                  → installable package release
+ORCHESTRATOR Protocol-Revision → orchestration document revision
+Route Pack version             → route component revision
+Recipe last_verified           → upstream integration-evidence freshness
+Skill history                  → Git unless component-specific metadata is genuinely needed
+```
+
+The installer, manifest, and health contract never infer the package release from component documents. A source package with a missing, unreadable, or empty `.aaop/VERSION` is **incomplete** and installation fails closed before AAOP-managed package files are copied.
+
+Do not mechanically rewrite every Route, Skill, Recipe, or protocol component to match the package release. Component revisions can evolve independently; they simply must not masquerade as the package release.
+
+See [`.aaop/VERSIONING.md`](.aaop/VERSIONING.md).
+
 ## Instruction topology
 
 Mature repositories can contain scoped host rules below the root. When that scope can materially change the task:
@@ -171,8 +195,6 @@ The general behavior lives in `.aaop/skills/route-execution/SKILL.md`; `repo-rec
 
 A delta can be correct when discovered and stale by the time the write lands.
 
-v0.18 therefore adds a second correctness gate:
-
 ```text
 read baseline A
 → prove delta
@@ -199,20 +221,6 @@ Prefer the strongest native precondition available:
 - deployment revision.
 
 A failed precondition is **new evidence**, not a nuisance retry. It is first a baseline/concurrency problem—not automatically a capability gap.
-
-Do not:
-
-```text
-conditional write rejected
-→ force stale whole-file content            ✗
-
-PR reviewed at H1, head moved to H2
-→ merge using H1 review/CI anyway           ✗
-
-release preflight validated revision R1,
-target moved to R2
-→ deploy stale plan without revalidation    ✗
-```
 
 `force` is a separate, higher-risk action class. It is appropriate only when repository policy and user authorization intentionally permit replacement and the overwritten state has been understood/preserved as required.
 
@@ -356,10 +364,11 @@ Health asks only whether the local AAOP installation still matches the baseline 
 
 - natural-language developer intake and routing;
 - host-native bootstrap conformance;
+- **single package release identity and fail-closed source version semantics**;
 - read-only instruction-topology discovery;
 - bounded project and cross-repository evidence resolution;
 - execution-delta proof before mutation and verified no-op discipline;
-- **write-baseline/precondition revalidation before consequential autonomous mutation**;
+- write-baseline/precondition revalidation before consequential autonomous mutation;
 - Route Capability Packs and real-project Pressure Guards;
 - outcome-before-architecture and decision-before-coverage discipline;
 - evidence authority/freshness;
@@ -387,8 +396,9 @@ Then open the project in the AI host you already use and describe what you want 
 AGENTS.md
 CLAUDE.md
 .aaop/
-├── VERSION
-├── ORCHESTRATOR.md
+├── VERSION                          # sole package release identity
+├── VERSIONING.md                    # release vs component revision contract
+├── ORCHESTRATOR.md                  # independent Protocol-Revision
 ├── policies/
 ├── registries/
 ├── routes/
@@ -413,36 +423,37 @@ docs/
 1. Situation before machinery.
 2. Read available evidence before asking the user.
 3. Use host-native instruction discovery and one canonical policy.
-4. Define the immediate decision horizon and active repository/work target before broad discovery.
-5. Treat instruction/reference/repository graphs as navigation, not automatic authority or execution scope.
-6. Stop discovery when additional evidence is unlikely to change the current decision.
-7. Keep cross-repository evidence access separate from mutation authorization.
-8. Prove a current execution delta before material mutation.
-9. Accept verified no-op when no mutation is justified; never create a cosmetic diff for progress theater.
-10. When a current authorized local delta is proven, execute/reroute rather than remaining in analysis.
-11. **Revalidate the write/merge/operational baseline at the consequential write boundary.**
-12. A failed write precondition is new evidence: re-read, preserve concurrent work, re-prove the delta, then retry conditionally if still justified.
-13. Never use force as the default recovery path for stale state.
-14. Preserve repository-specific planning, test, review, permission, and release gates.
-15. For ideas: outcome and evidence-bearing first slice before architecture.
-16. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
-17. Detect/reuse existing capability before concluding there is a gap.
-18. Classify blockers before provider escalation.
-19. Install nothing new without a proven technical capability gap.
-20. Preserve runtime/project-owned state across AAOP lifecycle operations.
-21. Remove only what AAOP can prove it owns.
-22. Prefer mature upstream implementations and the minimum provider surface.
-23. Verify outcomes; do not fabricate completion when safely blocked.
-24. Let real-project regressions improve the protocol before theoretical completeness.
-25. Hide orchestration complexity without lowering engineering rigor.
+4. Keep `.aaop/VERSION` as the sole package release identity; never infer release identity from component revisions.
+5. Define the immediate decision horizon and active repository/work target before broad discovery.
+6. Treat instruction/reference/repository graphs as navigation, not automatic authority or execution scope.
+7. Stop discovery when additional evidence is unlikely to change the current decision.
+8. Keep cross-repository evidence access separate from mutation authorization.
+9. Prove a current execution delta before material mutation.
+10. Accept verified no-op when no mutation is justified; never create a cosmetic diff for progress theater.
+11. When a current authorized local delta is proven, execute/reroute rather than remaining in analysis.
+12. Revalidate the write/merge/operational baseline at the consequential write boundary.
+13. A failed write precondition is new evidence: re-read, preserve concurrent work, re-prove the delta, then retry conditionally if still justified.
+14. Never use force as the default recovery path for stale state.
+15. Preserve repository-specific planning, test, review, permission, and release gates.
+16. For ideas: outcome and evidence-bearing first slice before architecture.
+17. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+18. Detect/reuse existing capability before concluding there is a gap.
+19. Classify blockers before provider escalation.
+20. Install nothing new without a proven technical capability gap.
+21. Preserve runtime/project-owned state across AAOP lifecycle operations.
+22. Remove only what AAOP can prove it owns.
+23. Prefer mature upstream implementations and the minimum provider surface.
+24. Verify outcomes; do not fabricate completion when safely blocked.
+25. Let real-project regressions improve the protocol before theoretical completeness.
+26. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.18.0 — write-precondition revalidation and stale-write reconciliation.**
+**v0.19.0 — single package release identity and fail-closed version semantics.**
 
-v0.18 is grounded in two real concurrency failures: an anonymized AAOP GitHub update rejected because its content SHA became stale between read and write, and public MingOS PR #16 whose own record said its branch had baseline drift and required re-check before merge.
+v0.19 removes a real lifecycle ambiguity: the installable package could be `0.18.0` while the Orchestrator still displayed `Version: 0.9.0`, and the installer used that component header as a fallback if `.aaop/VERSION` disappeared. A damaged source tree could therefore silently write the wrong `aaop_version` into a new install manifest.
 
-The release makes conditional-write and revision-scoped validation part of autonomous correctness. When a target moves, AAOP re-reads current state, preserves concurrent work, recomputes the intended delta, reruns the execution-delta gate, and writes only against the newly validated baseline. It adds no lock manager, CRDT/runtime, source-control replacement, Route, Provider, Recipe, or tool.
+The release makes `.aaop/VERSION` the only package release identity, separates the Orchestrator's `Protocol-Revision`, removes stale Skill `aaop-version` metadata, and makes validator/health/installer fail closed on missing release identity. It adds no remote version service, Git-tag dependency, package registry, component-version registry, Route, Provider, or runtime.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
