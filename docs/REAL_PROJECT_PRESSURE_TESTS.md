@@ -1,6 +1,6 @@
 # Real-Project Pressure Tests
 
-AAOP should evolve from failures observed in real developer work, not from a desire to make the protocol look complete.
+AAOP should evolve from failures and near-misses observed in real developer work, not from a desire to make the protocol look complete.
 
 `tests/pressure/` contains sanitized replay contracts derived from real repositories/issues. They are not benchmark claims and do not execute third-party projects. Their purpose is to preserve the engineering lesson that changed an AAOP route.
 
@@ -8,9 +8,13 @@ AAOP should evolve from failures observed in real developer work, not from a des
 
 A generic orchestration protocol can look correct while still making bad developer decisions:
 
+- turning a broad idea into a giant architecture before learning whether the first workflow is useful;
+- accepting trendy solution vocabulary as immutable product requirements;
 - treating an old issue as though it describes current head;
 - merging a deeply stale PR because its intent is still useful;
 - choosing the newest document as truth when the project has an explicit authority hierarchy;
+- copying a security issue's headline directly into a present-tense adoption verdict;
+- turning a read-only review into unrequested fixes;
 - treating a blocked network/authorization path as a reason to install more tooling;
 - declaring production facts from Git/CI evidence that never reached the target environment.
 
@@ -38,7 +42,9 @@ Run:
 python scripts/validate_pressure.py
 ```
 
-The validator ensures every case is structurally valid and that every `required_guard_id` still exists on the expected route. Removing a guard therefore breaks CI until the real-project regression is intentionally re-evaluated.
+The validator ensures every case is structurally valid and every `required_guard_id` still exists on the expected route. From v0.8 onward it also requires at least one real pressure case for every AAOP route. Coverage became a gate only after real cases existed for all six routes; it was not created to invent synthetic cases for numerical completeness.
+
+Removing a guard therefore breaks CI until the corresponding real-project regression is intentionally re-evaluated.
 
 ## Privacy rule
 
@@ -51,9 +57,9 @@ Use one of two modes:
 
 Pressure cases should contain the minimum evidence necessary to preserve the orchestration lesson.
 
-## Initial v0.7 cases
+## v0.7 baseline cases
 
-### Repository authority recovery
+### Repository authority recovery — `repo-recovery`
 
 Derived from the public MingOS coordination model.
 
@@ -64,7 +70,7 @@ Guards:
 - `source-authority-freshness`
 - `preserve-conflicting-evidence`
 
-### Stale bug report
+### Stale bug report — `bug-fix`
 
 Derived from public AutoAgent issue #33.
 
@@ -75,7 +81,7 @@ Guards:
 - `reported-baseline-freshness`
 - `discussion-is-hypothesis`
 
-### Stale PR feature salvage
+### Stale PR feature salvage — `feature-change`
 
 Anonymized real-project case.
 
@@ -86,7 +92,7 @@ Guards:
 - `stale-artifact-salvage`
 - `behavior-over-commits`
 
-### Environment-blocked release verification
+### Environment-blocked release verification — `release-operations`
 
 Anonymized real-project case.
 
@@ -97,11 +103,49 @@ Guards:
 - `blocker-not-capability-gap`
 - `preserve-unknown-operational-state`
 
+## v0.8 pressure expansion
+
+### Broad vision → first proof — `idea-to-build`
+
+Anonymized real-project case.
+
+Lesson: a large future vision should guide direction but must not become the first implementation scope. The first slice should test one material assumption with a real end-to-end result. Autonomy is a desired user experience; it is not proof that a multi-agent architecture is required.
+
+Guards:
+
+- `outcome-before-architecture`
+- `first-slice-must-buy-learning`
+- `user-does-not-own-stack-choice`
+
+### Solution vocabulary is hypothesis — `idea-to-build`
+
+Anonymized real-project case.
+
+Lesson: early mentions of Agent, MCP, RAG, vector DB, graph orchestration, memory, or similar concepts may be exploration vocabulary. Classify them as hard constraint, preference, or hypothesis before architecture. If an essential user-owned product fact is still missing, ask one concrete question rather than handing the user a requirements form.
+
+Guards:
+
+- `solution-vocabulary-is-hypothesis`
+- `one-question-only-when-outcome-blocked`
+
+### Provider adoption security review — `understand-review`
+
+Derived from public AutoAgent issue #96 plus the current `main` implementation at capture time.
+
+The public issue reports an unauthenticated command-execution TCP path. At capture time, current `docker_env.py` still maps the communication port to the host, while current `tcp_server.py` binds `0.0.0.0` and executes received command text through `shell=True` inside the container. Those source facts matter, but the review still must distinguish them from deployment-specific reachability, firewall configuration, workspace sensitivity, and the issue author's broader impact interpretation.
+
+Lesson: a review exists to support a decision. Verify material external claims against current source when practical, contextualize risk to the intended usage, keep unknowns explicit, and remain read-only unless implementation is requested.
+
+Guards:
+
+- `decision-frame-before-review`
+- `current-source-before-conclusion`
+- `risk-is-contextual`
+- `review-is-read-only-by-default`
+
 ## Adding future cases
 
-Add a new pressure case when a real task reveals a repeatable orchestration error or a dangerous near-miss.
-
-Do not add cases merely to cover every route numerically.
+Add a new pressure case when a real task reveals a repeatable orchestration error or dangerous near-miss.
 
 A useful new case should answer:
 
@@ -111,5 +155,7 @@ A useful new case should answer:
 4. What rule would have prevented it?
 5. Is that rule route-specific or general?
 6. Can the lesson be preserved without publishing private project content?
+
+Do not invent cases simply to increase counts. The all-route coverage gate now prevents accidental loss of an already-earned baseline; it does not justify synthetic examples.
 
 If the lesson only says “use provider X,” it probably belongs in a Recipe or provider-selection test instead of a pressure guard.
