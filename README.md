@@ -1,18 +1,30 @@
 # Adaptive Agent Orchestration Protocol (AAOP)
 
-AAOP is a host-agnostic **decision and policy layer** for turning a user goal into the **smallest sufficient agent system** using capabilities that already exist whenever possible.
+AAOP is a host-agnostic **developer intake, decision, policy, and integration layer**.
 
-It does not try to become another all-in-one agent framework.
+Its purpose is simple:
+
+> A developer should be able to arrive with an idea, a messy repository, a bug, a feature request, a review question, or a deployment problem — describe it in ordinary language — and let AAOP route the work without first learning the agent ecosystem.
+
+AAOP does not try to become another all-in-one agent framework.
 
 ```text
-User Goal + Current Project
-          ↓
-Environment / Project Discovery
-          ↓
-Required Capabilities
-          ↓
+Natural-language developer request
+              ↓
+What do they have right now?
+idea / repo / files / runtime
+              ↓
+What situation are they in?
+idea / recovery / bug / feature / review / operations
+              ↓
+What should observably become true?
+              ↓
+Route-specific discovery
+              ↓
+Required capabilities
+              ↓
 Reuse what already exists
-          ↓
+              ↓
 ┌────────────────────────────────────┐
 │ Is there a proven capability gap?  │
 └───────────────┬────────────────────┘
@@ -27,15 +39,51 @@ Reuse what already exists
         Execute → Verify → Replan
 ```
 
+## The developer front door
+
+AAOP accepts minimal language such as:
+
+```text
+“I have an idea but don't know how to build it.”
+“This repo is a mess. Understand it and continue.”
+“Login returns 500. Fix it.”
+“Add family invitations.”
+“Review this before I merge.”
+“Get this ready to deploy.”
+```
+
+The user does **not** choose a workflow, Agent, Skill, MCP server, or runtime.
+
+AAOP first routes internally to one primary development path:
+
+| Situation | Internal route | First correct move |
+| --- | --- | --- |
+| idea / no trustworthy implementation yet | `idea-to-build` | understand outcome and smallest buildable slice before architecture |
+| messy, abandoned, unfamiliar, contradictory repo | `repo-recovery` | establish trustworthy current state before broad edits |
+| observed failure / error / regression | `bug-fix` | reproduce/evidence → root cause → narrow fix → regression check |
+| new or changed behavior | `feature-change` | behavior contract → existing path → smallest coherent change |
+| explanation / review / audit / assessment | `understand-review` | inspect for the decision the review must support; no mutation by default |
+| deploy / migration / CI / production / incident | `release-operations` | environment evidence + rollback + authorization before consequential writes |
+
+See [`docs/DEVELOPER_ENTRYPOINT.md`](docs/DEVELOPER_ENTRYPOINT.md).
+
+### Read before asking
+
+If the workspace, repository, logs, tests, issue, or deployment evidence can answer a question, AAOP should inspect it rather than asking the user to restate it.
+
+When clarification is genuinely necessary, ask **one concrete question** only when the answer can materially change the route, observable outcome, product choice, or safety/permission class.
+
+The internal intake object is defined by `.aaop/schemas/intake-envelope.schema.json`; the user never fills it out.
+
 ## Why AAOP exists
 
-The agent ecosystem is becoming capable but fragmented. Developers may encounter Agent Skills, MCP, A2A, ARD, AutoAgent, Deep Agents, Microsoft Agent Framework, CAMEL, AgentSpace, and many other systems — each solving a real layer of the problem.
+The agent ecosystem is capable but fragmented. Developers may encounter Agent Skills, MCP, A2A, ARD, AutoAgent, Deep Agents, Microsoft Agent Framework, CAMEL, AgentSpace, and many other systems — each solving a real layer of the problem.
 
 The answer should not be to reinstall or reimplement all of them in every project.
 
 AAOP's job is:
 
-> **Start from the developer's current tool, understand the real project, identify the capability gap, then integrate only the mature component that is justified now.**
+> **Understand the developer's actual situation first, then reuse the current environment and integrate only the mature capability that becomes necessary.**
 
 ## Progressive adoption
 
@@ -50,13 +98,13 @@ Level 4  One justified specialized runtime
 Level 5  Governed workspace/control plane
 ```
 
-These are not mandatory cumulative layers. A project may stay at Level 0/1 indefinitely or skip directly to a higher layer when the outcome truly requires it.
+These are not mandatory cumulative layers. A project may stay at Level 0/1 indefinitely.
 
 See [`docs/PROGRESSIVE_ADOPTION.md`](docs/PROGRESSIVE_ADOPTION.md).
 
 ## Integration Recipes: one integration shape, upstream implementation
 
-AAOP does not build a new package manager. Instead it carries **lazy Integration Recipes** for selected mature providers.
+AAOP does not build a new package manager. It carries **lazy Integration Recipes** for selected mature providers.
 
 A recipe normalizes:
 
@@ -66,21 +114,20 @@ A recipe normalizes:
 - credentials and permissions;
 - verification of the original capability gap;
 - rollback/removal;
-- upstream source of truth and the date the recipe was last verified.
+- upstream source of truth and last-verified date.
 
-The agent should re-check the upstream source before consequential installation because external projects evolve independently.
-
-Browse the installed recipes without installing anything:
+Browse recipes without installing anything:
 
 ```bash
 python .aaop/tools/recipe.py list
 python .aaop/tools/recipe.py show deepagents
 ```
 
-Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace. Recipes are glue metadata, not endorsements and not automatic installs.
+Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
 
 ## What AAOP owns
 
+- natural-language developer intake and internal routing;
 - project/environment discovery policy;
 - outcome and constraint resolution;
 - capability-first planning;
@@ -88,7 +135,7 @@ Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Fra
 - provider selection and least-privilege policy;
 - normalized integration recipes;
 - dynamic ownership/team decisions;
-- verification and replanning contracts;
+- verification, replanning, and route-correction contracts;
 - graceful degradation across hosts.
 
 ## What AAOP deliberately does not rebuild
@@ -123,16 +170,14 @@ The installer:
 - installs **no** third-party runtime, MCP server, or Skill marketplace;
 - requests **no** secret.
 
-Inspect the environment and recipes after installation:
+Optional inventory:
 
 ```bash
 python .aaop/tools/doctor.py .
 python .aaop/tools/recipe.py list
 ```
 
-Then open the project in the AI host you already use and state the desired outcome.
-
-AAOP should attempt to complete the task with the current environment first. If a real capability gap appears, it selects one provider and uses its recipe so the developer does not need to hunt across repositories for setup/verification steps.
+Then open the project in the AI host you already use and say what you want in ordinary language.
 
 ## Repository map
 
@@ -140,27 +185,19 @@ AAOP should attempt to complete the task with the current environment first. If 
 AGENTS.md
 CLAUDE.md
 .aaop/
-├── ORCHESTRATOR.md                 # normative decision/policy protocol
+├── ORCHESTRATOR.md
 ├── policies/
-│   ├── autonomy.md
-│   ├── mcp-and-tools.md
-│   └── progressive-integration.md
 ├── registries/
+│   ├── routes.json                  # developer situation → primary route
 │   ├── capabilities.json
-│   ├── providers.json              # upstream resolver hints, not packages
+│   ├── providers.json
 │   └── adoption-profiles.json
 ├── recipes/
-│   ├── README.md                   # recipe safety/contract
-│   └── *.json                      # lazy upstream integration recipes
 ├── schemas/
-│   ├── environment-profile.schema.json
-│   ├── project-profile.schema.json
-│   ├── capability-matrix.schema.json
-│   ├── integration-plan.schema.json
-│   ├── integration-recipe.schema.json
-│   ├── team-plan.schema.json
-│   └── execution-plan.schema.json
+│   ├── intake-envelope.schema.json  # internal intake state
+│   └── ...
 ├── skills/
+│   ├── developer-intake/            # natural-language front door
 │   ├── project-discovery/
 │   ├── capability-planning/
 │   ├── provider-selection/
@@ -168,47 +205,34 @@ CLAUDE.md
 │   ├── tool-resolution/
 │   └── verification-loop/
 └── tools/
-    ├── doctor.py                    # zero-dependency environment inventory
-    └── recipe.py                    # zero-dependency recipe browser
+    ├── doctor.py
+    └── recipe.py
 
-adapters/                            # host-specific guidance
-docs/                               # architecture + ecosystem + adoption model
-examples/                            # worked orchestration examples
-scripts/install.py                  # safe AAOP bootstrap
-scripts/validate.py                 # structural/provider/recipe validation
-.github/workflows/validate.yml      # clean-environment CI
+docs/DEVELOPER_ENTRYPOINT.md
+adapters/
+examples/
+scripts/
 ```
-
-## Standards posture
-
-AAOP uses existing open standards rather than inventing competing formats:
-
-- Agent Skills: https://agentskills.io/
-- MCP: https://modelcontextprotocol.io/
-- Official MCP Registry: https://registry.modelcontextprotocol.io/
-- A2A: https://a2a-protocol.org/
-- ARD: https://agenticresourcediscovery.org/
-
-External providers evolve independently. `.aaop/registries/providers.json` and `.aaop/recipes/*.json` are resolver hints, not allowlists, lockfiles, endorsements, or silent installers. Current upstream status and security must be re-verified before consequential use.
 
 ## Core design principles
 
-1. Understand the project before changing it.
-2. Derive capabilities before inventing roles.
-3. Start with what the developer already has.
-4. Install nothing new without a proven capability gap.
-5. Prefer open standards and mature upstream implementations over copies.
-6. Give integrations one normalized recipe shape instead of vendoring their implementations.
-7. Use the minimum sufficient team and integration surface.
-8. Discovery never equals silent installation.
-9. Apply least privilege to external capabilities.
-10. Verify that every added provider actually closes the gap it was added for, and remove unnecessary machinery again.
+1. Situation before machinery.
+2. Read available evidence before asking the user.
+3. Route by the next observable outcome, not by developer jargon.
+4. Derive capabilities before inventing roles.
+5. Start with what the developer already has.
+6. Install nothing new without a proven capability gap.
+7. Prefer open standards and mature upstream implementations over copies.
+8. Use the minimum sufficient team and integration surface.
+9. Discovery never equals silent installation.
+10. Verify outcomes; correct the route/plan when evidence changes the situation.
+11. Hide orchestration complexity from the user without lowering engineering rigor.
 
 ## Status
 
-**v0.3.0 — lazy integration recipe baseline.**
+**v0.4.0 — developer intake and natural-language routing baseline.**
 
-v0.2 established progressive ecosystem integration. v0.3 adds a normalized recipe contract and recipe browser so agents can use upstream mature components without forcing developers to manually collect setup, credential, verification, and rollback instructions from scattered repositories.
+v0.4 makes the developer's real situation the first-class entry point. AAOP now routes ideas, repository recovery, bugs, features, reviews, and release/operations work before capability/provider orchestration.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
