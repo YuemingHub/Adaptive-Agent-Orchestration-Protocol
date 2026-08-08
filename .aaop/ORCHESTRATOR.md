@@ -1,6 +1,6 @@
 # AAOP Runtime Protocol
 
-Version: 0.5.0
+Version: 0.6.0
 Status: Normative baseline
 
 ## 1. Mission
@@ -21,11 +21,12 @@ Keep these concepts separate:
 - **Route** — the primary development path that best advances the immediate outcome.
 - **Route Capability Pack** — internal engineering stages, capabilities, evidence, escalation triggers, and reroute signals for one route.
 - **Outcome** — what should observably be true when the work is done.
+- **Environment Inventory** — read-only evidence about current host/toolchain/project signals and providers detected from Recipe hints; never a recommendation.
 - **Agent** — who owns a bounded responsibility.
 - **Skill** — how repeatable work should be performed.
 - **Tool / MCP** — what concrete external resource can be read or changed.
 - **Provider** — an upstream standard, tool family, runtime, development harness, discovery service, or workspace AAOP may reuse.
-- **Recipe** — normalized lazy integration knowledge for one provider; never an automatic install instruction.
+- **Recipe** — normalized lazy integration and detection knowledge for one provider; never an automatic install instruction.
 - **Policy** — what is allowed, under what risk/permission conditions, and what evidence is required.
 
 ## 3. Non-goals
@@ -39,6 +40,7 @@ AAOP MUST NOT become:
 - a competing A2A/Agent Card standard;
 - a general-purpose multi-agent runtime;
 - a package manager for third-party agent systems;
+- a second hard-coded provider detector separate from Integration Recipes;
 - an organizational permissions/audit workspace.
 
 When an upstream system already solves one of these layers well enough, integrate it.
@@ -55,7 +57,7 @@ Prefer open interfaces where possible:
 
 Mature software-engineering providers may include Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, or other upstream systems when a proven gap justifies them.
 
-Resolver hints live in `.aaop/registries/providers.json`; lazy integration instructions live in `.aaop/recipes/`.
+Resolver hints live in `.aaop/registries/providers.json`; lazy integration/detection instructions live in `.aaop/recipes/`.
 
 External projects evolve independently. Re-check current upstream status, license, security posture, install/configuration instructions, and permissions before consequential adoption.
 
@@ -137,22 +139,31 @@ Do not convert route stages into mandatory documents or user-facing forms.
 
 ### Phase 1 — Environment and project evidence
 
-Identify what already exists before adding anything:
+Identify what already exists before adding anything.
 
-- host / AI IDE;
-- workspace and repository state;
-- scoped project instructions;
-- native read/write/search/shell/browser capabilities;
-- available Skills;
-- existing tests, scripts, libraries, CI/CD and deployment paths;
-- connected MCP/apps;
-- native subagents/workers;
-- existing specialized runtimes;
-- network, sandbox and permission boundaries.
+When `.aaop/tools/doctor.py` is available, run the read-only inventory first when it can save manual inspection:
+
+```bash
+python .aaop/tools/doctor.py . --route <route-id> --json
+```
+
+The doctor must consume provider detection hints from Integration Recipes rather than maintaining its own provider catalog. Its output may be serialized as `.aaop/runtime/environment-inventory.json` against `.aaop/schemas/environment-inventory.schema.json`.
+
+Use the inventory to locate, not blindly trust:
+
+- host / AI IDE commands visible to the process;
+- toolchain commands;
+- project instruction files;
+- manifests and test/CI/deployment signals;
+- Skill and MCP configuration surfaces;
+- provider presence evidence from recipe hints;
+- route-relevant provider candidates already present.
+
+Then inspect host capabilities that the filesystem/process cannot prove, such as native read/write/search/browser primitives, connected apps, subagents/background tasks, sandbox/network boundaries, and permission policy.
 
 For repository work, prefer evidence from instructions, README/product intent, manifests/source/schema/API entrypoints, tests/quality gates, CI/CD/deployment configuration, issues/roadmap/ADRs/history, and runtime evidence when static reading is insufficient.
 
-Do not infer a capability merely because AAOP mentions a provider that could supply it.
+**Presence is not relevance.** A detected provider does not mean it should be used. A provider absent from the inventory does not mean it should be installed. Do not infer a missing capability merely because AAOP mentions a provider that could supply it.
 
 ### Phase 2 — Outcome resolution
 
@@ -177,11 +188,12 @@ For the current Route Capability Pack stage, map each required capability agains
 3. already-available Agent Skills;
 4. native host tools;
 5. already-connected MCP/apps;
-6. existing specialist/subagent/runtime.
+6. providers/runtimes already detected and actually relevant;
+7. existing specialist/subagent capability.
 
 Only unresolved capabilities become gaps.
 
-Do not create agents or install providers before this match.
+Do not create agents or install providers before this match. Reuse an already-present provider only if its actual capability and permission surface fit the current stage.
 
 ### Phase 4 — Execute with current capabilities first
 
@@ -202,14 +214,16 @@ Only when a Route Capability Pack escalation condition is actually true and its 
 
 1. load `.aaop/skills/provider-selection/SKILL.md`;
 2. inspect `.aaop/registries/providers.json`;
-3. select the smallest justified provider surface;
-4. load the matching `.aaop/recipes/<provider-id>.json` when available;
-5. re-check upstream source of truth before consequential installation;
-6. apply `.aaop/policies/autonomy.md` and `.aaop/policies/mcp-and-tools.md`;
-7. integrate using the upstream package manager/host configuration;
-8. verify the original capability gap closed.
+3. check environment inventory and Recipe detection evidence to avoid duplicating an already-present provider;
+4. select the smallest justified provider surface;
+5. load the matching `.aaop/recipes/<provider-id>.json` when available;
+6. re-check upstream source of truth before consequential installation;
+7. apply `.aaop/policies/autonomy.md` and `.aaop/policies/mcp-and-tools.md`;
+8. integrate using the upstream package manager/host configuration;
+9. rerun relevant environment/provider detection when useful;
+10. verify the original capability gap closed.
 
-Discovery does not equal installation.
+Discovery and detection do not equal installation or trust.
 
 A provider name in a route pack is a candidate, not a dependency.
 
@@ -266,7 +280,7 @@ Use the strongest practical evidence: tests, build/type/lint checks, runtime/bro
 
 Use the current route pack's `verification` list as the route-level contract.
 
-When a provider was added, verify separately that the capability gap that justified it is actually closed. If not, diagnose before adding another provider.
+When a provider was added, verify separately that the capability gap that justified it is actually closed. Detection after installation is useful evidence that the provider became present, but does not prove the task-level gap closed.
 
 ### Phase 10 — Replanning and route correction
 
@@ -287,17 +301,32 @@ Final delivery reports only what helps the developer:
 - Goal;
 - Result;
 - Key decisions;
-- material providers/integrations added or intentionally avoided;
+- material providers/integrations added, reused, or intentionally avoided;
 - verification evidence;
 - remaining risks;
 - user decisions still required;
 - next best action when useful.
 
-Do not burden the user with internal route/confidence/team metadata unless it explains a material decision.
+Do not burden the user with internal route/confidence/team/provider-detection metadata unless it explains a material decision.
 
-Promote reusable knowledge into Skills, tests, specs, or ADRs only when reuse is evidenced.
+Promote reusable knowledge into Skills, tests, specs, Recipes, or ADRs only when reuse is evidenced.
 
-## 7. Community component trust rule
+## 7. Recipe detection rule
+
+Provider detection belongs with provider integration knowledge.
+
+Baseline Recipe detection hints may include:
+
+- `commands`;
+- `python_packages`;
+- `node_packages`;
+- provider-specific `files`/glob patterns.
+
+Do not use generic project manifests such as `package.json`, `pyproject.toml`, or `requirements.txt` alone as proof of a provider. Detection should minimize false positives.
+
+A detection result means **present/observable**, not **needed, configured, safe, or trusted**.
+
+## 8. Community component trust rule
 
 A framework's community extension/plugin/bundle catalog is a **discovery surface**, not an automatic trust boundary.
 
@@ -305,7 +334,7 @@ Before adopting a community component, check source repository, publisher, maint
 
 Catalog presence alone is never sufficient authorization.
 
-## 8. Interaction contract
+## 9. Interaction contract
 
 The user provides natural-language intent and genuine decisions, not orchestration labor.
 
@@ -328,7 +357,7 @@ Ask when:
 
 Do not ask again for authorization already supplied for the same class of action.
 
-## 9. Prime directive
+## 10. Prime directive
 
 Optimize for:
 
@@ -340,4 +369,4 @@ User Orchestration Burden × Unnecessary Integration Surface × Complexity
 
 Do not optimize for agent count, framework count, tool count, code volume, document volume, or apparent completeness.
 
-AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, and reach a verified next result while mature ecosystem capability is added only when the real work requires it.
+AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, reuse capability already present, and reach a verified next result while new ecosystem capability is added only when the real work requires it.
