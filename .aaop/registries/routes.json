@@ -1,0 +1,87 @@
+{
+  "version": "0.4.0",
+  "routes": [
+    {
+      "id": "idea-to-build",
+      "situation": "greenfield",
+      "use_when": "The user primarily has an idea, desired product, workflow, or outcome and there is no trustworthy implementation baseline yet.",
+      "first_moves": [
+        "clarify the smallest outcome that would make the idea real",
+        "identify users, constraints, and acceptance evidence",
+        "avoid choosing stack/agents before the problem shape is understood",
+        "produce the smallest buildable slice before broad architecture"
+      ],
+      "avoid": ["premature framework selection", "large speculative architecture", "asking the user to write a full PRD before helping"],
+      "completion_shape": "A validated first slice, prototype, or implementation plan with explicit next evidence."
+    },
+    {
+      "id": "repo-recovery",
+      "situation": "repo-recovery",
+      "use_when": "An existing repository is messy, abandoned, unfamiliar, contradictory, partially working, or the user says to understand it and continue from the current state.",
+      "first_moves": [
+        "preserve current state before broad edits",
+        "read instructions, README, manifests, tests, CI, architecture, and recent history",
+        "build a current-state map and identify the highest-leverage blocker",
+        "separate product intent from accidental implementation",
+        "stabilize one path before refactoring broadly"
+      ],
+      "avoid": ["mass cleanup before understanding behavior", "rewriting because the code looks old", "assuming README and code agree"],
+      "completion_shape": "A trustworthy current-state model plus one verified improvement or a prioritized recovery path."
+    },
+    {
+      "id": "bug-fix",
+      "situation": "bug",
+      "use_when": "Observed behavior is wrong, failing, crashing, regressing, or producing an error and the user wants it fixed.",
+      "first_moves": [
+        "capture the observed failure and expected behavior",
+        "reproduce or obtain the strongest available failure evidence",
+        "localize root cause before editing",
+        "make the narrowest durable fix",
+        "add or strengthen regression evidence"
+      ],
+      "avoid": ["guess-fixing without reproduction/evidence", "unrelated refactors", "declaring success from code inspection alone"],
+      "completion_shape": "Failure reproduced or evidenced, root cause addressed, regression check passing, no material collateral regression."
+    },
+    {
+      "id": "feature-change",
+      "situation": "feature",
+      "use_when": "The user wants new behavior, a changed workflow, an integration, a UI/API capability, or a modification to an existing system.",
+      "first_moves": [
+        "translate the request into observable behavior",
+        "inspect the existing path and constraints before designing",
+        "identify impacted interfaces/data/tests",
+        "implement the smallest coherent change",
+        "verify old and new behavior"
+      ],
+      "avoid": ["treating feature wording as a complete specification", "bolting on a parallel architecture without checking existing primitives", "scope expansion"],
+      "completion_shape": "Requested behavior works in the existing system with acceptance evidence and regression checks."
+    },
+    {
+      "id": "understand-review",
+      "situation": "understand-review",
+      "use_when": "The primary request is to explain, inspect, review, compare, audit, assess quality/risk, or advise before making changes.",
+      "first_moves": [
+        "identify the decision the understanding must support",
+        "inspect only the evidence necessary to answer that decision",
+        "distinguish facts, inferences, risks, and recommendations",
+        "do not modify the project unless explicitly in scope"
+      ],
+      "avoid": ["performative full-repository summaries", "changes disguised as review", "recommendations without evidence"],
+      "completion_shape": "Decision-useful findings with evidence, material risks, and a concrete recommended next action."
+    },
+    {
+      "id": "release-operations",
+      "situation": "release-operations",
+      "use_when": "The request concerns deploy, release, migration, CI/CD, production behavior, incident recovery, environment configuration, or operational readiness.",
+      "first_moves": [
+        "identify target environment and current operational state",
+        "inspect deployment/CI/runtime evidence",
+        "separate reversible validation from consequential writes",
+        "define rollback before high-impact changes",
+        "apply autonomy and approval policy before production actions"
+      ],
+      "avoid": ["production writes without authorization", "migration without rollback", "assuming local success equals production readiness"],
+      "completion_shape": "Operational objective reached or safely prepared, with validation, rollback, and remaining risk explicit."
+    }
+  ]
+}
