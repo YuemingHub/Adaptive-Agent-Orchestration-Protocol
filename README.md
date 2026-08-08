@@ -2,44 +2,33 @@
 
 AAOP is a host-agnostic **developer intake, routing, evidence, decision, policy, and integration layer**.
 
-Its purpose is simple:
-
-> A developer should be able to arrive with an idea, a messy repository, a bug, a feature request, a review question, or an operations problem — describe it in ordinary language — and let AAOP route and compose the work without first learning the agent ecosystem.
+> A developer should be able to arrive with an idea, a messy repository, a bug, a feature request, a review question, or an operations problem, describe it in ordinary language, and let AAOP route and compose the work without first learning the agent ecosystem.
 
 AAOP does **not** try to become another all-in-one agent framework.
 
 ```text
-Natural-language developer request
-              ↓
+Natural-language request
+        ↓
 Host-native project bootstrap
-              ↓
-Developer intake
-              ↓
-Primary route
-              ↓
+        ↓
+Developer Intake
+        ↓
+Primary Route
+        ↓
 Route Capability Pack + Pressure Guards
-              ↓
-Environment/project evidence
-  • what already exists?
-  • what is actually current/authoritative?
-  • which named technologies are real constraints vs hypotheses?
-              ↓
+        ↓
+Project/environment/instruction evidence
+        ↓
 Required capabilities / decision frame
-              ↓
-Blocked?
-  environment / authorization / credential /
-  external dependency / product decision
-       ↓ no provider workaround
-  or genuine capability gap
-       ↓
+        ↓
+Blocker classification
+        ↓
 Reuse current capability first
-       ↓ only if gap remains
-Mature provider + Recipe
-       ↓
-Applicable scoped adoption review?
-  no → continue
-  yes → re-check current upstream + actual context
-       ↓
+        ↓ only for a proven capability gap
+Mature Provider + Integration Recipe
+        ↓
+Applicable adoption-review debt?
+        ↓ re-check current upstream/context when needed
 Execute → Verify → Re-route/Replan
 ```
 
@@ -59,112 +48,117 @@ Minimal requests are enough:
 
 The developer does **not** choose an Agent, Skill, MCP server, runtime, workflow mode, or AAOP host mode.
 
-AAOP routes internally:
-
 | Situation | Route | First correct move |
 | --- | --- | --- |
 | idea / no trustworthy implementation | `idea-to-build` | outcome + first evidence-bearing slice before architecture |
 | messy/unfamiliar/contradictory repo | `repo-recovery` | reconstruct current truth before broad edits |
 | failure/error/regression | `bug-fix` | baseline → reproduce/evidence → root cause → narrow fix |
 | new/changed behavior | `feature-change` | behavior contract → current path → smallest coherent change |
-| explanation/review/audit/adoption decision | `understand-review` | frame the decision, inspect current material evidence, no mutation by default |
+| explanation/review/audit/adoption decision | `understand-review` | frame the decision; no mutation by default |
 | deploy/release/migration/incident | `release-operations` | environment truth + authorization + rollback/blocker boundary |
 
 See [`docs/DEVELOPER_ENTRYPOINT.md`](docs/DEVELOPER_ENTRYPOINT.md).
 
 ## Host-native bootstrap
 
-AAOP should become active through the project-instruction surfaces the developer's existing coding host already supports. The developer should not have to say “read `.aaop` first” or select a host-specific AAOP mode.
-
-Current verified strategy:
+AAOP activates through project-instruction surfaces already supported by coding hosts:
 
 | Host | Native project entry | AAOP mapping |
 | --- | --- | --- |
-| Codex | root/scoped `AGENTS.md` | root `AGENTS.md` is the common AAOP bridge |
+| Codex | `AGENTS.md` / scoped instruction files | root `AGENTS.md` is the common bridge |
 | Claude Code | project `CLAUDE.md` | root `CLAUDE.md` is a thin Claude-specific bridge |
-| Cursor | root `AGENTS.md`; Cursor CLI also reads root `CLAUDE.md` | use `AGENTS.md` as common bridge; keep `CLAUDE.md` deliberately small |
+| Cursor | root `AGENTS.md`; Cursor CLI also reads root `CLAUDE.md` | common bridge in `AGENTS.md`, thin `CLAUDE.md` bridge |
 
-All paths converge on:
+All converge on:
 
 ```text
 .aaop/ORCHESTRATOR.md
-        ↓
-.aaop/skills/developer-intake/SKILL.md
-        ↓
-.aaop/skills/route-execution/SKILL.md
-        ↓
-.aaop/routes/<route-id>.json
+→ .aaop/skills/developer-intake/SKILL.md
+→ .aaop/skills/route-execution/SKILL.md
+→ .aaop/routes/<route-id>.json
 ```
 
-AAOP does **not** generate `.cursor/rules` merely to repeat the root bootstrap. Cursor-specific rules remain available when a project genuinely needs Cursor-native scoping.
-
-Why the thin `CLAUDE.md` bridge matters: Cursor CLI reads both root `AGENTS.md` and root `CLAUDE.md`; maintaining the full bootstrap in both would duplicate persistent context without improving capability.
-
-Host behavior changes independently of AAOP. First-party sources and the last verification date live in `adapters/`, and static CI protects AAOP's side of the contract without pretending it can prove proprietary-host runtime behavior.
+AAOP does not generate `.cursor/rules` merely to duplicate root instructions. Host-specific facts and their verification dates stay in `adapters/`, not in the host-neutral Orchestrator.
 
 See [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md).
 
-## Idea-to-build: outcome before architecture
+## Instruction topology: see scoped rules before assuming scope
 
-A greenfield user may describe a vision together with technologies they have heard about:
+A mature repository can already contain multiple host instruction layers:
 
 ```text
-“Build it with agents, MCP, RAG, memory, a vector database and graph orchestration.”
+AGENTS.md
+backend/AGENTS.md
+backend/AGENTS.override.md
+
+CLAUDE.md
+services/CLAUDE.md
+
+.cursor/rules/global.mdc
+frontend/.cursor/rules/ui.mdc
 ```
 
-AAOP does not automatically turn those nouns into architecture requirements. Classify each as a **hard constraint**, **preference**, or **solution hypothesis**.
+The root AAOP bootstrap may be correct without being the only instruction context that matters.
 
-Then find:
+Use the read-only inventory when the repository is unfamiliar, scoped rules are visible, a monorepo has multiple instruction layers, or instruction scope can materially change the task:
+
+```bash
+python .aaop/tools/instructions.py .
+python .aaop/tools/instructions.py . --json
+```
+
+It inventories documented repository-local instruction surfaces for Codex, Claude Code, and Cursor and highlights conditions such as nested instructions, same-directory `AGENTS.md` + `AGENTS.override.md`, deprecated `CLAUDE.local.md`, nested Cursor rules, or legacy `.cursorrules`.
+
+**Topology is evidence, not conflict resolution.** Discovery of a nested/newer rule does not prove it is semantically correct, globally active, or safe to rewrite. When effective precedence matters, inspect the actual host/session/config and the conflicting rule contents.
+
+See [`docs/INSTRUCTION_TOPOLOGY.md`](docs/INSTRUCTION_TOPOLOGY.md).
+
+## Idea-to-build: outcome before architecture
+
+Early solution vocabulary such as Agent, MCP, RAG, vector DB, graph, or memory is classified as a **hard constraint**, **preference**, or **solution hypothesis** rather than automatically becoming architecture.
+
+AAOP first finds:
 
 1. one actor;
 2. one real situation;
 3. one observable improvement;
 4. the riskiest assumption worth testing now;
-5. the smallest end-to-end slice that can produce evidence;
+5. the smallest end-to-end slice that buys useful evidence;
 6. only then, the minimum reversible technical shape.
 
-A large future vision is direction, not first-slice scope. The first slice must **buy learning**; scaffolding, diagrams, a large generated codebase, or a polished demo that tests no material assumption is activity, not product evidence.
-
-The non-technical user should not be asked to choose a stack the system can derive later.
+A broad future vision is direction, not first-slice scope. The non-technical user should not be asked to choose a stack the system can derive later.
 
 ## Understand-review: decision before coverage
 
-A review should answer a decision, not maximize how much repository content was read.
-
-For review/adoption/audit work, AAOP asks internally:
+Review starts from the decision it must support, then inspects the minimum evidence necessary to distinguish:
 
 ```text
-What decision are we supporting?
-What usage/deployment context changes materiality?
-Which claims are current verified facts?
-Which are external reports or historical evidence?
-What is inference/assumption/unknown?
-What recommendation follows for this context?
+current verified facts
+historical/external claims
+inference
+assumptions
+unknowns
+recommendations
 ```
 
-Review is read-only by default. Finding a fixable issue does not authorize a patch, PR, configuration change, or upstream mutation.
-
-Security/reliability severity must be contextualized. An issue headline is not a present-tense conclusion; when practical, material external claims should be checked against the current relevant source/status first.
+Review is read-only by default. Finding a fixable issue does not authorize a patch or upstream mutation. Security/reliability risk must be contextualized to actual exposure and permissions rather than copied from a headline.
 
 ## Route Capability Packs
 
-AAOP loads exactly one current pack from `.aaop/routes/` after routing.
-
-A pack contains:
+After routing, AAOP loads one pack from `.aaop/routes/` containing:
 
 - engineering stages and evidence;
 - required/optional capabilities;
 - exit conditions;
-- **pressure guards** learned from real-project failures;
+- real-project **Pressure Guards**;
 - provider escalation candidates for proven gaps;
 - verification and reroute signals.
 
-A pack remains useful even if every named external provider disappears. It is an engineering map, not a workflow engine or install bundle.
+A pack is an engineering map, not a workflow engine or install bundle.
 
 ```bash
 python .aaop/tools/route.py list
-python .aaop/tools/route.py show idea-to-build
-python .aaop/tools/route.py show understand-review
+python .aaop/tools/route.py show bug-fix
 ```
 
 See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
@@ -173,9 +167,7 @@ See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
 
 AAOP evolves by **real developer failures before speculative completeness**.
 
-`tests/pressure/` contains replay contracts derived from real repositories/issues. Public sources may be named; lessons from private projects are anonymized before entering this public repository.
-
-The current baseline covers all six routes, including:
+`tests/pressure/` contains privacy-safe replay contracts covering all six routes. Current lessons include:
 
 - repository authority/freshness;
 - stale bug reports;
@@ -185,7 +177,7 @@ The current baseline covers all six routes, including:
 - solution-vocabulary capture;
 - decision-oriented review.
 
-Every case binds to Route `pressure_guards`; CI prevents those learned invariants from disappearing silently.
+Each case binds to Route `pressure_guards`; removing an earned guard breaks CI until the regression is deliberately re-evaluated.
 
 ```bash
 python scripts/validate_pressure.py
@@ -195,9 +187,7 @@ See [`docs/REAL_PROJECT_PRESSURE_TESTS.md`](docs/REAL_PROJECT_PRESSURE_TESTS.md)
 
 ## Evidence authority and freshness
 
-For messy or long-running projects, a file inventory is not enough. Material claims should be evaluated by the project's own authority/freshness model.
-
-Useful generic roles are:
+Material claims are evaluated by the project's own authority/freshness model. Useful generic roles are:
 
 ```text
 current-fact
@@ -208,21 +198,17 @@ historical
 unknown
 ```
 
-Project-defined terminology takes precedence.
-
 Hard rules:
 
-- merge-to-main does not automatically make a Draft policy accepted;
-- newest timestamp does not automatically beat an explicit current-fact source;
-- old PRs/branches/issues are historical evidence until reconciled with current baseline;
-- prior AI conclusions and issue comments are not current facts by default;
-- external issue/advisory claims should be checked against current source/status when practical;
-- deployment/runtime facts require target-environment evidence;
-- unresolved conflicts should remain explicit rather than being silently overwritten.
+- merged/main/newest does not automatically mean authoritative;
+- old PRs/issues/branches are historical evidence until reconciled with the current baseline;
+- prior AI conclusions and issue comments are hypotheses/reference by default;
+- runtime/deployment facts require target-environment evidence;
+- unresolved conflicts remain explicit instead of being silently flattened.
 
 ## Blocker before capability gap
 
-When progress stops, AAOP first asks **why**:
+When progress stops, classify why:
 
 ```text
 missing-evidence
@@ -234,38 +220,29 @@ product-decision
 capability-gap
 ```
 
-Only `capability-gap` directly justifies looking for another provider.
-
-Examples of bad escalation:
+Only `capability-gap` directly justifies adding another provider.
 
 ```text
-network policy blocks target
-→ install tunnel/VPN/runtime        ✗
-
-no deployment authorization
-→ find another write path          ✗
-
-product decision unresolved
-→ create more agents               ✗
-
-user mentioned vector DB in an idea
-→ install retrieval stack          ✗
+network policy blocks target → install tunnel/runtime      ✗
+missing deployment auth      → find another write path     ✗
+product decision unresolved  → create more agents          ✗
+user mentioned vector DB     → install retrieval stack     ✗
 ```
 
-A correct result may be: preserve unknown state, stop safely, and state the smallest legitimate unblock.
+Sometimes the correct result is to preserve unknown state and state the smallest legitimate unblock.
 
-## Recipe-driven environment resolution
+## Environment resolution
 
-Before concluding that a route lacks capability, AAOP inspects what already exists.
+Before concluding a capability is missing:
 
 ```bash
 python .aaop/tools/doctor.py .
-python .aaop/tools/doctor.py . --route bug-fix --json
+python .aaop/tools/doctor.py . --route feature-change --json
 ```
 
-The Doctor reads provider-specific detection hints from Integration Recipes rather than maintaining a separate provider catalog.
+The Doctor reads provider-specific detection hints from Integration Recipes instead of maintaining a second provider catalog.
 
-**Detection means presence, not recommendation, trust, configuration correctness, authorization, or task fitness.**
+**Detection means presence, not recommendation, trust, authorization, configuration correctness, or task fitness.**
 
 ## Progressive adoption
 
@@ -273,25 +250,25 @@ Default: **install nothing new**.
 
 ```text
 Level 0  AAOP protocol only
-Level 1  Existing AI IDE / host-native capabilities
-Level 2  Existing/local Skills, tests, scripts, tools, MCP
+Level 1  existing host-native capability
+Level 2  existing/local Skills, tests, scripts, tools, MCP
 Level 3  ARD / A2A / trusted discovery
-Level 4  One justified specialized runtime/harness
-Level 5  Governed workspace/control plane
+Level 4  one justified specialized runtime/harness
+Level 5  governed workspace/control plane
 ```
 
 These are not mandatory cumulative levels. A project can stay at Level 0/1 indefinitely.
 
 ## Integration Recipes
 
-AAOP is not a package manager. `.aaop/recipes/` carries lazy integration knowledge:
+`.aaop/recipes/` contains lazy integration knowledge, not vendored dependencies or an AAOP package manager:
 
 - when a provider is/is not appropriate;
-- how to detect presence;
-- smallest current upstream install/config path;
+- detection hints;
+- smallest current upstream integration path;
 - credentials/permissions;
-- optional scoped, time-stamped `adoption_review` debt;
-- verification of the original gap;
+- optional scoped `adoption_review` debt;
+- verification;
 - rollback/removal;
 - source of truth + last verified date.
 
@@ -301,106 +278,72 @@ python .aaop/tools/recipe.py show playwright
 python .aaop/tools/recipe.py show autoagent
 ```
 
-Current integrations cover standards/providers including Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
+Current coverage includes Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
 
-AAOP prefers the smallest provider **surface**, not the entire ecosystem.
-
-### Provider Adoption Review
-
-Recipes may carry scoped adoption review debt when a real adoption decision uncovers a provider-specific concern that future use should re-check.
-
-AAOP stores the date, scope, reason, observations, evidence sources, and required re-checks. It does **not** store permanent labels such as `SAFE`, `UNSAFE`, `APPROVED`, or `BANNED`.
-
-When a selected surface matches the recorded scope, AAOP re-checks current upstream source/status and the actual deployment/permission/network context before consequential adoption.
-
-If the concern is fixed upstream or irrelevant to the selected surface, it should not block adoption. If it remains relevant and cannot be mitigated, narrow/isolate the provider, choose another provider, or defer adoption.
-
-This is **remembered review debt**, not a vulnerability database or provider certification system.
+A scoped adoption review remembers **what deserves another look**, not a permanent `SAFE/UNSAFE` verdict. If its scope applies, AAOP re-checks current upstream and the actual deployment/permission/network context before consequential adoption.
 
 ## Safe lifecycle: install, upgrade, inspect, remove
 
-AAOP should not become easy to try but risky to keep current—or difficult to leave.
-
 ```bash
-# initial install
+# install
 python scripts/install.py /path/to/project
 
 # state-preserving upgrade
 python scripts/install.py /path/to/project --upgrade
 
-# read-only local integrity/drift check
+# local integrity/drift check
 python /path/to/project/.aaop/tools/health.py /path/to/project
 
-# manifest-scoped safe removal
+# manifest-scoped removal
 python scripts/install.py /path/to/project --uninstall
 ```
 
-The lifecycle keeps AAOP-owned state separate from project-owned state:
+Ownership stays explicit:
 
 ```text
 AAOP-managed protocol files        → upgrade/remove by manifest ownership
 .aaop/runtime/                     → preserved
 project-only files inside .aaop/   → preserved
 AGENTS/CLAUDE text outside markers → preserved
-AAOP text inside markers           → update/remove only inside marker boundary
+AAOP marker blocks                 → update/remove inside boundary only
 third-party providers              → untouched
 ```
 
-An install manifest records hashes for AAOP-managed files and canonical bootstrap blocks. Locally modified managed files are backed up before canonical replacement/removal. Modified bootstrap blocks are also preserved before uninstall.
-
-Malformed or duplicated bootstrap markers fail preflight **before package mutation/removal**.
-
-`--force` remains a backward-compatible alias for `--upgrade`; it no longer replaces the whole `.aaop` directory.
-
-Legacy installations without a manifest can be safely upgraded, but automatic uninstall refuses to guess ownership. Upgrade first to establish explicit ownership, then uninstall.
-
-Safe AAOP removal does **not** remove Playwright, MCP servers, AutoAgent, Deep Agents, project dependencies, or other provider resources.
+Locally modified managed files/bootstrap blocks are backed up before canonical replacement/removal. Malformed marker pairs fail before package mutation. Legacy no-manifest installs can upgrade safely but cannot be automatically uninstalled until ownership is established.
 
 See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
-## Installation health: observe drift before repair
+## Installation health
 
 ```bash
 python .aaop/tools/health.py .
 python .aaop/tools/health.py . --json
 ```
 
-Health answers one narrow question:
+Health asks only:
 
-> **Does the current local AAOP installation still match the baseline that was installed/upgraded here?**
+> Does this local AAOP installation still match the baseline installed/upgraded here?
 
-Typical states:
+Typical states include `healthy`, `upgrade-recommended`, `legacy-install`, `drifted`, `incomplete`, and invalid/unsupported manifest states.
 
-```text
-healthy
-upgrade-recommended
-legacy-install
-drifted
-incomplete
-invalid-manifest
-unsupported-manifest
-```
-
-A `drifted` result is evidence to review, not permission to overwrite. When canonical repair is intended, run `--upgrade` from a trusted AAOP source; locally modified managed files are backed up first.
-
-Important boundary: health is **best-effort accidental-drift detection**, not a cryptographic/adversarial trust root, and it does not claim the package is the latest upstream version.
+Health is **best-effort accidental-drift detection**, not a cryptographic trust root and not a latest-version checker.
 
 ## What AAOP owns
 
 - natural-language developer intake and routing;
 - host-native bootstrap conformance and duplicate-context minimization;
+- read-only instruction-topology discovery for scoped host/project rules;
 - Route Capability Packs and real-project Pressure Guards;
 - greenfield outcome/solution-hypothesis discipline;
 - decision-oriented read-only review discipline;
 - evidence authority/freshness discipline;
-- recipe-driven environment/provider presence inventory;
+- environment/provider presence inventory;
 - blocker classification;
 - progressive provider selection and least privilege;
-- scoped provider-adoption review debt and re-verification policy;
-- manifest-scoped install/upgrade/uninstall semantics with low lock-in;
-- read-only AAOP installation health and accidental-drift visibility;
-- verification, replanning, and route correction;
-- graceful degradation across hosts.
+- scoped provider-adoption review debt;
+- manifest-scoped install/upgrade/uninstall with low lock-in;
+- read-only AAOP installation health;
+- verification, replanning, and route correction.
 
 ## What AAOP deliberately reuses
 
@@ -415,7 +358,7 @@ Important boundary: health is **best-effort accidental-drift detection**, not a 
 | bounded SWE issue solver | mini-SWE-agent when justified |
 | autonomous coding runtime/SDK | OpenHands when justified |
 | long-horizon/subagent harness | Deep Agents or equivalent |
-| production agent workflow runtime | Microsoft Agent Framework or equivalent |
+| production workflow runtime | Microsoft Agent Framework or equivalent |
 | dynamic workforce patterns | CAMEL or equivalent |
 | agent/tool/workflow generation | AutoAgent when justified |
 | multi-user governance/workspace | AgentSpace or equivalent |
@@ -428,41 +371,37 @@ See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md).
 python scripts/install.py /path/to/project
 ```
 
-The installer adds the `.aaop` package plus host-native marked bootstrap blocks without replacing unrelated project rules. It installs no third-party runtime/MCP/provider and requests no secret.
-
 Then open the project in the AI host you already use and describe what you want in ordinary language. No AAOP host-mode selection is required.
 
 ## Repository map
 
 ```text
-AGENTS.md                            # common cross-host bootstrap in source repo
-CLAUDE.md                            # thin Claude-specific source bridge
+AGENTS.md
+CLAUDE.md
 .aaop/
 ├── VERSION
-├── ORCHESTRATOR.md                  # canonical orchestration policy
+├── ORCHESTRATOR.md
 ├── policies/
 ├── registries/
-├── routes/                          # route capability packs + pressure guards
-├── recipes/                         # lazy integration/detection + adoption review debt
+├── routes/
+├── recipes/
 ├── schemas/
 ├── skills/
 └── tools/
-    ├── doctor.py                    # project/provider environment evidence
-    ├── health.py                    # installed AAOP drift/health evidence
+    ├── doctor.py
+    ├── health.py
+    ├── instructions.py
     ├── route.py
     └── recipe.py
 
 adapters/
-├── codex.md
-├── claude-code.md
-└── cursor.md
-
 tests/pressure/
 scripts/install.py
 scripts/validate.py
 scripts/validate_pressure.py
 scripts/validate_host_bootstrap.py
 docs/HOST_BOOTSTRAP_CONFORMANCE.md
+docs/INSTRUCTION_TOPOLOGY.md
 ```
 
 ## Core design principles
@@ -471,32 +410,32 @@ docs/HOST_BOOTSTRAP_CONFORMANCE.md
 2. Read available evidence before asking the user.
 3. Use host-native instruction discovery; do not make the user activate AAOP manually.
 4. Keep one canonical policy and minimize duplicate persistent host context.
-5. For ideas: outcome and evidence-bearing first slice before architecture.
-6. Treat early solution vocabulary as hypothesis unless established as a constraint.
-7. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
-8. Current baseline and source authority before trusting stale artifacts.
-9. Route by observable outcome, not developer jargon.
-10. Route Packs are thin engineering maps, not proprietary workflows.
-11. Detect/reuse existing capability before concluding there is a gap.
-12. Classify blockers before provider escalation.
-13. Install nothing new without a proven technical capability gap.
-14. Re-check applicable provider adoption debt before consequential use; never turn it into a permanent label.
-15. Upgrade AAOP-owned files without deleting runtime or project-owned state.
-16. Observe AAOP installation drift before repairing it; never treat health evidence as authorization to overwrite.
-17. Remove only what AAOP can prove it owns; preserve runtime, project-owned state, and provider independence.
+5. See scoped instruction topology before assuming root rules are the complete effective context.
+6. Never treat topology inventory as automatic conflict resolution or permission to rewrite project rules.
+7. For ideas: outcome and evidence-bearing first slice before architecture.
+8. Treat early solution vocabulary as hypothesis unless established as a constraint.
+9. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+10. Current baseline/source authority before stale artifacts.
+11. Route by observable outcome, not developer jargon.
+12. Detect/reuse existing capability before concluding there is a gap.
+13. Classify blockers before provider escalation.
+14. Install nothing new without a proven technical capability gap.
+15. Re-check applicable provider adoption debt before consequential use.
+16. Preserve runtime/project-owned state across AAOP lifecycle operations.
+17. Remove only what AAOP can prove it owns.
 18. Prefer mature upstream implementations over copies.
 19. Select the minimum provider surface.
 20. Verify outcomes; do not fabricate completion when safely blocked.
-21. Let real-project regressions improve the protocol before adding theoretical completeness.
+21. Let real-project regressions improve the protocol before theoretical completeness.
 22. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.13.0 — host-native bootstrap conformance and duplicate-context minimization.**
+**v0.14.0 — read-only instruction topology and scoped-rule visibility.**
 
-v0.13 verifies the current Codex, Claude Code, and Cursor project-instruction surfaces; uses `AGENTS.md` as the common bridge; reduces `CLAUDE.md` to a thin host-specific bridge because Cursor CLI reads both root files; adds first-party-source/date-backed adapters and static host-bootstrap conformance validation; and still generates no Cursor-specific rule layer or AAOP host plugin by default.
+v0.14 extends project discovery so AAOP can inventory repository-local instruction layers for Codex, Claude Code, and Cursor when scope is material. It recognizes nested/scoped/deprecated rule surfaces and reports review hints without mutating rules or pretending to resolve semantic conflicts. The model is grounded in first-party host behavior rechecked on 2026-08-08.
 
-This is an activation/portability release. It adds no new Route, Provider, runtime, package registry, remote updater, or proprietary host extension.
+This is a project-understanding release. It adds no new Route, Provider, runtime, package manager, remote updater, automatic rule migration, or proprietary host plugin.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
