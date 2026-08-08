@@ -2,8 +2,6 @@
 name: project-discovery
 description: Build a grounded environment and project profile before planning or editing. Use for new repositories, unfamiliar projects, broad requests, architecture work, or any task where hidden project constraints could change the solution.
 license: Apache-2.0
-metadata:
-  aaop-version: "0.16.0"
 ---
 
 # Project Discovery
