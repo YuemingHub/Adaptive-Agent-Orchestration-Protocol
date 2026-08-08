@@ -20,7 +20,7 @@ jobs:
         run: python scripts/validate.py
       - name: Validate real-project pressure regressions
         run: python scripts/validate_pressure.py
-      - name: Smoke-test installer, environment resolution, routes, recipes, and project-rule preservation
+      - name: Smoke-test installer, environment resolution, routes, recipes, adoption reviews, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
@@ -38,6 +38,7 @@ jobs:
           test -f "$target/.aaop/routes/understand-review.json"
           test -f "$target/.aaop/schemas/environment-inventory.schema.json"
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
+          test -f "$target/.aaop/schemas/integration-recipe.schema.json"
 
           # AAOP's own canonical Skills must not inflate the observed external surface.
           python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor-clean.json"
@@ -99,8 +100,22 @@ jobs:
 
           python "$target/.aaop/tools/recipe.py" list | grep -q 'spec-kit'
           python "$target/.aaop/tools/recipe.py" list | grep -q 'playwright'
+          python "$target/.aaop/tools/recipe.py" list | grep -q 'autoagent'
           python "$target/.aaop/tools/recipe.py" show playwright > "$target/playwright-recipe.json"
-          python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["provider_id"] == "playwright"' "$target/playwright-recipe.json"
+          python "$target/.aaop/tools/recipe.py" show autoagent > "$target/autoagent-recipe.json"
+          python - "$target/playwright-recipe.json" "$target/autoagent-recipe.json" <<'PY'
+          import json, sys
+          playwright = json.load(open(sys.argv[1]))
+          autoagent = json.load(open(sys.argv[2]))
+          assert playwright["provider_id"] == "playwright"
+          review = autoagent["adoption_review"]
+          assert review["decision_effect"] == "reverify-before-adoption"
+          assert "Docker-backed command execution" in review["scope"]
+          assert len(review["sources"]) >= 3
+          assert len(review["required_checks"]) >= 4
+          assert any("not" in note.lower() and "verdict" in note.lower() for note in review.get("notes", [])) or any("not a blanket" in warning.lower() for warning in autoagent.get("warnings", []))
+          PY
+
           python scripts/validate.py --root "$target" --package-only
           python scripts/install.py "$target" --force
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1

@@ -8,6 +8,7 @@ A recipe tells the orchestrator, in one predictable shape:
 - how to detect whether it is already present;
 - the smallest known upstream installation path;
 - credentials/permissions that may be required;
+- optional, time-stamped provider-adoption review debt that must be rechecked for a relevant surface/context;
 - how to verify the original capability gap is closed;
 - how to remove or disable the integration.
 
@@ -34,9 +35,48 @@ A detection result means only **“evidence this provider is already present.”
 
 The Route Capability Pack and provider-selection policy still decide relevance.
 
+## Adoption review contract
+
+A Recipe may optionally contain `adoption_review` when a real review has uncovered a **specific, reusable adoption concern that is easy to forget and important enough to re-check later**.
+
+This field is intentionally not a vulnerability database, allowlist, denylist, certification, or permanent security label.
+
+It records:
+
+- `reviewed_at` — when the observation was last checked;
+- `scope` — which provider mode/surface/context the observation applies to;
+- `reason` — why future adoption needs a deliberate re-check;
+- `decision_effect` — informational, reverify-before-adoption, or conditional-adoption-only;
+- `current_observations` — what was actually observed at that date;
+- `sources` — evidence locations to revisit;
+- `required_checks` — what must be re-evaluated against current upstream and the actual deployment context;
+- optional notes explaining uncertainty or retirement conditions.
+
+### What it does not mean
+
+A recorded concern does **not** mean:
+
+```text
+provider is globally unsafe
+provider is permanently banned
+issue report is maintainer-confirmed fact
+all provider surfaces share the same risk
+old observations override current upstream source
+```
+
+The orchestrator must re-check the concern before consequential adoption when the intended surface falls within its scope.
+
+If upstream has fixed the mechanism, the intended mode does not use it, or the actual environment makes the concern irrelevant, the old observation should not block adoption. Update or retire the Recipe review instead of carrying stale fear indefinitely.
+
+If the concern remains relevant and cannot be mitigated within the user's authorization/risk boundary, prefer a narrower provider surface, isolated deployment, another provider, or no new provider yet.
+
+This is best thought of as **remembered review debt**: AAOP remembers what deserves another look, not what conclusion must be reached forever.
+
 ## Safety rule
 
 Before executing an install command, re-check `source_of_truth` when network access is available. Recipes carry `last_verified` because external projects change faster than the AAOP protocol.
+
+If `adoption_review` applies, also re-check its sources and conditions before enabling the relevant provider surface.
 
 A recipe MUST NOT silently install anything merely because it exists or because the Doctor detects it.
 
@@ -59,6 +99,13 @@ Can current environment satisfy X?
              ↓
           Recipe gives one integration path
              ↓
+          Applicable adoption review?
+             ├─ no  → continue
+             └─ yes → re-check current source + actual context
+                         ↓
+                    adopt / narrow / isolate /
+                    choose alternative / defer
+             ↓
           Ask only for genuinely required credential/high-risk permission
              ↓
           Upstream package manager/host performs installation
@@ -66,10 +113,10 @@ Can current environment satisfy X?
           AAOP verifies the original gap closed
 ```
 
-This removes the need for developers to manually hunt across repositories while avoiding an all-in-one distribution and avoiding repeated installation of capabilities they already have.
+This removes the need for developers to manually hunt across repositories while avoiding an all-in-one distribution, repeated installation of capabilities they already have, and forgotten integration risks from earlier reviews.
 
 ## Contract
 
 Recipes should conform to `../schemas/integration-recipe.schema.json`.
 
-They are resolver hints, not security endorsements. Consequential adoption still requires provenance, permission, data exposure, cost, maintenance, and rollback review.
+They are resolver hints, not security endorsements. Consequential adoption still requires current provenance, permission, data exposure, cost, maintenance, operational context, and rollback review.

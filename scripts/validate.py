@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 ROUTE_IDS = {
     "idea-to-build",
     "repo-recovery",
@@ -30,6 +31,11 @@ GENERIC_PROVIDER_DETECT_FILES = {
     "composer.json",
 }
 DETECT_HINT_KEYS = ("commands", "python_packages", "node_packages", "files")
+ADOPTION_DECISION_EFFECTS = {
+    "informational",
+    "reverify-before-adoption",
+    "conditional-adoption-only",
+}
 
 REQUIRED = [
     "AGENTS.md",
@@ -231,6 +237,72 @@ def validate_detect_contract(path: Path, detect: object, errors: list[str]) -> N
             )
 
 
+def validate_nonempty_string_list(path: Path, field: str, value: object, errors: list[str]) -> None:
+    if not isinstance(value, list) or not value:
+        error(errors, f"{path}: {field} must be a non-empty list")
+        return
+    for item in value:
+        if not isinstance(item, str) or not item.strip():
+            error(errors, f"{path}: {field} values must be non-empty strings")
+
+
+def validate_adoption_review(path: Path, review: object, errors: list[str]) -> None:
+    if review is None:
+        return
+    if not isinstance(review, dict):
+        error(errors, f"{path}: adoption_review must be an object")
+        return
+
+    required = {
+        "reviewed_at",
+        "scope",
+        "reason",
+        "decision_effect",
+        "current_observations",
+        "sources",
+        "required_checks",
+    }
+    missing = required - review.keys()
+    if missing:
+        error(errors, f"{path}: adoption_review missing fields: {', '.join(sorted(missing))}")
+        return
+
+    reviewed_at = review.get("reviewed_at")
+    if not isinstance(reviewed_at, str) or not DATE_RE.fullmatch(reviewed_at):
+        error(errors, f"{path}: adoption_review.reviewed_at must use YYYY-MM-DD")
+
+    for field in ("scope", "reason"):
+        value = review.get(field)
+        if not isinstance(value, str) or not value.strip():
+            error(errors, f"{path}: adoption_review.{field} must be a non-empty string")
+
+    decision_effect = review.get("decision_effect")
+    if decision_effect not in ADOPTION_DECISION_EFFECTS:
+        error(
+            errors,
+            f"{path}: adoption_review.decision_effect must be one of {', '.join(sorted(ADOPTION_DECISION_EFFECTS))}",
+        )
+
+    validate_nonempty_string_list(path, "adoption_review.current_observations", review.get("current_observations"), errors)
+    validate_nonempty_string_list(path, "adoption_review.sources", review.get("sources"), errors)
+    validate_nonempty_string_list(path, "adoption_review.required_checks", review.get("required_checks"), errors)
+
+    sources = review.get("sources")
+    if isinstance(sources, list):
+        for source in sources:
+            if isinstance(source, str) and not source.startswith(("https://", "http://")):
+                error(errors, f"{path}: adoption_review.sources must use http(s) URLs")
+
+    notes = review.get("notes")
+    if notes is not None:
+        if not isinstance(notes, list):
+            error(errors, f"{path}: adoption_review.notes must be a list when present")
+        else:
+            for note in notes:
+                if not isinstance(note, str) or not note.strip():
+                    error(errors, f"{path}: adoption_review.notes values must be non-empty strings")
+
+
 def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> set[str]:
     recipe_root = root / ".aaop/recipes"
     recipes = sorted(recipe_root.glob("*.json")) if recipe_root.exists() else []
@@ -259,6 +331,7 @@ def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> set[str]:
             if required not in payload:
                 error(errors, f"{path}: missing required field {required!r}")
         validate_detect_contract(path, payload.get("detect"), errors)
+        validate_adoption_review(path, payload.get("adoption_review"), errors)
         install = payload.get("install")
         if not isinstance(install, dict) or "mode" not in install:
             error(errors, f"{path}: install.mode is required")

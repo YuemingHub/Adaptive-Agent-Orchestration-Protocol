@@ -41,6 +41,22 @@
     },
     "credentials": {"type": "array", "items": {"type": "string"}},
     "permissions": {"type": "array", "items": {"type": "string"}},
+    "adoption_review": {
+      "type": "object",
+      "description": "Optional time-stamped, scope-specific review debt that must be rechecked before consequential adoption. It is neither a vulnerability database nor a permanent provider verdict.",
+      "required": ["reviewed_at", "scope", "reason", "decision_effect", "current_observations", "sources", "required_checks"],
+      "properties": {
+        "reviewed_at": {"type": "string", "format": "date"},
+        "scope": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1},
+        "decision_effect": {"enum": ["informational", "reverify-before-adoption", "conditional-adoption-only"]},
+        "current_observations": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "sources": {"type": "array", "items": {"type": "string", "format": "uri"}, "minItems": 1, "uniqueItems": true},
+        "required_checks": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "verify": {
       "type": "object",
       "required": ["checks"],
