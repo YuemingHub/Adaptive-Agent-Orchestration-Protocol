@@ -34,6 +34,10 @@ Reuse current capability first
        ↓ only if gap remains
 Mature provider + Recipe
        ↓
+Applicable scoped adoption review?
+  no → continue
+  yes → re-check current upstream + actual context
+       ↓
 Execute → Verify → Re-route/Replan
 ```
 
@@ -147,20 +151,9 @@ AAOP evolves by **real developer failures before speculative completeness**.
 
 `tests/pressure/` contains replay contracts derived from real repositories/issues. Public sources may be named; lessons from private projects are anonymized before entering this public repository.
 
-v0.7 established four pressure families:
+The current pressure baseline covers all six routes, including repository authority/freshness, stale bug reports, stale PR salvage, operational blockers, broad-vision overbuild, solution-vocabulary capture, and decision-oriented review.
 
-1. **Repository authority/freshness** — merged/newest/detailed does not automatically mean current truth.
-2. **Stale bug reports** — old traceback/source lines must be reconciled with current baseline; issue comments are hypotheses.
-3. **Stale PR salvage** — preserve behavior/invariants/tests, not obsolete commits and architecture.
-4. **Operational blockers** — network/authorization/credential/external/product blockers are not technical capability gaps.
-
-v0.8 adds:
-
-5. **Broad-vision overbuild** — first slice must test a material assumption before platform architecture.
-6. **Solution vocabulary capture** — Agent/MCP/RAG/vector DB/graph/memory names are hypotheses unless established as constraints.
-7. **Review decision discipline** — current source before conclusion, contextual risk, and read-only review boundaries.
-
-Every AAOP route now has at least one real pressure case. CI preserves that earned baseline and binds each case to route `pressure_guards`.
+Every case binds to Route `pressure_guards`; CI prevents those learned invariants from disappearing silently.
 
 ```bash
 python scripts/validate_pressure.py
@@ -267,6 +260,7 @@ AAOP is not a package manager. `.aaop/recipes/` carries lazy integration knowled
 - how to detect presence;
 - smallest current upstream install/config path;
 - credentials/permissions;
+- optional scoped, time-stamped `adoption_review` debt;
 - verification of the original gap;
 - rollback/removal;
 - source of truth + last verified date.
@@ -274,11 +268,47 @@ AAOP is not a package manager. `.aaop/recipes/` carries lazy integration knowled
 ```bash
 python .aaop/tools/recipe.py list
 python .aaop/tools/recipe.py show playwright
+python .aaop/tools/recipe.py show autoagent
 ```
 
 Current integrations cover standards/providers including Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace.
 
 AAOP prefers the smallest provider **surface**, not the entire ecosystem.
+
+### Provider Adoption Review: remember what deserves another look
+
+v0.9 adds an optional Recipe field called `adoption_review`.
+
+It exists for a narrow problem: a real review may uncover an adoption concern that is easy to forget, while the provider and its deployment context continue to change.
+
+AAOP stores the concern as:
+
+```text
+reviewed_at
+scope
+reason
+decision_effect
+current observations
+sources to revisit
+required checks
+```
+
+It does **not** store a permanent answer such as:
+
+```text
+SAFE
+UNSAFE
+APPROVED
+BANNED
+```
+
+When a selected provider surface matches the recorded scope, AAOP re-checks current upstream source/status and the actual deployment/permission/network context before consequential adoption.
+
+If the concern is fixed upstream or irrelevant to the selected surface, it should not block adoption; update or retire the stale review. If it remains relevant and cannot be mitigated, narrow/isolate the provider, choose another provider, or defer adoption.
+
+The first scoped example is the AutoAgent Docker-backed command execution path. The Recipe records the current source observations and the public issue that motivated re-verification, while explicitly avoiding a project-wide security verdict.
+
+This is **remembered review debt**, not a security vulnerability database.
 
 ## What AAOP owns
 
@@ -291,6 +321,7 @@ AAOP prefers the smallest provider **surface**, not the entire ecosystem.
 - project/outcome/capability discovery;
 - blocker classification;
 - progressive provider selection and least privilege;
+- scoped provider-adoption review debt and re-verification policy;
 - verification, replanning, and route correction;
 - graceful degradation across hosts.
 
@@ -334,15 +365,16 @@ CLAUDE.md
 ├── policies/
 ├── registries/
 ├── routes/                          # route capability packs + pressure guards
-├── recipes/                         # lazy provider integration/detection
+├── recipes/                         # lazy integration/detection + optional adoption review debt
 ├── schemas/
 │   ├── pressure-case.schema.json
+│   ├── integration-recipe.schema.json
 │   ├── environment-inventory.schema.json
 │   └── ...
 ├── skills/
 │   ├── developer-intake/
+│   ├── provider-selection/
 │   ├── route-execution/
-│   ├── project-discovery/
 │   └── ...
 └── tools/
     ├── doctor.py
@@ -367,19 +399,20 @@ docs/REAL_PROJECT_PRESSURE_TESTS.md
 9. Detect/reuse existing capability before concluding there is a gap.
 10. Classify blockers before provider escalation.
 11. Install nothing new without a proven technical capability gap.
-12. Prefer mature upstream implementations over copies.
-13. Select the minimum provider surface.
-14. Verify outcomes; do not fabricate completion when safely blocked.
-15. Let real-project regressions improve the protocol before adding theoretical completeness.
-16. Hide orchestration complexity without lowering engineering rigor.
+12. Re-check applicable provider adoption debt before consequential use; never turn it into a permanent label.
+13. Prefer mature upstream implementations over copies.
+14. Select the minimum provider surface.
+15. Verify outcomes; do not fabricate completion when safely blocked.
+16. Let real-project regressions improve the protocol before adding theoretical completeness.
+17. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.8.0 — greenfield first-proof and decision-oriented review pressure.**
+**v0.9.0 — scoped provider adoption review debt.**
 
-v0.8 completes the first real-pressure baseline across all six routes. It hardens `idea-to-build` against architecture-first overbuild and solution-vocabulary capture, and hardens `understand-review` around decision framing, current-source verification, contextual risk, and read-only boundaries.
+v0.9 adds an optional, schema-validated `adoption_review` to Integration Recipes and teaches provider selection to re-verify relevant concerns against current upstream and actual deployment context before adoption. The first real example is scoped to AutoAgent's Docker-backed command execution surface observed during the v0.8 adoption review.
 
-No new provider/framework/runtime was added in v0.8.
+No new provider/framework/runtime was added in v0.9, and AAOP does not become a security database or provider certification system.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
