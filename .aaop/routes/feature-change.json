@@ -1,0 +1,54 @@
+{
+  "version": "0.5.0",
+  "route_id": "feature-change",
+  "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract and regression evidence.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "behavior-contract",
+      "purpose": "Translate the request into observable behavior, actors, constraints, and non-goals.",
+      "required_capabilities": ["intent-resolution", "acceptance-criteria"],
+      "optional_capabilities": ["specification-management"],
+      "evidence": ["user request", "existing product behavior", "relevant specs/issues"],
+      "exit_when": "The intended behavior is precise enough to distinguish success from accidental scope expansion."
+    },
+    {
+      "id": "impact-discovery",
+      "purpose": "Trace the existing path and identify affected interfaces, data, tests, permissions, and operational constraints before designing a parallel solution.",
+      "required_capabilities": ["repository-inspection", "impact-analysis"],
+      "optional_capabilities": ["architecture-mapping", "security-impact-analysis"],
+      "evidence": ["existing implementation path", "interfaces/schema", "tests", "adjacent conventions"],
+      "exit_when": "The smallest coherent integration point and regression surface are known."
+    },
+    {
+      "id": "implement-and-accept",
+      "purpose": "Implement the smallest coherent change and validate both new and preserved behavior.",
+      "required_capabilities": ["implementation", "acceptance-validation", "regression-testing"],
+      "optional_capabilities": ["browser-e2e-testing"],
+      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions"],
+      "exit_when": "The requested behavior works through the real product path with regression evidence."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "The feature has meaningful ambiguity, multiple dependent slices, or durable product intent must remain aligned with implementation.",
+      "capability_gap": "structured specification-to-implementation lifecycle",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Use Spec Kit when durable spec/plan/task artifacts prevent drift; stay host-native for small, obvious changes."
+    },
+    {
+      "when": "The feature changes browser-visible interaction and current tests cannot prove the user flow.",
+      "capability_gap": "browser acceptance validation",
+      "provider_candidates": ["playwright"],
+      "selection_rule": "Prefer durable Playwright Test coverage; use agent CLI/Skills or MCP only when they add needed interactive verification."
+    },
+    {
+      "when": "The implementation is a large autonomous software-engineering task that exceeds the current host's reliable execution envelope.",
+      "capability_gap": "dedicated autonomous coding runtime",
+      "provider_candidates": ["openhands", "deepagents"],
+      "selection_rule": "Choose based on the missing execution property, not framework popularity; keep AAOP as the route/policy layer."
+    }
+  ],
+  "verification": ["new behavior satisfies explicit acceptance evidence", "existing affected behavior still works", "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"],
+  "reroute_signals": ["requested behavior already existed but is broken -> bug-fix", "the existing repository is too contradictory to trust -> repo-recovery", "deployment/production readiness becomes the blocker -> release-operations"]
+}

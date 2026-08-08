@@ -1,0 +1,60 @@
+{
+  "version": "0.5.0",
+  "route_id": "release-operations",
+  "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, and authorization-aware execution.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "environment-truth",
+      "purpose": "Identify the target environment, current deployed/runtime state, CI/CD path, configuration, dependencies, and authorization boundary.",
+      "required_capabilities": ["environment-inspection", "ci-cd-inspection", "permission-awareness"],
+      "optional_capabilities": ["runtime-observability"],
+      "evidence": ["deployment configuration", "CI status/logs", "runtime/version evidence", "target environment identity"],
+      "exit_when": "The system knows what environment will change, how it is currently behaving, and which actions are consequential."
+    },
+    {
+      "id": "preflight-and-rollback",
+      "purpose": "Define preflight checks, failure thresholds, rollback or restore path, and any required user authorization before writes.",
+      "required_capabilities": ["release-validation", "rollback-planning", "risk-classification"],
+      "optional_capabilities": ["migration-analysis", "smoke-test-design"],
+      "evidence": ["preflight results", "backup/rollback path", "migration reversibility", "explicit authorization when required"],
+      "exit_when": "The change can be attempted with bounded blast radius and a credible recovery path."
+    },
+    {
+      "id": "execute-and-observe",
+      "purpose": "Perform only the authorized operational change and verify production/target behavior against acceptance and rollback thresholds.",
+      "required_capabilities": ["controlled-execution", "post-change-validation"],
+      "optional_capabilities": ["browser-smoke-testing", "observability-query"],
+      "evidence": ["deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals"],
+      "exit_when": "The operational objective is reached and healthy, or rollback has restored a known-good state."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "Browser-visible smoke validation is required and the current release pipeline lacks a reliable check.",
+      "capability_gap": "browser production/staging smoke validation",
+      "provider_candidates": ["playwright"],
+      "selection_rule": "Prefer a durable Playwright smoke test when the check should repeat; use interactive agent browser control only when exploration is genuinely needed."
+    },
+    {
+      "when": "Release orchestration itself must become a durable structured workflow with explicit sessions, hosting, or typed workflow state.",
+      "capability_gap": "production agent workflow runtime",
+      "provider_candidates": ["microsoft-agent-framework", "deepagents"],
+      "selection_rule": "Use a dedicated runtime only when the operational workflow is becoming a product/system in its own right, not for an ordinary application deploy."
+    },
+    {
+      "when": "Many humans/agents/runtimes need persistent approvals, permissions, audit, and scheduling for operations.",
+      "capability_gap": "organizational operations control plane",
+      "provider_candidates": ["agentspace"],
+      "selection_rule": "Treat this as Level 5 infrastructure and adopt only when shared governance is the actual requirement."
+    },
+    {
+      "when": "The project already uses Spec Kit and a reviewed release/ship extension closes a proven workflow gap.",
+      "capability_gap": "structured release workflow integration",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Review community extension source/provenance/permissions before adoption; catalog presence alone is not trust."
+    }
+  ],
+  "verification": ["target environment identity and final state are explicit", "preflight and post-change evidence are recorded", "rollback was defined before consequential writes", "no production write exceeded the granted authorization scope"],
+  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery"]
+}

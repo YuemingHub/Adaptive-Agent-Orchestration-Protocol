@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.2.0",
+  "schema_version": "0.5.0",
   "last_verified": "2026-08-08",
   "policy": "reference-and-select; never auto-install from this catalog",
   "providers": [
@@ -50,6 +50,48 @@
       "avoid_when": ["required durability, interoperability, or governance is unavailable"],
       "adoption_level": 1,
       "preference": "default"
+    },
+    {
+      "id": "spec-kit",
+      "kind": "development-harness",
+      "upstream": "https://github.com/github/spec-kit",
+      "docs": "https://github.github.com/spec-kit/",
+      "provides": ["spec-driven-development", "intent-to-plan", "task-decomposition", "existing-project-spec-evolution", "bugfix-extension", "extension-catalogs", "bundles"],
+      "select_when": ["idea-to-build or feature-change benefits from durable intent/specification artifacts", "a supported Spec Kit workflow or extension closes a proven route capability gap"],
+      "avoid_when": ["the task is a tiny local edit", "the project already has an equally trustworthy specification workflow", "community extensions have not passed provenance and permission review"],
+      "adoption_level": 2,
+      "status_note": "core project is mature and agent-agnostic; community extensions are independently maintained and must be reviewed before use"
+    },
+    {
+      "id": "playwright",
+      "kind": "verification-tool-family",
+      "upstream": "https://github.com/microsoft/playwright",
+      "mcp": "https://github.com/microsoft/playwright-mcp",
+      "provides": ["browser-e2e-testing", "browser-automation", "agent-browser-cli", "browser-mcp"],
+      "select_when": ["browser-visible behavior requires deterministic verification", "UI/network/storage behavior cannot be proven adequately through static tests"],
+      "avoid_when": ["the change has no browser surface", "existing project browser tests already prove the outcome"],
+      "adoption_level": 2,
+      "status_note": "choose Test, CLI+Skills, or MCP by workload; upstream currently recommends CLI+Skills for many coding-agent workflows and MCP for persistent introspective browser loops"
+    },
+    {
+      "id": "mini-swe-agent",
+      "kind": "software-engineering-agent",
+      "upstream": "https://github.com/SWE-agent/mini-swe-agent",
+      "provides": ["bounded-issue-resolution", "repository-agent-loop", "test-driven-software-fix"],
+      "select_when": ["a well-defined reproducible software issue should be delegated to a dedicated minimal SWE agent", "a clean isolated issue-solving runtime is preferable to the current host"],
+      "avoid_when": ["product intent is ambiguous", "the repository first needs recovery", "the issue cannot be meaningfully verified"],
+      "adoption_level": 4,
+      "status_note": "SWE-agent maintainers currently recommend mini-SWE-agent over the older SWE-agent for new usage"
+    },
+    {
+      "id": "openhands",
+      "kind": "software-engineering-runtime",
+      "upstream": "https://github.com/OpenHands",
+      "sdk": "https://github.com/OpenHands/software-agent-sdk",
+      "provides": ["autonomous-coding-runtime", "software-agent-sdk", "cli-canvas", "skills-extensions", "automation"],
+      "select_when": ["a dedicated autonomous software-engineering runtime is itself the missing capability", "execution isolation or a reusable coding-agent SDK is required"],
+      "avoid_when": ["the current AI IDE already executes the route reliably", "adding another general coding runtime would only duplicate host capability"],
+      "adoption_level": 4
     },
     {
       "id": "deepagents",
