@@ -14,6 +14,7 @@
     },
     "why_now": {"type": "string"},
     "why_not_simpler": {"type": "string"},
+    "adoption_review": {"type": ["string", "null"], "description": "Current result of any applicable Recipe adoption review after re-verification; null when none applies."},
     "permissions_required": {"type": "array", "items": {"type": "string"}},
     "credentials_required": {"type": "array", "items": {"type": "string"}},
     "infrastructure_required": {"type": "array", "items": {"type": "string"}},
