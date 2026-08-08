@@ -1,40 +1,62 @@
 {
-  "version": "0.5.0",
+  "version": "0.8.0",
   "route_id": "idea-to-build",
   "objective": "Turn a rough idea into the smallest real, testable product slice without forcing the user to design the engineering process.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "outcome-discovery",
-      "purpose": "Identify the user, problem, desired observable outcome, constraints, and the smallest valuable slice.",
+      "purpose": "Identify the actor, situation, desired observable outcome, constraints, and the smallest valuable slice while separating product intent from proposed implementation vocabulary.",
       "required_capabilities": ["intent-resolution", "product-reasoning"],
       "optional_capabilities": ["market-or-domain-research"],
-      "evidence": ["user statement", "available domain/project context", "explicit constraints"],
-      "exit_when": "One small outcome can be built and judged without inventing a large speculative roadmap."
+      "evidence": ["user statement", "available domain/project context", "explicit constraints", "distinction between hard requirements and solution hypotheses"],
+      "exit_when": "One small outcome can be built and judged without inventing a large speculative roadmap or making the user choose architecture."
     },
     {
       "id": "behavior-contract",
-      "purpose": "Define what the first slice must visibly do before choosing architecture.",
+      "purpose": "Define what the first slice must visibly do and what material assumption it should test before choosing architecture.",
       "required_capabilities": ["acceptance-criteria", "interface-definition"],
       "optional_capabilities": ["specification-management"],
-      "evidence": ["observable user flow", "acceptance examples", "known non-goals"],
-      "exit_when": "The first slice has a clear behavior contract and non-goals."
+      "evidence": ["observable user flow", "acceptance examples", "known non-goals", "first assumption or uncertainty the slice will reduce"],
+      "exit_when": "The first slice has a clear behavior contract, non-goals, and a reason it will create decision-useful evidence."
     },
     {
       "id": "implementation",
-      "purpose": "Choose the minimum technical shape, implement the slice, and keep decisions reversible where possible.",
+      "purpose": "Choose the minimum technical shape, implement the slice, and keep decisions reversible until evidence justifies stronger commitments.",
       "required_capabilities": ["architecture-fit", "implementation", "local-validation"],
       "optional_capabilities": ["browser-validation"],
-      "evidence": ["working artifact", "tests or runtime evidence", "documented material decisions"],
-      "exit_when": "The slice works and is ready for real evaluation."
+      "evidence": ["working artifact", "tests or runtime evidence", "documented material decisions", "evidence produced by the first real use or acceptance path"],
+      "exit_when": "The slice works, is ready for real evaluation, and the next product decision can be made from evidence rather than architecture speculation."
+    }
+  ],
+  "pressure_guards": [
+    {
+      "id": "outcome-before-architecture",
+      "rule": "For broad greenfield visions, define one actor, situation, observable outcome, and first evidence-bearing slice before committing to platform architecture, data model, agent topology, or infrastructure."
+    },
+    {
+      "id": "first-slice-must-buy-learning",
+      "rule": "The first slice must reduce a material product or execution uncertainty; generated scaffolding, diagrams, or a technically impressive demo that tests no important assumption do not satisfy this guard."
+    },
+    {
+      "id": "user-does-not-own-stack-choice",
+      "rule": "Do not make a non-technical user choose frameworks, databases, protocols, agent roles, or orchestration machinery when those choices can be derived from the outcome and evidence."
+    },
+    {
+      "id": "solution-vocabulary-is-hypothesis",
+      "rule": "Early mentions of agents, MCP, RAG, vector databases, graphs, memory, or other implementation concepts are candidate solutions unless the user explicitly establishes them as hard constraints."
+    },
+    {
+      "id": "one-question-only-when-outcome-blocked",
+      "rule": "Use available context first; if a missing user-owned fact still prevents a meaningful first slice, ask one concrete question that resolves that decision instead of a requirements questionnaire."
     }
   ],
   "escalations": [
     {
-      "when": "The idea or feature is large enough that intent, plan, and implementation are repeatedly drifting.",
+      "when": "The idea or feature is large enough that intent, plan, and implementation are repeatedly drifting after a concrete first outcome is already defined.",
       "capability_gap": "durable specification and structured intent-to-implementation workflow",
       "provider_candidates": ["spec-kit"],
-      "selection_rule": "Use Spec Kit only when durable artifacts reduce real ambiguity or coordination loss; do not initialize it for a tiny prototype."
+      "selection_rule": "Use Spec Kit only when durable artifacts reduce demonstrated ambiguity or coordination loss; do not initialize it merely because the long-term vision is large."
     },
     {
       "when": "The first slice requires deterministic browser-visible validation that the host/project cannot already provide.",
@@ -43,12 +65,22 @@
       "selection_rule": "Prefer existing Playwright tests, then CLI+Skills for coding-agent validation; use MCP when a persistent exploratory browser loop is materially useful."
     },
     {
-      "when": "Implementation requires a dedicated autonomous software-engineering runtime rather than the current host.",
+      "when": "Implementation requires a dedicated autonomous software-engineering runtime rather than the current host, and that missing runtime property is evidenced by the first slice or execution plan.",
       "capability_gap": "dedicated autonomous coding environment",
       "provider_candidates": ["openhands", "deepagents"],
-      "selection_rule": "Choose only if the missing runtime property is explicit; do not add a second general coding agent for novelty."
+      "selection_rule": "Choose only if the missing runtime property is explicit; do not add a second general coding agent simply because the desired future product is autonomous."
     }
   ],
-  "verification": ["the first slice is usable or executable", "acceptance behavior is observable", "the next product decision can be based on evidence rather than speculation"],
-  "reroute_signals": ["a trustworthy existing implementation is discovered -> feature-change or repo-recovery", "an observed failure becomes the blocker -> bug-fix", "deployment becomes the immediate blocker -> release-operations"]
+  "verification": [
+    "the first slice is usable or executable",
+    "acceptance behavior is observable",
+    "the slice reduces at least one material product or execution uncertainty",
+    "technology choices are traceable to actual behavior/constraints rather than trend vocabulary",
+    "the next product decision can be based on evidence rather than speculation"
+  ],
+  "reroute_signals": [
+    "a trustworthy existing implementation is discovered -> feature-change or repo-recovery",
+    "an observed failure becomes the blocker -> bug-fix",
+    "deployment becomes the immediate blocker -> release-operations"
+  ]
 }
