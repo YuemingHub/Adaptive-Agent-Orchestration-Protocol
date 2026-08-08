@@ -1,0 +1,43 @@
+{
+  "version": "0.17.0",
+  "id": "public-recovery-local-delta-must-transition-to-execution",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/ymai-website",
+    "reference": "HANDOFF.md; data/site.ts; current accepted Foundation repository identity",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "Understand this website repository and continue fixing the current product alignment issues.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "HANDOFF.md says the repository is a deployable product-language/prototype surface whose current capabilities must be mapped and integrated rather than broadly rewritten.",
+    "The repository centralizes three-site URLs in data/site.ts.",
+    "At capture time, data/site.ts still defaults the Foundation link to the historical YuemingHub/Ming-Foundation repository identity.",
+    "The current accepted Foundation repository identity used by the current MingOS coordination model is YuemingHub/mingos-foundation."
+  ],
+  "expected_first_moves": [
+    "Read the handoff and current site configuration rather than inventorying every page/component.",
+    "Reconcile the Foundation repository identity against the current authoritative coordination/source record.",
+    "Classify the stale local default URL as a current local execution delta in ymai-website.",
+    "Reroute to the appropriate implementation route or fix the bounded local reference under current authorization, then verify the configured link/related tests or build evidence."
+  ],
+  "must_preserve": [
+    "The handoff rule that current prototype surfaces should be integrated/calibrated rather than needlessly rewritten.",
+    "The historical repository identity as provenance where appropriate, while the user-facing/default current link uses the accepted current repository."
+  ],
+  "must_not": [
+    "Stop after writing an analysis that merely notes the stale Foundation link when the user already authorized continued product-alignment work.",
+    "Return verified-no-op when current local evidence proves a stale reference remains.",
+    "Expand the fix into an unrelated website redesign, cross-repository mutation, or provider installation."
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "bounded-evidence-traversal",
+    "prove-delta-before-mutation"
+  ],
+  "lessons": [
+    "The execution-delta gate must prevent invented work without becoming an excuse for analysis paralysis.",
+    "When recovery finds a concrete current local delta inside the requested action class, AAOP should transition into the smallest executable change and verify it."
+  ]
+}
