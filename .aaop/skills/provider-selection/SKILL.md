@@ -77,14 +77,41 @@ Use these as heuristics, not hard-coded routing:
 - Automatic creation/testing of new tools, agents, workflows is itself the desired capability → consider **AutoAgent**.
 - Persistent multi-human/multi-agent governance, approvals, audit, scheduling and runtime routing are the gap → consider **AgentSpace** or another mature control plane.
 
-## Step 5 — Produce a minimal integration plan
+## Step 5 — Resolve the integration recipe
+
+If `.aaop/recipes/<provider-id>.json` exists, use it as the normalized integration contract.
+
+A recipe centralizes:
+
+- selection/avoid conditions;
+- detection hints;
+- smallest known upstream installation path;
+- credentials and permissions;
+- verification;
+- rollback;
+- `source_of_truth` and `last_verified`.
+
+Before executing any external installation, re-check the recipe's `source_of_truth` when network access is available. Upstream installation instructions override stale recipe commands.
+
+If no recipe exists, create an **ephemeral integration plan** from first-party documentation instead of guessing. Promote it to a reusable recipe only after it is validated and likely to recur.
+
+The recipe browser is available at:
+
+```bash
+python .aaop/tools/recipe.py list
+python .aaop/tools/recipe.py show <provider-id>
+```
+
+These commands never install providers.
+
+## Step 6 — Produce a minimal integration plan
 
 Return or materialize:
 
 ```yaml
 capability_gap: <what is missing>
-current_layer: <0-5>
-selected_provider: <provider-id | none>
+current_level: <0-5>
+selected_providers: [<provider-id>]
 why_now: <evidence-backed reason>
 why_not_simpler: <why lower layers are insufficient>
 permissions_required: []
@@ -97,7 +124,7 @@ rollback: <how to remove/disable it>
 
 Do not propose a bundle of unrelated technologies.
 
-## Step 6 — Verify after integration
+## Step 7 — Verify after integration
 
 After adding a provider, verify the original capability gap is actually closed.
 
@@ -108,4 +135,4 @@ If not, diagnose before adding another provider. Multiple failed additions are e
 Provider selection is complete when either:
 
 - no external addition is needed; or
-- exactly the justified provider set is selected, permission/cost implications are explicit, and verification/rollback are defined.
+- exactly the justified provider set is selected, the current upstream integration path is known, permission/cost implications are explicit, and verification/rollback are defined.
