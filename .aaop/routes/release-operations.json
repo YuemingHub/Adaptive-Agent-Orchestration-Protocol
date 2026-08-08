@@ -1,42 +1,46 @@
 {
-  "version": "0.7.0",
+  "version": "0.18.0",
   "route_id": "release-operations",
-  "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, and authorization-aware execution.",
+  "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, authorization-aware execution, and write-time target revalidation.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "environment-truth",
-      "purpose": "Identify the target environment, current deployed/runtime state, CI/CD path, configuration, dependencies, authorization boundary, and whether the current execution environment can actually reach the authorized target.",
+      "purpose": "Identify the target environment, current deployed/runtime state and revision, CI/CD path, configuration, dependencies, authorization boundary, and whether the current execution environment can actually reach the authorized target.",
       "required_capabilities": ["environment-inspection", "ci-cd-inspection", "permission-awareness", "reachability-check", "blocker-classification"],
       "optional_capabilities": ["runtime-observability"],
-      "evidence": ["deployment configuration", "CI status/logs", "runtime/version evidence", "target environment identity", "authorized access path", "reachability result", "explicit unknown state when direct evidence cannot be obtained"],
-      "exit_when": "The system knows the target environment, the allowed access path, whether that path is usable from the current execution context, and which facts remain unknown."
+      "evidence": ["deployment configuration", "CI status/logs", "runtime/version/revision evidence", "target environment identity", "authorized access path", "reachability result", "explicit unknown state when direct evidence cannot be obtained"],
+      "exit_when": "The system knows the target environment, the allowed access path, the current material target revision/state, whether that path is usable from the current execution context, and which facts remain unknown."
     },
     {
       "id": "preflight-and-rollback",
-      "purpose": "If execution is actually reachable and authorized, define preflight checks, failure thresholds, rollback or restore path, and any required user authorization before writes; otherwise record the blocker and minimal unblock condition without widening access.",
+      "purpose": "If execution is actually reachable and authorized, define preflight checks, expected target revision/preconditions, failure thresholds, rollback or restore path, and any required user authorization before writes; otherwise record the blocker and minimal unblock condition without widening access.",
       "required_capabilities": ["release-validation", "rollback-planning", "risk-classification"],
       "optional_capabilities": ["migration-analysis", "smoke-test-design"],
-      "evidence": ["preflight results", "backup/rollback path", "migration reversibility", "explicit authorization when required", "or a bounded blocker record when the route cannot proceed"],
-      "exit_when": "The change can be attempted with bounded blast radius and recovery, or the exact blocker/minimal unblock is recorded and execution stops safely."
+      "evidence": ["preflight results", "expected target revision/resource version when supported", "backup/rollback path", "migration reversibility", "explicit authorization when required", "or a bounded blocker record when the route cannot proceed"],
+      "exit_when": "The change can be attempted against an explicit current target/precondition with bounded blast radius and recovery, or the exact blocker/minimal unblock is recorded and execution stops safely."
     },
     {
       "id": "execute-and-observe",
-      "purpose": "Perform only the authorized operational change or read-only verification and validate target behavior against acceptance and rollback thresholds; never infer production facts from repository/local evidence when target evidence is unavailable.",
+      "purpose": "Revalidate the material target precondition immediately before the authorized operational write, reconcile or stop if the target moved, then perform only the authorized change/read-only verification and validate target behavior against acceptance and rollback thresholds. Never infer production facts from repository/local evidence when target evidence is unavailable.",
       "required_capabilities": ["controlled-execution", "post-change-validation"],
       "optional_capabilities": ["browser-smoke-testing", "observability-query"],
-      "evidence": ["deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals", "or explicit not-executed status when blocked"],
-      "exit_when": "The operational objective is reached and healthy, rollback restored a known-good state, or the task is safely blocked with target state preserved as unknown where appropriate."
+      "evidence": ["pre-write target revision/precondition result", "deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals", "or explicit not-executed/revalidation-required status when blocked or moved"],
+      "exit_when": "The operational objective is reached and healthy, rollback restored a known-good state, or execution stopped/replanned safely because authorization, reachability, or the validated target baseline no longer held."
     }
   ],
   "pressure_guards": [
     {
       "id": "blocker-not-capability-gap",
-      "rule": "A network policy, missing authorization, absent credential, inaccessible external system, or required product decision is a blocker class—not automatically a missing technical capability. Do not search for/install providers to bypass the blocker unless an authorized capability gap genuinely exists."
+      "rule": "A network policy, missing authorization, absent credential, inaccessible external system, required product decision, or stale/moved target precondition is a blocker/revalidation condition—not automatically a missing technical capability. Do not search for/install providers to bypass it unless an authorized capability gap genuinely exists."
     },
     {
       "id": "preserve-unknown-operational-state",
       "rule": "When direct target evidence cannot be obtained, keep deployment/runtime facts unknown. Git state, CI success, local health, or guessed public behavior must not be promoted into verified target-environment facts."
+    },
+    {
+      "id": "revalidate-write-precondition",
+      "rule": "Before a consequential merge, deployment, migration, configuration, data, or other operational write, revalidate the target revision/resource version/precondition used by preflight and use native conditional-write semantics when available. If the target moved, treat it as new evidence: do not force through the stale plan; re-read target state, preserve concurrent changes, recompute the operational delta and rollback/risk assumptions, re-check authorization if material, and execute only against the newly validated baseline."
     }
   ],
   "escalations": [
@@ -65,6 +69,14 @@
       "selection_rule": "Review community extension source/provenance/permissions before adoption; catalog presence alone is not trust."
     }
   ],
-  "verification": ["target environment identity and final state are explicit or intentionally unknown when direct evidence is blocked", "preflight and post-change evidence are recorded when execution occurred", "rollback was defined before consequential writes", "no production write exceeded the granted authorization scope", "environment/authorization blockers were not bypassed by unauthorized provider or network workarounds"],
-  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery"]
+  "verification": [
+    "target environment identity and final state are explicit or intentionally unknown when direct evidence is blocked",
+    "preflight and post-change evidence are recorded when execution occurred",
+    "rollback was defined before consequential writes",
+    "the material target revision/precondition was revalidated immediately before the operational write when practical",
+    "a moved target caused reconciliation/replanning rather than stale force execution",
+    "no production write exceeded the granted authorization scope",
+    "environment/authorization/concurrency blockers were not bypassed by unauthorized provider, network, force, or alternate write workarounds"
+  ],
+  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery", "the target changed materially since preflight -> re-read/replan the current release delta before executing"]
 }
