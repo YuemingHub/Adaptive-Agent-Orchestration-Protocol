@@ -23,15 +23,21 @@ The developer should not operate the pack directly.
 
 ## Step 1 — Load exactly one current pack
 
-Read:
+Read `.aaop/routes/<route-id>.json`, where `<route-id>` is the current primary route.
 
-`.aaop/routes/<route-id>.json`
+Do not load all route packs unless comparison is genuinely needed.
 
-where `<route-id>` is the current primary route from the intake envelope.
+## Step 2 — Inventory before matching
 
-Do not load all route packs into context unless comparison is genuinely needed.
+When `.aaop/tools/doctor.py` is available, prefer a read-only inventory before guessing what the environment contains:
 
-## Step 2 — Start from the current environment
+```bash
+python .aaop/tools/doctor.py . --route <route-id> --json
+```
+
+The doctor reads provider detection hints from Integration Recipes, so its `provider_detection` evidence is preferable to hard-coded assumptions about installed frameworks.
+
+Treat the inventory as **presence evidence, not a recommendation**. A detected provider can still be irrelevant; a non-detected provider can still be unnecessary.
 
 For the current stage, map each `required_capabilities` entry against:
 
@@ -39,7 +45,8 @@ For the current stage, map each `required_capabilities` entry against:
 2. repository scripts/libraries/tests;
 3. already-installed Skills;
 4. already-connected tools/MCP/apps;
-5. existing specialist/subagent/runtime.
+5. detected existing providers/runtimes;
+6. specialist/subagent capability already available.
 
 If the capability is already available, use it.
 
@@ -64,11 +71,12 @@ Then:
 
 1. run provider selection;
 2. inspect `.aaop/registries/providers.json`;
-3. load the matching `.aaop/recipes/<provider-id>.json` when available;
-4. re-check upstream source of truth before consequential installation;
-5. choose the smallest provider surface that closes the gap;
-6. apply autonomy/permission policy;
-7. verify the original gap after integration.
+3. check environment inventory to avoid duplicating a provider already present;
+4. load `.aaop/recipes/<provider-id>.json` when available;
+5. re-check upstream source of truth before consequential installation;
+6. choose the smallest provider surface that closes the gap;
+7. apply autonomy/permission policy;
+8. verify the original gap after integration.
 
 If no provider is justified, keep using the current host.
 
@@ -87,16 +95,7 @@ Do not install a provider's entire ecosystem to obtain one narrow capability.
 
 ## Step 6 — Treat community catalogs as discovery, not trust
 
-A mature framework may contain community extensions/plugins/bundles that are not audited by the framework maintainer.
-
-Before adopting a community component check:
-
-- source repository and publisher;
-- maintenance status;
-- install scripts/hooks;
-- filesystem/network/write permissions;
-- credentials/data egress;
-- rollback/removal path.
+Before adopting a community extension/plugin/bundle check source repository and publisher, maintenance, install scripts/hooks, filesystem/network/write permissions, credentials/data egress, and rollback/removal path.
 
 Catalog presence alone is never sufficient authorization.
 
@@ -111,9 +110,7 @@ Examples:
 - feature implementation is complete and deployment becomes the blocker → `release-operations`;
 - review becomes an explicit implementation request → `feature-change` or `bug-fix`.
 
-Re-routing is progress, not failure.
-
-Keep queued secondary intents, but only one route should normally own the immediate outcome.
+Re-routing is progress, not failure. Keep queued secondary intents, but only one route should normally own the immediate outcome.
 
 ## Step 8 — Verify route completion
 
@@ -129,6 +126,7 @@ Route execution is complete when:
 
 - the current route's observable outcome is supported by evidence;
 - required capabilities were satisfied with the smallest practical integration surface;
+- existing environment capability was reused instead of duplicated;
 - any escalation was justified, verified, and reversible;
 - route corrections were applied when evidence required them;
 - the user did not have to manage the orchestration machinery.
