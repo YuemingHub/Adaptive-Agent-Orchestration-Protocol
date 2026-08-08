@@ -34,6 +34,8 @@ jobs:
           test -f "$target/.aaop/tools/route.py"
           test -f "$target/.aaop/tools/recipe.py"
           test -f "$target/.aaop/routes/bug-fix.json"
+          test -f "$target/.aaop/routes/idea-to-build.json"
+          test -f "$target/.aaop/routes/understand-review.json"
           test -f "$target/.aaop/schemas/environment-inventory.schema.json"
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
 
@@ -83,14 +85,18 @@ jobs:
 
           python "$target/.aaop/tools/route.py" list | grep -q 'bug-fix'
           python "$target/.aaop/tools/route.py" show bug-fix --json > "$target/bug-route.json"
-          python - "$target/bug-route.json" <<'PY'
+          python "$target/.aaop/tools/route.py" show idea-to-build --json > "$target/idea-route.json"
+          python "$target/.aaop/tools/route.py" show understand-review --json > "$target/review-route.json"
+          python - "$target/bug-route.json" "$target/idea-route.json" "$target/review-route.json" <<'PY'
           import json, sys
-          d = json.load(open(sys.argv[1]))
-          assert d["route_id"] == "bug-fix"
-          guards = {g["id"] for g in d["pressure_guards"]}
-          assert "reported-baseline-freshness" in guards
-          assert "discussion-is-hypothesis" in guards
+          bug = json.load(open(sys.argv[1]))
+          idea = json.load(open(sys.argv[2]))
+          review = json.load(open(sys.argv[3]))
+          assert {"reported-baseline-freshness", "discussion-is-hypothesis"} <= {g["id"] for g in bug["pressure_guards"]}
+          assert {"outcome-before-architecture", "solution-vocabulary-is-hypothesis", "first-slice-must-buy-learning"} <= {g["id"] for g in idea["pressure_guards"]}
+          assert {"decision-frame-before-review", "current-source-before-conclusion", "review-is-read-only-by-default"} <= {g["id"] for g in review["pressure_guards"]}
           PY
+
           python "$target/.aaop/tools/recipe.py" list | grep -q 'spec-kit'
           python "$target/.aaop/tools/recipe.py" list | grep -q 'playwright'
           python "$target/.aaop/tools/recipe.py" show playwright > "$target/playwright-recipe.json"

@@ -1,0 +1,43 @@
+{
+  "version": "0.8.0",
+  "id": "solution-terms-are-hypotheses",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-08",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Build me a software automation platform with agents, MCP, a vector database, graph orchestration, memory, and RAG so small teams can get development work done automatically.",
+  "expected_route": "idea-to-build",
+  "known_facts": [
+    "The request mixes a user outcome with a list of popular implementation concepts.",
+    "The named technologies are not yet tied to observed capability gaps or acceptance behavior.",
+    "Using every named component would add installation, permissions, data, operational, and maintenance surface before value is proven.",
+    "The user may be expressing exploration vocabulary rather than immutable technical requirements."
+  ],
+  "expected_first_moves": [
+    "separate the desired user outcome from suggested implementation components",
+    "identify which named technologies are actual constraints versus hypotheses or preferences",
+    "derive one concrete first workflow and its acceptance evidence before selecting infrastructure",
+    "if the first workflow remains materially ambiguous after available context is used, ask one concrete question that resolves the ambiguity"
+  ],
+  "must_preserve": [
+    "explicit hard constraints if the user later confirms any named technology is required",
+    "the desired reduction in manual software-work coordination"
+  ],
+  "must_not": [
+    "treat the component list as acceptance criteria",
+    "install or scaffold all named technologies before proving that the first workflow needs them",
+    "design storage around a vector database before a retrieval or memory requirement is demonstrated",
+    "send the user a long architecture questionnaire instead of resolving the next material product decision"
+  ],
+  "required_guard_ids": [
+    "solution-vocabulary-is-hypothesis",
+    "one-question-only-when-outcome-blocked"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Technology vocabulary in an early idea should be classified as constraint, preference, or hypothesis rather than accepted wholesale.",
+    "The first architecture should emerge from observable behavior and capability needs.",
+    "A single high-leverage question is preferable to making a non-technical user design the system."
+  ]
+}

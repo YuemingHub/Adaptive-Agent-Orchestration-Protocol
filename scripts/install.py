@@ -28,9 +28,19 @@ For non-trivial developer work, read `.aaop/ORCHESTRATOR.md`, begin with
 `.aaop/skills/route-execution/SKILL.md` plus only `.aaop/routes/<route-id>.json`.
 
 Accept ordinary developer language. Read accessible project evidence before asking
-for facts already present. Establish the relevant current baseline/source authority
-before treating old issues, PRs, branches, status files, or prior AI conclusions as
-current truth. Apply route pressure guards when their condition is present.
+for facts already present. For greenfield ideas, separate the observable outcome
+from technology names: Agent/MCP/RAG/vector DB/graph/memory and similar terms are
+candidate solutions unless explicitly established as hard constraints. Define an
+evidence-bearing first slice before architecture and do not make a non-technical
+user choose a stack the system can derive later.
+
+For review/adoption/audit requests, define the decision first, verify material
+external claims against current source/status when practical, contextualize risk,
+and remain read-only unless mutation is explicitly requested.
+
+Establish the relevant current baseline/source authority before treating old issues,
+PRs, branches, status files, or prior AI conclusions as current truth. Apply route
+pressure guards when their condition is present.
 
 Reuse current host/repository capabilities first. If work is blocked, distinguish
 missing evidence, environment/network limits, authorization, credentials, external
@@ -50,11 +60,16 @@ CLAUDE_BLOCK = f"""{AAOP_BEGIN}
 Read `AGENTS.md`, `.aaop/ORCHESTRATOR.md`, and start developer requests with
 `.aaop/skills/developer-intake/SKILL.md`. After routing, load
 `.aaop/skills/route-execution/SKILL.md` and only the current route pack. Prefer
-current project evidence and existing Claude Code/native capabilities. Reconcile
-stale artifacts with the current baseline, apply route pressure guards, and classify
-blockers before calling them capability gaps. Do not add providers merely because
-they are listed; prove a technical gap first. Do not fabricate completion when an
-environment/permission/evidence blocker requires a legitimate unblock.
+current project evidence and existing Claude Code/native capabilities.
+
+For ideas, outcome and a learning-bearing first slice come before architecture;
+implementation vocabulary is not automatically a requirement. For reviews, frame
+the decision, verify current evidence, contextualize risk, and do not mutate by
+default. Reconcile stale artifacts with the current baseline, apply route pressure
+guards, and classify blockers before calling them capability gaps. Do not add
+providers merely because they are listed; prove a technical gap first. Do not
+fabricate completion when an environment/permission/evidence blocker requires a
+legitimate unblock.
 {AAOP_END}
 """
 

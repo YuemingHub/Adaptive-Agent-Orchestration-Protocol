@@ -1,0 +1,44 @@
+{
+  "version": "0.8.0",
+  "id": "broad-vision-first-proof",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-08",
+    "privacy": "anonymized"
+  },
+  "developer_request": "I want an AI system where someone can bring a rough software idea and it keeps helping until something real is built. I am not technical; make it as automatic and simple as possible.",
+  "expected_route": "idea-to-build",
+  "known_facts": [
+    "The request describes a broad end-state vision, not a trustworthy implementation baseline.",
+    "Low user orchestration burden is part of the desired experience, but it does not imply any specific multi-agent architecture.",
+    "Trying to implement discovery, planning, coding, testing, deployment, business validation, and long-term autonomy at once would hide which assumption actually fails.",
+    "The first useful artifact should create evidence about one real end-to-end user journey rather than simulate the entire future platform."
+  ],
+  "expected_first_moves": [
+    "translate the vision into one concrete actor, situation, and observable improvement without asking the user to choose a technology stack",
+    "identify the riskiest product assumption that can be tested with a small end-to-end slice",
+    "define the smallest slice with explicit input, observable output, acceptance evidence, and non-goals",
+    "prefer current host capabilities and reversible implementation choices until the first slice produces real evidence"
+  ],
+  "must_preserve": [
+    "the long-term vision as direction rather than immediate scope",
+    "the requirement that a non-technical user should not have to manage orchestration machinery"
+  ],
+  "must_not": [
+    "design a complete platform architecture before the first evidence-bearing slice is defined",
+    "create a multi-agent organization merely because the desired future system is autonomous",
+    "make the non-technical user choose frameworks, databases, protocols, or agent roles",
+    "treat a roadmap, architecture diagram, or generated scaffolding as proof that the product idea works"
+  ],
+  "required_guard_ids": [
+    "outcome-before-architecture",
+    "first-slice-must-buy-learning",
+    "user-does-not-own-stack-choice"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A large vision should constrain direction while the first implementation remains intentionally small.",
+    "The first slice should test a material assumption, not merely demonstrate that code can be generated.",
+    "Autonomy is a user-experience goal, not evidence that a multi-agent runtime is required."
+  ]
+}

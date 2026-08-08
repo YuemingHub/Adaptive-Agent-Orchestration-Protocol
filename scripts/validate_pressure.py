@@ -152,8 +152,8 @@ def main() -> int:
     guards = route_guards(root, errors)
     case_root = root / "tests" / "pressure"
     cases = sorted(case_root.glob("*.json"))
-    if len(cases) < 4:
-        fail(errors, f"{case_root}: expected at least 4 real-project pressure cases")
+    if len(cases) < 7:
+        fail(errors, f"{case_root}: expected at least 7 real-project pressure cases")
 
     seen: set[str] = set()
     covered_routes: set[str] = set()
@@ -173,6 +173,10 @@ def main() -> int:
             if isinstance(route, str) and route in ROUTES:
                 covered_routes.add(route)
         validate_case(path, payload, guards, errors)
+
+    missing_routes = ROUTES - covered_routes
+    if missing_routes:
+        fail(errors, f"pressure suite missing route coverage: {', '.join(sorted(missing_routes))}")
 
     if errors:
         print("AAOP pressure validation failed:", file=sys.stderr)

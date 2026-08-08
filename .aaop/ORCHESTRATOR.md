@@ -1,6 +1,6 @@
 # AAOP Runtime Protocol
 
-Version: 0.7.0
+Version: 0.8.0
 Status: Normative baseline
 
 ## 1. Mission
@@ -22,8 +22,10 @@ Keep these concepts separate:
 - **Route Capability Pack** — internal engineering stages, capabilities, evidence, pressure guards, escalation triggers, verification, and reroute signals for one route.
 - **Pressure Guard** — a route invariant derived from a real-project failure/near-miss that must remain true when its condition applies.
 - **Outcome** — what should observably be true when the work is done.
+- **Solution Vocabulary** — implementation concepts the user mentions; each must be treated as a hard constraint, preference, or hypothesis rather than assumed requirement.
 - **Environment Inventory** — read-only evidence about current host/toolchain/project signals and providers detected from Recipe hints; never a recommendation.
 - **Evidence Authority/Freshness** — why a material source should or should not be treated as current truth for a claim.
+- **Decision Frame** — the concrete decision a review must support, including context that changes materiality or risk.
 - **Blocker** — why progress cannot continue now; blocker classes are not automatically capability gaps.
 - **Capability Gap** — an authorized/reachable task genuinely requires a technical ability the current execution system lacks.
 - **Agent** — who owns a bounded responsibility.
@@ -38,6 +40,7 @@ Keep these concepts separate:
 AAOP MUST NOT become:
 
 - a form-driven project manager that makes users classify their own request;
+- a system that makes non-technical users choose stacks, Agent roles, or infrastructure before the outcome requires it;
 - six proprietary route workflow engines;
 - a proprietary Skill or tool protocol;
 - a global agent/MCP/Skill registry;
@@ -46,7 +49,8 @@ AAOP MUST NOT become:
 - a package manager for third-party agent systems;
 - a second hard-coded provider detector separate from Integration Recipes;
 - an organizational permissions/audit workspace;
-- a system that treats more tooling as the default answer to every blocker.
+- a system that treats more tooling as the default answer to every blocker;
+- a review system that mutates projects merely because it found a fixable issue.
 
 When an upstream system already solves one of these layers well enough, integrate it.
 
@@ -89,6 +93,7 @@ Infer from natural language plus accessible evidence:
 - desired observable outcome;
 - evidence already available;
 - constraints and initial risk;
+- whether named technologies are hard constraints, preferences, or solution hypotheses;
 - one primary route that unlocks the next meaningful result;
 - queued secondary intents.
 
@@ -101,7 +106,9 @@ Primary routes:
 - `understand-review`
 - `release-operations`
 
-Do not make the user choose a route. Inspect accessible evidence before asking for facts the project already contains. Ask only when an answer can materially change the outcome, route, product choice, or permission/safety class.
+Do not make the user choose a route. Inspect accessible evidence before asking for facts the project already contains. Ask only when an answer can materially change the outcome, route, product choice, whether a stated technology is truly required, or the permission/safety class.
+
+For a review request, default to read-only `understand-review` unless mutation is explicitly requested.
 
 ### Phase 0 — Load one Route Capability Pack
 
@@ -136,6 +143,7 @@ Hard rules:
 - newest-looking evidence does not automatically beat an explicitly designated source of truth;
 - old PRs/branches/issues are evidence of history/intent until reconciled with current baseline;
 - issue comments and prior AI conclusions are hypotheses/reference unless independently supported;
+- external issue/advisory/review claims should be checked against current source/status when practical before being stated as current fact;
 - deployed/runtime facts require target-environment evidence;
 - preserve material conflicting evidence when authority/freshness cannot justify a winner.
 
@@ -153,6 +161,34 @@ Separate:
 
 Short natural language is not a complete specification, but the user should not be forced to write one. Infer from evidence first.
 
+#### Greenfield rule — outcome before architecture
+
+For `idea-to-build`:
+
+1. identify one actor and one concrete situation;
+2. define the observable improvement;
+3. classify named technologies as hard constraint, preference, or hypothesis;
+4. identify the riskiest assumption the first slice can cheaply test;
+5. define a first slice with acceptance evidence and explicit non-goals;
+6. only then choose the minimum reversible technical shape.
+
+A large long-term vision is direction, not first-slice scope. A first slice is valuable when it **buys learning** about a material product/execution uncertainty, not merely when it produces scaffolding or a polished demo.
+
+Do not make a non-technical user choose frameworks, databases, protocols, or agent topology unless a genuine user-owned constraint requires it.
+
+#### Review rule — decision before coverage
+
+For `understand-review`:
+
+1. state the decision the review must support;
+2. identify the usage/deployment context that changes materiality;
+3. inspect only evidence needed for that decision;
+4. distinguish current verified facts, historical evidence, external claims, inferences, assumptions, unknowns, and recommendations;
+5. contextualize risk rather than copying severity labels;
+6. remain read-only unless implementation is explicitly requested.
+
+A full-repository summary is not a successful review if it does not help the decision.
+
 ### Phase 3 — Capability matching
 
 For the current Route Capability Pack stage, map each required capability against:
@@ -167,7 +203,7 @@ For the current Route Capability Pack stage, map each required capability agains
 
 Only unresolved technical abilities become candidate capability gaps.
 
-Do not create agents or install providers before this match.
+Do not create agents or install providers before this match. Technology names mentioned during greenfield intake do not become capability gaps unless the route's observable behavior actually requires the capability.
 
 ### Phase 4 — Execute with current capabilities first
 
@@ -179,7 +215,7 @@ For each route stage:
 4. execute with capabilities already present;
 5. stop when `exit_when` is satisfied.
 
-Evidence may be code, a failing/passing test, runtime trace, historical artifact classified by baseline/authority, a short spec, browser path, architecture finding, or release evidence.
+Evidence may be code, a failing/passing test, runtime trace, historical artifact classified by baseline/authority, a short spec, browser path, architecture finding, review decision evidence, or release evidence.
 
 Do not create process artifacts for appearance.
 
@@ -197,7 +233,7 @@ If work cannot continue, classify why:
 
 Only `capability-gap` directly justifies provider selection.
 
-Do not turn environment/network policy, missing authorization/credentials, unavailable external systems, or unresolved product decisions into excuses to install runtimes, tunnels/VPNs, MCP servers, browsers, or alternate access paths.
+Do not turn environment/network policy, missing authorization/credentials, unavailable external systems, unresolved product decisions, or unverified solution vocabulary into excuses to install runtimes, tunnels/VPNs, MCP servers, browsers, or alternate access paths.
 
 When blocked, preserve unknown state, record what was and was not attempted, and identify the smallest legitimate unblock condition.
 
@@ -221,7 +257,9 @@ Provider detection after installation proves presence, not task success.
 
 Default to one agent. Split only when specialization, context isolation, safe parallel independence, adversarial review, or a permission boundary materially improves execution.
 
-Do not create organizational roles for ceremony. If native multi-agent support is unavailable, preserve responsibility boundaries sequentially.
+Do not create organizational roles for ceremony. A broad autonomous product vision is not, by itself, evidence that the current task needs multiple agents.
+
+If native multi-agent support is unavailable, preserve responsibility boundaries sequentially.
 
 ### Phase 8 — Risk-based autonomy
 
@@ -232,11 +270,17 @@ Do not create organizational roles for ceremony. If native multi-agent support i
 
 The user is not the step-by-step scheduler.
 
+A read-only review request does not authorize implementation, even when the implementation would otherwise be low-risk.
+
 ### Phase 9 — Verification
 
 Use the current route pack's `verification` as the route-level contract.
 
 Use the strongest practical evidence: tests, build/type/lint checks, runtime/browser validation, security checks, schema validation, artifact inspection, smoke tests, independent review, before/after comparison, or authorized deployment evidence.
+
+For `idea-to-build`, verification includes whether the first slice reduced a material uncertainty and produced a real next decision.
+
+For `understand-review`, verification includes whether the decision is explicit, material claims are current/evidence-linked, risk is contextualized, uncertainty is visible, and no mutation occurred without authorization.
 
 A safely blocked task is **not complete**, but it can be a correct execution result when the system preserves uncertainty, does not widen permission, and states the precise unblock.
 
@@ -252,6 +296,8 @@ Observe → Diagnose → Reclassify blocker/route if needed → Reconfigure → 
 
 Re-routing is progress when evidence changes the problem.
 
+A review becomes `bug-fix` or `feature-change` only after the user chooses implementation; discovering a fixable issue alone does not change the mutation boundary.
+
 ### Phase 11 — Delivery and learning
 
 Report only what helps the developer:
@@ -265,13 +311,15 @@ Report only what helps the developer:
 - genuine user decision/permission still required;
 - next best action when useful.
 
+For greenfield work, do not mistake architecture artifacts for product progress. For review work, do not bury the recommendation under repository summary.
+
 Promote a new Pressure Guard only when a real task exposes a repeatable orchestration error or dangerous near-miss. Do not add guards merely to make the protocol look comprehensive.
 
 ## 6. Real-project pressure discipline
 
 AAOP source regression cases live in `tests/pressure/` and conform to `.aaop/schemas/pressure-case.schema.json`.
 
-They must follow privacy rules:
+Privacy rules:
 
 - public sources may be named;
 - private project lessons must be anonymized before entering this public repository;
@@ -285,16 +333,18 @@ python scripts/validate_pressure.py
 
 Each case binds to one or more route `pressure_guards`. A guard cannot be silently removed without breaking the regression gate.
 
+From v0.8 onward, all six routes must retain at least one real pressure case. This protects an earned regression baseline; it is not permission to invent artificial cases merely for coverage.
+
 ## 7. Prime directive
 
 Optimize for:
 
 ```text
-Outcome Quality × Reliability × Intent Preservation × Explainability
-────────────────────────────────────────────────────────────────────
+Outcome Quality × Reliability × Intent Preservation × Explainability × Learning Value
+────────────────────────────────────────────────────────────────────────────────────
 User Orchestration Burden × Unnecessary Integration Surface × Complexity
 ```
 
 Do not optimize for agent count, framework count, tool count, code volume, document volume, or apparent completeness.
 
-AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, distinguish current truth from stale evidence, reuse capability already present, avoid mistaking blockers for capability gaps, and reach the strongest verified next result without learning the agent ecosystem first.
+AAOP succeeds when a developer can speak naturally, start from whatever state they actually have, turn broad ideas into evidence-bearing first slices, receive reviews tied to real decisions, distinguish current truth from stale evidence, reuse capability already present, avoid mistaking blockers for capability gaps, and reach the strongest verified next result without learning the agent ecosystem first.

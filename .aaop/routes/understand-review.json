@@ -1,32 +1,50 @@
 {
-  "version": "0.5.0",
+  "version": "0.8.0",
   "route_id": "understand-review",
-  "objective": "Produce decision-useful understanding or review findings grounded in evidence, without turning analysis into unrequested mutation.",
+  "objective": "Produce decision-useful understanding or review findings grounded in current evidence, without turning analysis into unrequested mutation.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "decision-frame",
-      "purpose": "Identify the decision, risk, or question that the review must support.",
+      "purpose": "Identify the concrete decision, risk, or question that the review must support, including the usage context that changes what counts as material.",
       "required_capabilities": ["intent-resolution", "review-scoping"],
       "optional_capabilities": [],
-      "evidence": ["user question", "PR/repository scope", "stated quality/risk concern"],
-      "exit_when": "The review has a bounded decision target instead of a generic request for a full summary."
+      "evidence": ["user question", "PR/repository/provider scope", "stated quality/risk concern", "deployment or usage context when relevant"],
+      "exit_when": "The review has a bounded decision target and materiality threshold instead of a generic request for a full summary."
     },
     {
       "id": "evidence-inspection",
-      "purpose": "Inspect the minimum code, history, tests, CI, runtime, or architecture evidence needed to answer the decision.",
+      "purpose": "Inspect the minimum current code, history, tests, CI, runtime, issue, or architecture evidence needed to answer the decision and verify externally reported claims when practical.",
       "required_capabilities": ["repository-inspection", "evidence-synthesis"],
       "optional_capabilities": ["static-analysis", "security-review", "architecture-analysis"],
-      "evidence": ["specific files/diffs", "test and CI results", "history or runtime evidence when relevant"],
-      "exit_when": "Material claims can be traced to concrete evidence and uncertainty is explicit."
+      "evidence": ["specific current files/diffs", "test and CI results", "history or runtime evidence when relevant", "external reports clearly separated from verified current source"],
+      "exit_when": "Material claims can be traced to current or explicitly historical evidence, and deployment/context assumptions plus uncertainty are explicit."
     },
     {
       "id": "findings-and-action",
-      "purpose": "Separate facts, inferences, risks, and recommendations, then state the smallest useful next action.",
+      "purpose": "Separate verified facts, external claims, inferences, contextual risks, unknowns, and recommendations, then state the smallest useful next action or adoption condition.",
       "required_capabilities": ["risk-ranking", "technical-communication"],
       "optional_capabilities": ["independent-review"],
-      "evidence": ["ranked findings", "supporting references", "known limitations"],
-      "exit_when": "The user can make the intended decision from the findings without a performative repository dump."
+      "evidence": ["ranked findings", "supporting references", "known limitations", "decision-specific recommendation or conditions"],
+      "exit_when": "The user can make the intended decision from the findings without a performative repository dump or hidden implementation work."
+    }
+  ],
+  "pressure_guards": [
+    {
+      "id": "decision-frame-before-review",
+      "rule": "A review must be scoped to the decision it supports and the context in which that decision will be made; do not substitute a broad repository summary for a decision frame."
+    },
+    {
+      "id": "current-source-before-conclusion",
+      "rule": "When an issue, advisory, comment, or prior review makes a material claim, verify the relevant current implementation or status when practical before carrying the claim into a present-tense conclusion."
+    },
+    {
+      "id": "risk-is-contextual",
+      "rule": "Separate verified mechanism, plausible impact, deployment assumptions, exposure/permission context, and unknowns; severity and recommendation must be tied to the user's actual usage context rather than copied from a report label."
+    },
+    {
+      "id": "review-is-read-only-by-default",
+      "rule": "Understanding/review does not authorize code, configuration, issue, PR, or upstream mutation. Re-route only after the user explicitly asks to implement or fix a finding."
     }
   ],
   "escalations": [
@@ -43,6 +61,17 @@
       "selection_rule": "Use only when context isolation or dedicated analysis runtime is the proven gap; do not add a second general agent for cosmetic independence."
     }
   ],
-  "verification": ["findings are evidence-linked", "facts and inferences are distinguished", "recommendations are prioritized by impact rather than style preference", "no project mutation occurred unless explicitly authorized"],
-  "reroute_signals": ["the review discovers a concrete defect the user wants fixed -> bug-fix", "the user chooses a proposed behavior change -> feature-change", "the repository cannot be understood reliably without recovery -> repo-recovery"]
+  "verification": [
+    "the decision being supported is explicit",
+    "material findings are evidence-linked and current/historical status is explicit",
+    "verified facts, external claims, inferences, risks, assumptions, and unknowns are distinguished",
+    "recommendations are prioritized by decision impact rather than style preference",
+    "security or reliability severity is contextualized to actual exposure and permissions",
+    "no project or upstream mutation occurred unless explicitly authorized"
+  ],
+  "reroute_signals": [
+    "the review discovers a concrete defect the user wants fixed -> bug-fix",
+    "the user chooses a proposed behavior change -> feature-change",
+    "the repository cannot be understood reliably without recovery -> repo-recovery"
+  ]
 }
