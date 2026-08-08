@@ -31,6 +31,7 @@
     "treat Git HEAD, CI success, or local health as proof of deployed production state",
     "publish credentials, host identity, raw shell output, or sensitive operational details"
   ],
+  "required_guard_ids": ["blocker-not-capability-gap", "preserve-unknown-operational-state"],
   "expected_blocker_class": "environment",
   "lessons": [
     "Environmental reachability and authorization blockers are not capability gaps.",
