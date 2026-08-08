@@ -1,32 +1,32 @@
 {
-  "version": "0.15.0",
+  "version": "0.16.0",
   "route_id": "repo-recovery",
-  "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then make one evidence-backed improvement without broad speculative cleanup.",
+  "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then make one evidence-backed improvement without broad speculative cleanup or automatic cross-repository expansion.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "preserve-and-inventory",
-      "purpose": "Preserve current state and establish the smallest trustworthy discovery surface: governing instructions, declared current/canonical entrypoints, manifests, relevant modules/tests/CI, recent history, and material source authority/freshness.",
+      "purpose": "Preserve current state, anchor the active repository/work target, and establish the smallest trustworthy discovery surface: governing instructions, declared current/canonical entrypoints, relevant dependency/coordination records, manifests, relevant modules/tests/CI, recent history, and material source authority/freshness.",
       "required_capabilities": ["repository-inspection", "git-history-analysis", "build-test-discovery", "source-authority-analysis"],
       "optional_capabilities": ["architecture-mapping"],
-      "evidence": ["working tree and branch state", "governing instruction files", "declared first-read/current/canonical sources", "manifests", "relevant test/CI configuration", "recent commits when material", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals"],
-      "exit_when": "The current technical surface, authoritative entrypoints, and material source authority/freshness needed for the immediate recovery decision are known without recursively traversing unrelated reference graphs."
+      "evidence": ["active repository/work target", "working tree and branch state", "governing instruction files", "declared first-read/current/canonical sources", "material cross-repository dependency/coordination records", "manifests", "relevant test/CI configuration", "recent commits when material", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals"],
+      "exit_when": "The active work target, current technical surface, authoritative entrypoints, and material source/dependency authority needed for the immediate recovery decision are known without recursively traversing unrelated reference or repository graphs."
     },
     {
       "id": "truth-reconstruction",
-      "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown evidence without erasing conflicts, and identify the highest-leverage blocker.",
+      "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown and external-repository evidence without erasing conflicts, and identify the highest-leverage blocker.",
       "required_capabilities": ["cross-evidence-synthesis", "architecture-understanding", "risk-prioritization", "conflict-preservation"],
       "optional_capabilities": ["runtime-probing", "security-risk-review"],
-      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "explicit unresolved conflicts when no justified winner exists"],
-      "exit_when": "A concise current-state model and prioritized recovery target are defensible from evidence, with conflicts and uncertainty preserved rather than silently resolved."
+      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "external repository source/revision/status when a material claim is owned there", "explicit unresolved conflicts when no justified winner exists"],
+      "exit_when": "A concise current-state model and prioritized recovery target are defensible from evidence, with repository boundaries, conflicts, and uncertainty preserved rather than silently expanded or resolved."
     },
     {
       "id": "stabilize-one-path",
-      "purpose": "Fix or stabilize one high-value current path before broad refactoring, using the reconstructed current baseline rather than stale artifacts as the implementation authority.",
+      "purpose": "Fix or stabilize one high-value path in the active work target before broad refactoring, using the reconstructed current baseline rather than stale artifacts or external repositories as accidental implementation authority.",
       "required_capabilities": ["targeted-implementation", "regression-validation"],
       "optional_capabilities": ["specification-management", "browser-validation"],
-      "evidence": ["before/after behavior", "tests or runtime checks", "scope-limited diff", "evidence that the chosen path follows the current source of truth"],
-      "exit_when": "One meaningful path is more trustworthy and the next recovery priority is clearer."
+      "evidence": ["before/after behavior", "tests or runtime checks", "scope-limited diff", "evidence that the chosen path follows the current source of truth", "explicit separate authorization if another repository also requires mutation"],
+      "exit_when": "One meaningful path is more trustworthy and the next recovery priority is clearer without unrequested cross-repository mutation."
     }
   ],
   "pressure_guards": [
@@ -40,7 +40,11 @@
     },
     {
       "id": "bounded-evidence-traversal",
-      "rule": "Start from explicit project first-read/current/canonical entrypoints when available. Treat links, related/depends_on metadata, registries, indexes, historical release lists, and directory inventories as navigation rather than mandatory coverage. Follow an edge only when it can change the immediate route, baseline, target, acceptance evidence, or risk boundary; stop once the recovery target is defensible."
+      "rule": "Start from explicit project first-read/current/canonical entrypoints when available. Treat links, related/depends_on metadata, registries, indexes, historical release lists, directory inventories, and repository maps as navigation rather than mandatory coverage. Follow an edge only when it can change the immediate route, baseline, target, acceptance evidence, dependency status, or risk boundary; stop once the recovery target is defensible."
+    },
+    {
+      "id": "cross-repository-scope-boundary",
+      "rule": "A referenced upstream/downstream repository is evidence or dependency scope, not automatically an active work target. Cross repositories only when a material claim is owned there or a local dependency/coordination record is stale, ambiguous, or insufficient; read the smallest authoritative source/revision needed, then return to the active repository. Evidence access does not authorize mutation, and product evidence must not be silently promoted into shared protocol/governance by cross-repository edits."
     }
   ],
   "escalations": [
@@ -54,7 +58,7 @@
       "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems after bounded discovery has already identified the relevant surface.",
       "capability_gap": "long-horizon repository execution",
       "provider_candidates": ["deepagents", "openhands"],
-      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy or exposes a large reference graph."
+      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy, cross-referenced, or exposes a large reference graph."
     },
     {
       "when": "Recovery reveals that the immediate blocker is a bounded reproducible defect.",
@@ -63,6 +67,6 @@
       "selection_rule": "Reroute to bug-fix first; use mini-SWE-agent only if the issue is clear and verifiable."
     }
   ],
-  "verification": ["current-state claims are grounded in repository/runtime evidence", "material sources have authority/freshness considered rather than being flattened into one truth", "explicit project entrypoints/exclusions were respected", "reference graphs were traversed only for material unresolved questions", "unresolved conflicts remain explicit", "one prioritized improvement is verified", "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"],
+  "verification": ["current-state claims are grounded in repository/runtime evidence", "material sources have authority/freshness considered rather than being flattened into one truth", "explicit project entrypoints/exclusions were respected", "reference/repository graphs were traversed only for material unresolved questions", "active repository/work target remained explicit", "external repository reads were justified by claim ownership or stale/insufficient local dependency evidence", "cross-repository writes did not occur without separate scope/authorization", "unresolved conflicts remain explicit", "one prioritized improvement is verified", "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"],
   "reroute_signals": ["a specific failing behavior becomes primary -> bug-fix", "a desired new behavior becomes primary -> feature-change", "the user only needs a decision/review -> understand-review"]
 }

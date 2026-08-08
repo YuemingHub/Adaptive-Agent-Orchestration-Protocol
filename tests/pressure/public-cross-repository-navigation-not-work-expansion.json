@@ -1,0 +1,45 @@
+{
+  "version": "0.16.0",
+  "id": "public-cross-repository-navigation-not-work-expansion",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/MingOS",
+    "reference": "README.md; docs/CROSS_REPOSITORY_COORDINATION.md; docs/FOUNDATION_DEPENDENCY.md",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "Understand this repository in its three-repository system and continue the next MingOS work without turning every task into a three-repo project.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The repository README assigns different responsibilities to the Foundation, MingOS, and Family product repositories.",
+    "The cross-repository coordination document is explicitly Proposed navigation/coordination and says it does not replace each repository's own fact sources.",
+    "The downstream Foundation dependency record is also Proposed and says upstream main must be re-read before a new release, protocol, or cross-repository claim when the recorded baseline may be stale.",
+    "Product evidence may inform an upstream proposal but does not automatically become shared protocol or Foundation authority."
+  ],
+  "expected_first_moves": [
+    "Anchor MingOS as the active work target and use its local coordination/dependency records to understand repository roles.",
+    "Identify whether the immediate MingOS decision actually depends on a claim owned by Foundation or Family-Space.",
+    "If the local dependency snapshot is current and sufficient, remain in MingOS; if it is stale or insufficient for a material claim, read only the smallest authoritative upstream/downstream source needed and record its exact status/revision.",
+    "Return to the MingOS decision after external evidence is collected; request or establish separate scope before mutating another repository."
+  ],
+  "must_preserve": [
+    "The directional ownership boundary between principles/governance, shared protocol/kernel, and family product implementation.",
+    "The Proposed status and limitations of coordination/dependency records.",
+    "The rule that successful product behavior is evidence for review rather than automatic upstream authority."
+  ],
+  "must_not": [
+    "Read all three repositories for every ordinary MingOS task merely because a repository map exists.",
+    "Treat a local coordination snapshot as a permanent replacement for the current authoritative source in another repository.",
+    "Mutate Foundation or Family-Space merely because they were inspected for evidence.",
+    "Promote a product-specific finding into MingOS/Foundation by silently expanding the current task into cross-repository edits."
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "bounded-evidence-traversal",
+    "cross-repository-scope-boundary"
+  ],
+  "lessons": [
+    "Repository maps describe authority and dependency edges; they do not automatically create multi-repository execution scope.",
+    "Cross-repository evidence should be fetched only when the current decision needs a claim owned elsewhere or a local dependency record is stale/insufficient, and evidence access must remain separate from mutation authorization."
+  ]
+}

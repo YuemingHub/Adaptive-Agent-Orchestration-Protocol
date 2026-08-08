@@ -17,7 +17,7 @@ Primary Route
         ↓
 Route Capability Pack + Pressure Guards
         ↓
-Bounded project/environment/instruction evidence
+Bounded project / instruction / cross-repository evidence
         ↓
 Required capabilities / decision frame
         ↓
@@ -84,16 +84,13 @@ See [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md).
 
 ## Instruction topology
 
-A mature repository can already contain multiple instruction layers:
+A mature repository can contain multiple instruction layers:
 
 ```text
 AGENTS.md
-backend/AGENTS.md
 backend/AGENTS.override.md
-
 CLAUDE.md
 services/CLAUDE.md
-
 .cursor/rules/global.mdc
 frontend/.cursor/rules/ui.mdc
 ```
@@ -111,8 +108,6 @@ See [`docs/INSTRUCTION_TOPOLOGY.md`](docs/INSTRUCTION_TOPOLOGY.md).
 
 ## Bounded discovery: know when to stop reading
 
-v0.15 adds a rule learned from three real repository shapes: a governance-heavy reference graph, a small handoff repository, and a long-running product repository with explicit first-read/history exclusions.
-
 The target is **minimum sufficient evidence for the current decision**, not maximum repository coverage.
 
 ```text
@@ -125,26 +120,59 @@ current request
 → stop
 ```
 
-Treat these as navigation, not mandatory reading lists:
+Treat `related` / `depends_on` graphs, registries, indexes, ADR/RFC collections, historical release lists, directory inventories, generated documentation, and repository maps as navigation rather than mandatory reading lists.
 
-- `related` / `depends_on` graphs;
-- source registries and indexes;
-- ADR/RFC link collections;
-- historical release/deployment lists;
-- directory inventories;
-- generated documentation surfaces.
+Follow an edge only when it can change the route, current baseline, implementation target, acceptance evidence, dependency status, or risk boundary. This is not a fixed file/token budget: deeper reading is appropriate when a concrete material question remains unresolved.
 
-Follow a reference only when it can change the immediate route, current baseline, implementation target, acceptance evidence, or risk boundary.
+The canonical procedure lives in `.aaop/skills/project-discovery/SKILL.md`; `repo-recovery` protects it with `bounded-evidence-traversal`.
 
-Three practical rules:
+## Cross-repository scope: evidence is not work authorization
 
-1. **Explicitly governed long-running repo:** obey the project's declared first-read/current-source order and explicit historical exclusions before broad search.
-2. **Governance/reference-heavy repo:** use current/canonical state + source-role registry as navigation anchors; do not recursively traverse the whole governance graph.
-3. **Small repo/handoff:** if README + handoff/current-status + manifest already establish current state and one next target, stop discovery and inspect implementation only as that target requires.
+A repository map can express directional authority without creating a multi-repository task.
 
-This is not a fixed file/token budget. Sometimes deeper reading is necessary; it must be justified by a concrete unresolved question.
+```text
+principles / standards
+        ↓ normative constraint
+shared protocol / kernel
+        ↓ implementation contract
+product
+```
 
-The canonical procedure lives in `.aaop/skills/project-discovery/SKILL.md`. The `repo-recovery` route protects it with the real-project `bounded-evidence-traversal` Pressure Guard.
+For ordinary work, keep one **active repository/work target** explicit:
+
+```text
+local decision
+→ active repository/work target
+→ identify external claim owner
+→ check local dependency/coordination record
+→ current + sufficient? → stay local
+→ stale / ambiguous / insufficient?
+     ↓
+  read the minimum authoritative external source/revision
+     ↓
+  record source + revision + status
+     ↓
+  return to the local decision
+```
+
+Classify cross-repository edges when useful as:
+
+- `normative-dependency`;
+- `implementation-evidence`;
+- `coordination-navigation`;
+- `historical-provenance`;
+- `active-work-target`.
+
+Hard boundaries:
+
+- a referenced repository is not automatically an active work target;
+- a coordination document helps locate authority but does not replace each repository's own current fact source;
+- a current downstream dependency snapshot can be sufficient for ordinary local work;
+- re-check upstream when a material claim is owned there or the local snapshot is stale, ambiguous, or insufficient;
+- **read access does not authorize mutation**;
+- product evidence can become a proposal for a shared layer, but does not silently become protocol/governance through incidental cross-repository edits.
+
+AAOP does not provide a multi-repository runtime, repository graph crawler, or automatic synchronized commit mechanism. This boundary is part of Project Discovery and the `repo-recovery` Pressure Guard `cross-repository-scope-boundary`.
 
 ## Idea-to-build: outcome before architecture
 
@@ -204,11 +232,10 @@ AAOP evolves by **real developer failures before speculative completeness**.
 
 - repository authority/freshness;
 - bounded evidence traversal / stop-when-sufficient discovery;
-- stale bug reports;
-- stale PR salvage;
+- cross-repository evidence versus active work scope;
+- stale bug and PR baselines;
 - operational blockers;
-- broad-vision overbuild;
-- solution-vocabulary capture;
+- broad-vision overbuild and solution-vocabulary capture;
 - decision-oriented review.
 
 Each case binds to Route `pressure_guards`; removing an earned guard breaks CI until the regression is deliberately re-evaluated.
@@ -235,8 +262,9 @@ unknown
 Hard rules:
 
 - merged/main/newest does not automatically mean authoritative;
-- canonical/current documents can be navigation anchors without making every linked artifact mandatory reading;
-- explicit first-read and historical-exclusion rules narrow discovery unless the task needs the excluded evidence;
+- canonical/current documents can be navigation anchors without making every linked artifact or repository mandatory reading;
+- explicit first-read and historical-exclusion rules narrow discovery unless the task needs excluded evidence;
+- a local coordination/dependency record does not silently override the current authoritative source elsewhere;
 - old PRs/issues/branches are historical evidence until reconciled with the current baseline;
 - prior AI conclusions and issue comments are hypotheses/reference by default;
 - runtime/deployment facts require target-environment evidence;
@@ -370,6 +398,7 @@ Health is **best-effort accidental-drift detection**, not a cryptographic trust 
 - host-native bootstrap conformance and duplicate-context minimization;
 - read-only instruction-topology discovery for scoped host/project rules;
 - bounded project discovery and evidence traversal;
+- bounded cross-repository evidence resolution and work-scope discipline;
 - Route Capability Packs and real-project Pressure Guards;
 - greenfield outcome/solution-hypothesis discipline;
 - decision-oriented read-only review discipline;
@@ -450,34 +479,37 @@ docs/REAL_PROJECT_PRESSURE_TESTS.md
 4. Keep one canonical policy and minimize duplicate persistent host context.
 5. See scoped instruction topology before assuming root rules are the complete effective context.
 6. Never treat topology inventory as automatic conflict resolution or permission to rewrite project rules.
-7. Define the immediate decision horizon before broad discovery.
+7. Define the immediate decision horizon and active repository/work target before broad discovery.
 8. Start from explicit project first-read/current/canonical entrypoints when they exist.
-9. Treat reference graphs and inventories as navigation, not mandatory coverage.
-10. Stop when additional reading is unlikely to change the route, baseline, target, acceptance evidence, capability plan, or risk model.
-11. For ideas: outcome and evidence-bearing first slice before architecture.
-12. Treat early solution vocabulary as hypothesis unless established as a constraint.
-13. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
-14. Current baseline/source authority before stale artifacts.
-15. Route by observable outcome, not developer jargon.
-16. Detect/reuse existing capability before concluding there is a gap.
-17. Classify blockers before provider escalation.
-18. Install nothing new without a proven technical capability gap.
-19. Re-check applicable provider adoption debt before consequential use.
-20. Preserve runtime/project-owned state across AAOP lifecycle operations.
-21. Remove only what AAOP can prove it owns.
-22. Prefer mature upstream implementations over copies.
-23. Select the minimum provider surface.
-24. Verify outcomes; do not fabricate completion when safely blocked.
-25. Let real-project regressions improve the protocol before theoretical completeness.
-26. Hide orchestration complexity without lowering engineering rigor.
+9. Treat reference graphs, inventories, and repository maps as navigation, not mandatory coverage or execution scope.
+10. Cross repositories only for material externally owned claims or stale/insufficient local dependency evidence.
+11. Keep cross-repository evidence access separate from mutation authorization.
+12. Return to the active work target after external evidence is resolved.
+13. Stop when additional reading is unlikely to change the route, baseline, target, acceptance evidence, capability plan, or risk model.
+14. For ideas: outcome and evidence-bearing first slice before architecture.
+15. Treat early solution vocabulary as hypothesis unless established as a constraint.
+16. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+17. Current baseline/source authority before stale artifacts.
+18. Route by observable outcome, not developer jargon.
+19. Detect/reuse existing capability before concluding there is a gap.
+20. Classify blockers before provider escalation.
+21. Install nothing new without a proven technical capability gap.
+22. Re-check applicable provider adoption debt before consequential use.
+23. Preserve runtime/project-owned state across AAOP lifecycle operations.
+24. Remove only what AAOP can prove it owns.
+25. Prefer mature upstream implementations over copies.
+26. Select the minimum provider surface.
+27. Verify outcomes; do not fabricate completion when safely blocked.
+28. Let real-project regressions improve the protocol before theoretical completeness.
+29. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.15.0 — bounded evidence traversal and stop-when-sufficient discovery.**
+**v0.16.0 — cross-repository evidence and work-scope boundary.**
 
-v0.15 is grounded in three real repository shapes inspected after v0.14: a governance-heavy public repository with a large reference graph, a small public handoff repository whose README/HANDOFF already bounded the next move, and an anonymized long-running product repository with explicit first-read/history-exclusion rules.
+v0.16 is grounded in the public MingOS/Foundation multi-repository coordination model. It teaches Project Discovery to keep one active work target, distinguish dependency/evidence/navigation relationships from execution scope, re-check external authority only when materially needed, and return to the local decision after collecting the minimum external evidence.
 
-It adds no new tool, Route, Provider, runtime, package manager, or arbitrary scan budget. It tightens Project Discovery and `repo-recovery` so AAOP starts from explicit current/canonical entrypoints, follows references only for material unresolved questions, and stops when the immediate engineering decision is defensible.
+It adds no multi-repository runtime, repository graph crawler, synchronized commit mechanism, Route, Provider, Recipe, or package manager. Most importantly, access to inspect another repository remains separate from authorization to mutate it.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
