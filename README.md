@@ -18,8 +18,8 @@ Reuse what already exists
 └───────────────┬────────────────────┘
         no      │       yes
         ↓       │        ↓
-   keep it      │   add the smallest
-   simple       │   justified layer
+   keep it      │   select one mature
+   simple       │   provider + recipe
                 │        ↓
                 │ Skill / MCP / ARD / A2A
                 │ Runtime / Workspace
@@ -54,6 +54,31 @@ These are not mandatory cumulative layers. A project may stay at Level 0/1 indef
 
 See [`docs/PROGRESSIVE_ADOPTION.md`](docs/PROGRESSIVE_ADOPTION.md).
 
+## Integration Recipes: one integration shape, upstream implementation
+
+AAOP does not build a new package manager. Instead it carries **lazy Integration Recipes** for selected mature providers.
+
+A recipe normalizes:
+
+- when the provider is appropriate / inappropriate;
+- how to detect whether it is already present;
+- the smallest known upstream install/configuration path;
+- credentials and permissions;
+- verification of the original capability gap;
+- rollback/removal;
+- upstream source of truth and the date the recipe was last verified.
+
+The agent should re-check the upstream source before consequential installation because external projects evolve independently.
+
+Browse the installed recipes without installing anything:
+
+```bash
+python .aaop/tools/recipe.py list
+python .aaop/tools/recipe.py show deepagents
+```
+
+Current recipes include Agent Skills, MCP, ARD, Deep Agents, Microsoft Agent Framework, CAMEL Workforce, AutoAgent, and AgentSpace. Recipes are glue metadata, not endorsements and not automatic installs.
+
 ## What AAOP owns
 
 - project/environment discovery policy;
@@ -61,6 +86,7 @@ See [`docs/PROGRESSIVE_ADOPTION.md`](docs/PROGRESSIVE_ADOPTION.md).
 - capability-first planning;
 - progressive integration decisions;
 - provider selection and least-privilege policy;
+- normalized integration recipes;
 - dynamic ownership/team decisions;
 - verification and replanning contracts;
 - graceful degradation across hosts.
@@ -97,15 +123,16 @@ The installer:
 - installs **no** third-party runtime, MCP server, or Skill marketplace;
 - requests **no** secret.
 
-Optional environment inventory after installation:
+Inspect the environment and recipes after installation:
 
 ```bash
 python .aaop/tools/doctor.py .
+python .aaop/tools/recipe.py list
 ```
 
 Then open the project in the AI host you already use and state the desired outcome.
 
-AAOP should attempt to complete the task with the current environment before proposing another integration.
+AAOP should attempt to complete the task with the current environment first. If a real capability gap appears, it selects one provider and uses its recipe so the developer does not need to hunt across repositories for setup/verification steps.
 
 ## Repository map
 
@@ -122,11 +149,15 @@ CLAUDE.md
 │   ├── capabilities.json
 │   ├── providers.json              # upstream resolver hints, not packages
 │   └── adoption-profiles.json
+├── recipes/
+│   ├── README.md                   # recipe safety/contract
+│   └── *.json                      # lazy upstream integration recipes
 ├── schemas/
 │   ├── environment-profile.schema.json
 │   ├── project-profile.schema.json
 │   ├── capability-matrix.schema.json
 │   ├── integration-plan.schema.json
+│   ├── integration-recipe.schema.json
 │   ├── team-plan.schema.json
 │   └── execution-plan.schema.json
 ├── skills/
@@ -137,13 +168,14 @@ CLAUDE.md
 │   ├── tool-resolution/
 │   └── verification-loop/
 └── tools/
-    └── doctor.py                    # zero-dependency environment inventory
+    ├── doctor.py                    # zero-dependency environment inventory
+    └── recipe.py                    # zero-dependency recipe browser
 
 adapters/                            # host-specific guidance
 docs/                               # architecture + ecosystem + adoption model
 examples/                            # worked orchestration examples
 scripts/install.py                  # safe AAOP bootstrap
-scripts/validate.py                 # structural/provider validation
+scripts/validate.py                 # structural/provider/recipe validation
 .github/workflows/validate.yml      # clean-environment CI
 ```
 
@@ -157,7 +189,7 @@ AAOP uses existing open standards rather than inventing competing formats:
 - A2A: https://a2a-protocol.org/
 - ARD: https://agenticresourcediscovery.org/
 
-External providers evolve independently. `.aaop/registries/providers.json` is a resolver-hint catalog, not an allowlist, lockfile, endorsement, or automatic installer. Current upstream status and security must be re-verified before consequential use.
+External providers evolve independently. `.aaop/registries/providers.json` and `.aaop/recipes/*.json` are resolver hints, not allowlists, lockfiles, endorsements, or silent installers. Current upstream status and security must be re-verified before consequential use.
 
 ## Core design principles
 
@@ -166,19 +198,19 @@ External providers evolve independently. `.aaop/registries/providers.json` is a 
 3. Start with what the developer already has.
 4. Install nothing new without a proven capability gap.
 5. Prefer open standards and mature upstream implementations over copies.
-6. Use the minimum sufficient team and integration surface.
-7. Discovery never equals silent installation.
-8. Apply least privilege to external capabilities.
-9. Verify outcomes and verify that each added provider closed the gap it was added for.
-10. Remove unnecessary machinery when the project can become simpler again.
+6. Give integrations one normalized recipe shape instead of vendoring their implementations.
+7. Use the minimum sufficient team and integration surface.
+8. Discovery never equals silent installation.
+9. Apply least privilege to external capabilities.
+10. Verify that every added provider actually closes the gap it was added for, and remove unnecessary machinery again.
 
 ## Status
 
-**v0.2.0 — progressive integration baseline.**
+**v0.3.0 — lazy integration recipe baseline.**
 
-v0.2 refocuses AAOP from “potential future runtime” into an ecosystem-level orchestration decision plane. The project now includes a mature-provider map, progressive adoption policy, provider-selection Skill, provider/adoption registries, integration-plan schema, and zero-dependency environment doctor.
+v0.2 established progressive ecosystem integration. v0.3 adds a normalized recipe contract and recipe browser so agents can use upstream mature components without forcing developers to manually collect setup, credential, verification, and rollback instructions from scattered repositories.
 
-AAOP still does not ship a standalone agent runtime — intentionally.
+AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
 ## License
 
