@@ -31,14 +31,25 @@ jobs:
           printf 'project-owned\n' > "$target/.aaop/project-note.txt"
           printf 'provider-owned\n' > "$target/provider.config"
           printf '\nLOCAL-MANAGED-EDIT\n' >> "$target/.aaop/ORCHESTRATOR.md"
+          python - "$target/AGENTS.md" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          text = p.read_text()
+          needle = '## Adaptive Agent Orchestration Protocol (AAOP)'
+          assert needle in text
+          p.write_text(text.replace(needle, needle + '\nLOCAL-BOOTSTRAP-EDIT', 1))
+          PY
 
           python scripts/install.py "$target" --uninstall > "$target/uninstall.out"
 
           grep -q 'AAOP uninstalled' "$target/uninstall.out"
           grep -q 'installed version removed: 0.12.0' "$target/uninstall.out"
+          grep -q 'modified/untracked bootstrap blocks backed up: 1' "$target/uninstall.out"
           grep -q 'third-party providers removed: none' "$target/uninstall.out"
           grep -q 'KEEP-BEFORE-AAOP' "$target/AGENTS.md"
           grep -q 'KEEP-CLAUDE-RULE' "$target/CLAUDE.md"
+          ! grep -q 'LOCAL-BOOTSTRAP-EDIT' "$target/AGENTS.md"
           ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
           ! grep -q '<!-- AAOP:END -->' "$target/AGENTS.md"
           ! grep -q '<!-- AAOP:BEGIN -->' "$target/CLAUDE.md"
@@ -50,6 +61,7 @@ jobs:
           test ! -f "$target/.aaop/ORCHESTRATOR.md"
           test ! -f "$target/.aaop/VERSION"
           grep -R -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/runtime/uninstall-backups"
+          grep -R -q 'LOCAL-BOOTSTRAP-EDIT' "$target/.aaop/runtime/uninstall-backups"
           test -d "$target/.aaop"
 
       - name: Remove empty AAOP package completely
