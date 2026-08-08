@@ -32,6 +32,7 @@
     "delete or reclone the repository as a substitute for root-cause analysis",
     "declare fixed solely because current code looks different"
   ],
+  "required_guard_ids": ["reported-baseline-freshness", "discussion-is-hypothesis"],
   "expected_blocker_class": null,
   "lessons": [
     "Bug intake needs a baseline-freshness check before reproduction and root-cause work.",
