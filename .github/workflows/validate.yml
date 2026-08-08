@@ -12,13 +12,13 @@ jobs:
   validate-aaop:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Validate source package
         run: python scripts/validate.py
-      - name: Smoke-test installer without overwriting project rules
+      - name: Smoke-test installer, doctor, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
@@ -27,6 +27,9 @@ jobs:
           python scripts/install.py "$target"
           grep -q 'Keep this line.' "$target/AGENTS.md"
           grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+          test -f "$target/.aaop/tools/doctor.py"
+          python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor.json"
+          python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert "observed_surface_level" in d' "$target/doctor.json"
           python scripts/validate.py --root "$target" --package-only
           python scripts/install.py "$target" --force
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
