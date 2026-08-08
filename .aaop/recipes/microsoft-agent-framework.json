@@ -8,8 +8,7 @@
     "avoid_when": ["the task is adequately handled by the current repository host", "adding a production runtime would be disproportionate"]
   },
   "detect": {
-    "python_packages": ["agent_framework"],
-    "files": ["pyproject.toml", "requirements.txt"]
+    "python_packages": ["agent_framework"]
   },
   "install": {
     "mode": "manual-choice",
