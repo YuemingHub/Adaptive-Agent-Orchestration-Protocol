@@ -69,24 +69,19 @@ Canonical orchestration Skills live under `.aaop/skills/`.
 """
 
 CLAUDE_BLOCK = f"""{AAOP_BEGIN}
-## Adaptive Agent Orchestration Protocol (AAOP)
+## AAOP Claude Code bridge
 
-Read `AGENTS.md`, `.aaop/ORCHESTRATOR.md`, and start developer requests with
+For non-trivial developer work, read `.aaop/ORCHESTRATOR.md`, then start with
 `.aaop/skills/developer-intake/SKILL.md`. After routing, load
-`.aaop/skills/route-execution/SKILL.md` and only the current route pack. Prefer
-current project evidence and existing Claude Code/native capabilities.
+`.aaop/skills/route-execution/SKILL.md` and only the current
+`.aaop/routes/<route-id>.json`.
 
-For ideas, outcome and a learning-bearing first slice come before architecture;
-implementation vocabulary is not automatically a requirement. For reviews, frame
-the decision, verify current evidence, contextualize risk, and do not mutate by
-default. Reconcile stale artifacts with the current baseline, apply route pressure
-guards, and classify blockers before calling them capability gaps. If AAOP install
-integrity is uncertain, use `.aaop/tools/health.py` before trusting modified/missing
-protocol files; do not silently repair drift. Do not add providers merely because
-they are listed; prove a technical gap first. Re-check any applicable Recipe
-`adoption_review` against current upstream/context before adoption. Do not fabricate
-completion when an environment/permission/evidence blocker requires a legitimate
-unblock.
+If AAOP install integrity is uncertain, use `python .aaop/tools/health.py . --json`
+before repair. Prefer current project evidence and existing Claude Code/native
+capability before adding providers.
+
+This block is intentionally small. Canonical orchestration policy lives under
+`.aaop/`; common cross-host bootstrap guidance lives in `AGENTS.md`.
 {AAOP_END}
 """
 
