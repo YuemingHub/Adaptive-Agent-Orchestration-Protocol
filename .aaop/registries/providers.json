@@ -1,0 +1,101 @@
+{
+  "schema_version": "0.2.0",
+  "last_verified": "2026-08-08",
+  "policy": "reference-and-select; never auto-install from this catalog",
+  "providers": [
+    {
+      "id": "agent-skills",
+      "kind": "standard",
+      "upstream": "https://agentskills.io/",
+      "provides": ["procedural-knowledge", "skill-packaging", "progressive-disclosure"],
+      "select_when": ["repeatable procedure is missing", "project knowledge should be reusable across agents"],
+      "avoid_when": ["one-off instruction is sufficient"],
+      "adoption_level": 2
+    },
+    {
+      "id": "mcp",
+      "kind": "standard",
+      "upstream": "https://modelcontextprotocol.io/",
+      "registry": "https://registry.modelcontextprotocol.io/",
+      "provides": ["external-tool-access", "service-integration", "tool-discovery-at-connection"],
+      "select_when": ["the host lacks required external read/write capability"],
+      "avoid_when": ["native host tool already provides the capability", "a local script/library is simpler"],
+      "adoption_level": 2
+    },
+    {
+      "id": "a2a",
+      "kind": "standard",
+      "upstream": "https://a2a-protocol.org/",
+      "provides": ["agent-discovery", "agent-cards", "cross-agent-task-interoperability"],
+      "select_when": ["independent agent systems must communicate across framework boundaries"],
+      "avoid_when": ["all workers are local subagents inside one host"],
+      "adoption_level": 3
+    },
+    {
+      "id": "ard",
+      "kind": "discovery-standard",
+      "upstream": "https://agenticresourcediscovery.org/",
+      "repository": "https://github.com/ards-project/ard-spec",
+      "provides": ["resource-discovery", "federated-catalog-search", "ranked-capability-candidates"],
+      "select_when": ["required capability exists but provider is unknown", "the environment supports an ARD-compatible discovery service"],
+      "avoid_when": ["a trusted provider is already available", "discovery would add no decision value"],
+      "adoption_level": 3,
+      "status_note": "draft/evolving; adapters must tolerate schema evolution"
+    },
+    {
+      "id": "host-native",
+      "kind": "runtime-family",
+      "provides": ["repository-execution", "native-tools", "native-agent-primitives"],
+      "select_when": ["the developer's existing AI IDE can satisfy the task"],
+      "avoid_when": ["required durability, interoperability, or governance is unavailable"],
+      "adoption_level": 1,
+      "preference": "default"
+    },
+    {
+      "id": "deepagents",
+      "kind": "runtime",
+      "upstream": "https://github.com/langchain-ai/deepagents",
+      "docs": "https://docs.langchain.com/oss/python/deepagents/overview",
+      "provides": ["long-horizon-agent-harness", "subagents", "skills", "persistence", "filesystem", "mcp"],
+      "select_when": ["dedicated long-running harness materially improves reliability", "subagent context isolation is important", "skills and MCP need a unified runtime"],
+      "avoid_when": ["host-native execution is already sufficient"],
+      "adoption_level": 4
+    },
+    {
+      "id": "microsoft-agent-framework",
+      "kind": "runtime",
+      "upstream": "https://learn.microsoft.com/en-us/agent-framework/",
+      "provides": ["agents", "sessions", "memory", "workflows", "orchestration", "hosting"],
+      "select_when": ["production workflow composition and hosting are first-class requirements", "typed explicit workflows are preferable"],
+      "avoid_when": ["the task is repository-local and short-lived"],
+      "adoption_level": 4
+    },
+    {
+      "id": "camel-workforce",
+      "kind": "runtime",
+      "upstream": "https://github.com/camel-ai/camel",
+      "provides": ["multi-agent-societies", "dynamic-workforce", "agent-coordination"],
+      "select_when": ["dynamic worker composition is genuinely useful"],
+      "avoid_when": ["a single host agent or fixed subagents are sufficient"],
+      "adoption_level": 4
+    },
+    {
+      "id": "autoagent",
+      "kind": "generator-runtime",
+      "upstream": "https://github.com/HKUDS/AutoAgent",
+      "provides": ["natural-language-agent-generation", "tool-generation", "workflow-generation", "self-testing"],
+      "select_when": ["the user explicitly benefits from generating/testing new agents, tools, or workflows"],
+      "avoid_when": ["existing skills/tools/agents already satisfy the capability", "the project only needs orchestration policy"],
+      "adoption_level": 4
+    },
+    {
+      "id": "agentspace",
+      "kind": "workspace-control-plane",
+      "upstream": "https://github.com/HKUDS/AgentSpace",
+      "provides": ["shared-agent-workspace", "permissions", "approvals", "audit", "scheduling", "persistent-tasks", "runtime-routing"],
+      "select_when": ["multiple humans/agents need durable shared work and governance", "cross-runtime routing and approval history are required"],
+      "avoid_when": ["solo/local work does not require organizational control-plane infrastructure"],
+      "adoption_level": 5
+    }
+  ]
+}
