@@ -1,6 +1,6 @@
 # AAOP Autonomy Policy
 
-Version: 0.1.0
+Version: 0.18.0
 
 AAOP uses risk-based autonomy rather than a universal “ask before every step” or “do everything without asking” mode.
 
@@ -16,7 +16,8 @@ Evaluate an action across:
 - monetary cost;
 - production impact;
 - legal/compliance consequence;
-- ambiguity of user intent.
+- ambiguity of user intent;
+- **staleness/concurrency risk between the evidence read and the write performed**.
 
 Use the highest material risk dimension to determine the action class.
 
@@ -29,7 +30,7 @@ Typical examples:
 - read/search/analyze project files;
 - inspect Git history, issues, docs, logs, or tests the host can already access;
 - create plans and derived runtime state;
-- edit local/workspace files within the requested scope;
+- edit local/workspace files within the requested scope when the current baseline is still valid;
 - add or update tests;
 - run local tests, lint, build, type checks, static analysis;
 - create non-secret temporary files;
@@ -62,7 +63,8 @@ Typical examples:
 - deleting non-recoverable user/customer data;
 - changing access control, IAM, billing, DNS, or security policy;
 - publishing publicly under the user's identity when publication was not the requested deliverable;
-- merging/deploying when repository/project policy explicitly requires human approval.
+- merging/deploying when repository/project policy explicitly requires human approval;
+- **forcing an overwrite/merge/update after a conditional-write or baseline precondition failed when force was not already part of the authorized action class**.
 
 ## BLOCK
 
@@ -75,7 +77,67 @@ Do not ask again for an authorization the user has already clearly provided for 
 - scope materially expands;
 - new sensitive data/cost is introduced;
 - the target changed;
-- the prior authorization has become stale due to a new risk.
+- the prior authorization has become stale due to a new risk;
+- **concurrent state changed enough that the intended write now has a materially different effect or blast radius**.
+
+## Write-precondition revalidation
+
+Evidence can be correct when read and stale when written. Autonomous execution must preserve concurrent work rather than treating a precondition failure as friction to bypass.
+
+Before a consequential write whose target may have changed since it was inspected:
+
+1. **Use the host's strongest available conditional-write primitive.** Examples include Git blob/content SHA, expected branch/PR head SHA, Git ref ancestry, ETag / `If-Match`, resource version/generation, database row/version check, lease/lock token, or deployment revision.
+2. **Revalidate the target baseline immediately before the write** when the interval, collaboration level, side effects, or target sensitivity makes drift material.
+3. **If the precondition still holds**, execute within the already-authorized action class.
+4. **If the precondition fails or the target moved**, treat that as new evidence:
+   - do not automatically force, overwrite, reset, or replay stale whole-file content;
+   - re-read the current target/baseline;
+   - identify concurrent changes and preserve them unless explicitly superseded;
+   - recompute the intended delta against the new baseline;
+   - re-run the v0.17 execution-delta gate: the change may now be smaller, already satisfied, conflicting, rerouted, or blocked;
+   - re-check authorization/risk if the resulting write changed materially;
+   - verify again after the reconciled write.
+5. **Force is a separate decision, not an error-recovery default.** Use it only when repository policy and user authorization make intentional replacement appropriate and the overwritten state has been understood/preserved as required.
+
+A stale-write conflict is not evidence that another Provider, agent, or alternate write path is needed. It is first a baseline/concurrency problem.
+
+### Examples
+
+Correct:
+
+```text
+read file @ blob A
+→ plan bounded edit
+→ conditional update requires blob A
+→ server says current blob is B
+→ read B
+→ merge intended change with B
+→ prove delta still exists
+→ conditional update from B
+→ verify
+```
+
+Incorrect:
+
+```text
+read file @ blob A
+→ another actor writes B
+→ update rejected
+→ force stale full content from A + my edit
+→ concurrent work disappears
+```
+
+For merge/release actions:
+
+```text
+review PR head H1
+→ CI passes
+→ before merge require expected head H1
+→ head moved to H2
+→ do not merge stale review result
+→ review/revalidate H2 as needed
+→ merge only against the validated head
+```
 
 ## Secret handling
 
@@ -87,9 +149,19 @@ Do not ask again for an authorization the user has already clearly provided for 
 
 ## Failure behavior
 
-A permission failure is evidence, not a reason to repeatedly retry. Diagnose whether the correct response is:
+A permission or write-precondition failure is evidence, not a reason to repeatedly retry.
+
+For permission failures, diagnose whether the correct response is:
 
 1. use a lower-privilege route;
 2. use an already-authorized provider;
 3. request the minimum missing permission;
 4. stop the external action while completing independent work.
+
+For stale-write/precondition failures:
+
+1. re-read the target;
+2. reconcile concurrent changes;
+3. re-prove the execution delta;
+4. retry conditionally only if the write remains justified;
+5. escalate/ask only if reconciliation introduces a genuinely new decision or higher-risk action.
