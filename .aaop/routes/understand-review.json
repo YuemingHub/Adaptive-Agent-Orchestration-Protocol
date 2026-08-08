@@ -1,0 +1,48 @@
+{
+  "version": "0.5.0",
+  "route_id": "understand-review",
+  "objective": "Produce decision-useful understanding or review findings grounded in evidence, without turning analysis into unrequested mutation.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "decision-frame",
+      "purpose": "Identify the decision, risk, or question that the review must support.",
+      "required_capabilities": ["intent-resolution", "review-scoping"],
+      "optional_capabilities": [],
+      "evidence": ["user question", "PR/repository scope", "stated quality/risk concern"],
+      "exit_when": "The review has a bounded decision target instead of a generic request for a full summary."
+    },
+    {
+      "id": "evidence-inspection",
+      "purpose": "Inspect the minimum code, history, tests, CI, runtime, or architecture evidence needed to answer the decision.",
+      "required_capabilities": ["repository-inspection", "evidence-synthesis"],
+      "optional_capabilities": ["static-analysis", "security-review", "architecture-analysis"],
+      "evidence": ["specific files/diffs", "test and CI results", "history or runtime evidence when relevant"],
+      "exit_when": "Material claims can be traced to concrete evidence and uncertainty is explicit."
+    },
+    {
+      "id": "findings-and-action",
+      "purpose": "Separate facts, inferences, risks, and recommendations, then state the smallest useful next action.",
+      "required_capabilities": ["risk-ranking", "technical-communication"],
+      "optional_capabilities": ["independent-review"],
+      "evidence": ["ranked findings", "supporting references", "known limitations"],
+      "exit_when": "The user can make the intended decision from the findings without a performative repository dump."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "The project already uses Spec Kit and the review specifically needs spec/plan/task consistency or a supported review extension.",
+      "capability_gap": "structured artifact consistency or specialized review workflow",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Use core analysis capabilities first; community review/security extensions require provenance and permission review before installation."
+    },
+    {
+      "when": "A separate execution context materially improves adversarial independence or large-codebase inspection.",
+      "capability_gap": "independent long-context review environment",
+      "provider_candidates": ["deepagents", "openhands"],
+      "selection_rule": "Use only when context isolation or dedicated analysis runtime is the proven gap; do not add a second general agent for cosmetic independence."
+    }
+  ],
+  "verification": ["findings are evidence-linked", "facts and inferences are distinguished", "recommendations are prioritized by impact rather than style preference", "no project mutation occurred unless explicitly authorized"],
+  "reroute_signals": ["the review discovers a concrete defect the user wants fixed -> bug-fix", "the user chooses a proposed behavior change -> feature-change", "the repository cannot be understood reliably without recovery -> repo-recovery"]
+}
