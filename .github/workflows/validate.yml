@@ -18,6 +18,8 @@ jobs:
           python-version: "3.12"
       - name: Validate source package
         run: python scripts/validate.py
+      - name: Validate real-project pressure regressions
+        run: python scripts/validate_pressure.py
       - name: Smoke-test installer, environment resolution, routes, recipes, and project-rule preservation
         shell: bash
         run: |
@@ -33,6 +35,7 @@ jobs:
           test -f "$target/.aaop/tools/recipe.py"
           test -f "$target/.aaop/routes/bug-fix.json"
           test -f "$target/.aaop/schemas/environment-inventory.schema.json"
+          test -f "$target/.aaop/schemas/pressure-case.schema.json"
 
           # AAOP's own canonical Skills must not inflate the observed external surface.
           python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor-clean.json"
@@ -80,7 +83,14 @@ jobs:
 
           python "$target/.aaop/tools/route.py" list | grep -q 'bug-fix'
           python "$target/.aaop/tools/route.py" show bug-fix --json > "$target/bug-route.json"
-          python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["route_id"] == "bug-fix"; assert len(d["stages"]) >= 3' "$target/bug-route.json"
+          python - "$target/bug-route.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d["route_id"] == "bug-fix"
+          guards = {g["id"] for g in d["pressure_guards"]}
+          assert "reported-baseline-freshness" in guards
+          assert "discussion-is-hypothesis" in guards
+          PY
           python "$target/.aaop/tools/recipe.py" list | grep -q 'spec-kit'
           python "$target/.aaop/tools/recipe.py" list | grep -q 'playwright'
           python "$target/.aaop/tools/recipe.py" show playwright > "$target/playwright-recipe.json"
