@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
       - name: Validate source package
         run: python scripts/validate.py
-      - name: Smoke-test installer, doctor, and project-rule preservation
+      - name: Smoke-test installer, doctor, recipes, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
@@ -28,8 +28,12 @@ jobs:
           grep -q 'Keep this line.' "$target/AGENTS.md"
           grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
           test -f "$target/.aaop/tools/doctor.py"
+          test -f "$target/.aaop/tools/recipe.py"
           python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor.json"
           python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert "observed_surface_level" in d' "$target/doctor.json"
+          python "$target/.aaop/tools/recipe.py" list | grep -q 'deepagents'
+          python "$target/.aaop/tools/recipe.py" show deepagents > "$target/deepagents-recipe.json"
+          python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["provider_id"] == "deepagents"' "$target/deepagents-recipe.json"
           python scripts/validate.py --root "$target" --package-only
           python scripts/install.py "$target" --force
           test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1

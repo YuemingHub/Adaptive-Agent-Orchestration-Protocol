@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aaop.dev/schemas/integration-recipe.schema.json",
+  "title": "AAOP Integration Recipe",
+  "type": "object",
+  "required": ["id", "provider_id", "last_verified", "source_of_truth", "selection", "detect", "install", "verify", "rollback"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "provider_id": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "last_verified": {"type": "string", "format": "date"},
+    "source_of_truth": {"type": "string", "format": "uri"},
+    "selection": {
+      "type": "object",
+      "required": ["use_when", "avoid_when"],
+      "properties": {
+        "use_when": {"type": "array", "items": {"type": "string"}},
+        "avoid_when": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "detect": {
+      "type": "object",
+      "properties": {
+        "commands": {"type": "array", "items": {"type": "string"}},
+        "python_packages": {"type": "array", "items": {"type": "string"}},
+        "files": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "install": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["none", "package-manager", "clone", "host-feature", "manual-choice"]},
+        "minimal_commands": {"type": "array", "items": {"type": "string"}},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "credentials": {"type": "array", "items": {"type": "string"}},
+    "permissions": {"type": "array", "items": {"type": "string"}},
+    "verify": {
+      "type": "object",
+      "required": ["checks"],
+      "properties": {"checks": {"type": "array", "items": {"type": "string"}}},
+      "additionalProperties": true
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["steps"],
+      "properties": {"steps": {"type": "array", "items": {"type": "string"}}},
+      "additionalProperties": true
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
