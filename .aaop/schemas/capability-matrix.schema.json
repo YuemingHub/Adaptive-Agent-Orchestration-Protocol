@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aaop.dev/schemas/capability-matrix.schema.json",
+  "title": "AAOP Capability Matrix",
+  "type": "object",
+  "required": ["capabilities"],
+  "properties": {
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "required", "status"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "required": {"type": "boolean"},
+          "status": {"enum": ["available", "partial", "missing", "blocked"]},
+          "providers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "name"],
+              "properties": {
+                "type": {"type": "string"},
+                "name": {"type": "string"},
+                "scope": {"type": ["string", "null"]},
+                "risk": {"enum": ["low", "medium", "high"]}
+              },
+              "additionalProperties": true
+            }
+          },
+          "depends_on": {"type": "array", "items": {"type": "string"}},
+          "gap_resolution": {"type": ["string", "null"]}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
