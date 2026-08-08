@@ -18,7 +18,7 @@ The user should not need to know the route names, Agent types, Skills, MCP serve
 
 ## Principle
 
-First understand **the user's situation and desired observable outcome**. Then route. Do not make the user classify their own task.
+First understand **the user's situation and desired observable outcome**. Then route. Do not make the user classify their own task or design the technical solution unless they explicitly want to.
 
 Routing is not keyword matching. Consider together:
 
@@ -27,6 +27,7 @@ Routing is not keyword matching. Consider together:
 3. **Desired outcome** — what should be true when the work is done.
 4. **Evidence** — repository, tests, failures, logs, issues/specs, runtime/deployment context.
 5. **Risk** — whether the first meaningful action is local/reversible or externally consequential.
+6. **Solution vocabulary status** — whether named technologies are hard constraints, preferences, or merely hypotheses the user is exploring.
 
 When useful, materialize `.aaop/runtime/intake-envelope.json` against `../../schemas/intake-envelope.schema.json`.
 
@@ -77,15 +78,26 @@ Examples:
 - “Add invitation” → identify who can invite whom, the visible workflow, and the smallest acceptance path.
 - “Continue this project” → understand current state, find the highest-leverage next blocker, improve it with evidence.
 
+### Early technical vocabulary is not automatically a requirement
+
+For greenfield requests, classify named technology before using it:
+
+- **hard constraint** — the user explicitly requires it for compatibility, policy, contract, existing ecosystem, or another concrete reason;
+- **preference** — useful to honor when it does not conflict with the outcome;
+- **solution hypothesis** — a technology name proposed before the need is evidenced.
+
+If a user says “use agents, MCP, RAG, memory, a vector DB, and graph orchestration,” do not silently turn all of those terms into architecture requirements. First identify the user-visible workflow and what capability each term would need to supply.
+
 If the outcome can be safely inferred from project evidence and the request, proceed.
 
-## Step 4 — Ask only a route-changing question
+## Step 4 — Ask only a route-changing or outcome-blocking question
 
 Ask at most one intake question at a time, and only when the answer could materially change:
 
 - the primary route;
 - the user-visible outcome;
 - a major product choice;
+- whether a proposed technology is actually a hard constraint;
 - or the safety/permission class of the next action.
 
 Good intake questions are concrete:
@@ -93,6 +105,7 @@ Good intake questions are concrete:
 - “Which user should be able to invite whom?”
 - “Is the failure in production or only local?”
 - “Which of these two behaviors do you want to preserve?”
+- “For the first version, what is the one task a user must be able to complete?”
 
 Avoid process questions:
 
@@ -100,10 +113,17 @@ Avoid process questions:
 - “Should I continue?”
 - “Do you want me to inspect the repo?”
 - “Which agent team should I use?”
+- “Which database/framework should I choose?” when the system can derive it later.
 
 If a reversible experiment can resolve the ambiguity, prefer the experiment over asking.
 
-## Step 5 — Set route confidence
+## Step 5 — Preserve review boundaries
+
+When the request is primarily “review / assess / tell me whether we should …”, the default route is read-only `understand-review` unless the user explicitly authorizes implementation.
+
+Do not convert a review finding into a patch, PR, configuration change, issue update, or upstream mutation merely because the fix looks obvious. The review should first support the decision the user actually asked to make.
+
+## Step 6 — Set route confidence
 
 Use a practical confidence estimate:
 
@@ -113,20 +133,20 @@ Use a practical confidence estimate:
 
 Confidence does not need to be shown to the user unless useful; it exists to prevent ceremonial clarification.
 
-## Step 6 — Hand off, don't over-orchestrate
+## Step 7 — Hand off, don't over-orchestrate
 
 After routing:
 
-- `idea-to-build` → outcome discovery, smallest buildable slice, then capability planning.
+- `idea-to-build` → outcome discovery → first evidence-bearing slice → minimal architecture → real evaluation.
 - `repo-recovery` → project discovery/recovery before broad implementation.
-- `bug-fix` → reproduce/evidence → localize → minimal fix → regression verification.
+- `bug-fix` → reconcile baseline → reproduce/evidence → localize → minimal fix → regression verification.
 - `feature-change` → behavior contract → impact discovery → implementation → acceptance/regression verification.
-- `understand-review` → decision-oriented inspection; no mutation by default.
-- `release-operations` → environment/runtime evidence + rollback + autonomy policy before consequential action.
+- `understand-review` → decision-oriented inspection; current evidence; no mutation by default.
+- `release-operations` → environment/runtime evidence + blocker classification + rollback + autonomy policy before consequential action.
 
 Only after the route exposes a real capability gap should AAOP run provider selection.
 
-## Step 7 — Keep the interaction natural
+## Step 8 — Keep the interaction natural
 
 Do not announce internal machinery unless it helps the user.
 
@@ -147,5 +167,7 @@ Developer intake is complete when:
 - the current situation is sufficiently understood;
 - one primary route is selected;
 - a provisional observable outcome is defined;
+- proposed solution vocabulary is not being mistaken for requirements without evidence;
+- review/mutation boundaries are explicit where relevant;
 - only material unknowns remain;
 - and work can move into the route-specific discovery/execution loop without making the user manage orchestration.
