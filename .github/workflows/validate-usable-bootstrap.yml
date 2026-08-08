@@ -52,6 +52,16 @@ jobs:
           print(out)
           PY
           test -s /tmp/aaop-source.zip
+          # The prior source-tree readiness step imports health/doctor and normally
+          # creates Python bytecode caches. Keep them in this replay archive on purpose:
+          # a local source checkout may contain the same generated artifacts, and the
+          # canonical installer must never claim them as package-owned files.
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/aaop-source.zip') as z:
+              names = z.namelist()
+          assert any('__pycache__/' in name or name.endswith(('.pyc', '.pyo')) for name in names), names
+          PY
 
       - name: Install without cloning and report READY
         shell: bash
@@ -78,6 +88,14 @@ jobs:
           test -f "$target/.aaop/tools/aaop.py"
           test -f "$target/.aaop/.install-manifest.json"
           grep -qx "$(cat .aaop/VERSION)" "$target/.aaop/VERSION"
+
+          python - "$target/.aaop/.install-manifest.json" <<'PY'
+          import json, sys
+          manifest = json.load(open(sys.argv[1]))
+          managed = list(manifest['files'])
+          assert not any('__pycache__' in path for path in managed), managed
+          assert not any(path.endswith(('.pyc', '.pyo')) for path in managed), managed
+          PY
 
           python "$target/.aaop/tools/aaop.py" ready "$target" --json > /tmp/aaop-ready.json
           python - /tmp/aaop-ready.json <<'PY'
