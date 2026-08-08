@@ -105,6 +105,23 @@ def validate_release_identity(root: Path, errors: list[str]) -> None:
             error(errors, f"{orchestrator}: must point package release identity to .aaop/VERSION")
 
 
+def validate_component_revision_headers(root: Path, errors: list[str]) -> None:
+    component_root = root / ".aaop"
+    if not component_root.exists():
+        return
+    for path in sorted(component_root.rglob("*.md")):
+        try:
+            top = path.read_text(encoding="utf-8").splitlines()[:16]
+        except OSError as exc:
+            error(errors, f"{path}: cannot inspect component revision header: {exc}")
+            continue
+        if any(line.startswith("Version:") for line in top):
+            error(
+                errors,
+                f"{path}: ambiguous bare 'Version:' component header is forbidden; use a component-specific label such as Protocol-Revision or Policy-Revision, while .aaop/VERSION remains the package release identity",
+            )
+
+
 def parse_frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -475,6 +492,7 @@ def main() -> int:
             error(errors, f"missing required file: {relative}")
 
     validate_release_identity(root, errors)
+    validate_component_revision_headers(root, errors)
 
     for path in (root / ".aaop").rglob("*.json") if (root / ".aaop").exists() else []:
         validate_json(path, errors)
