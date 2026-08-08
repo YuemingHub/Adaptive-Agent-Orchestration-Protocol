@@ -17,7 +17,7 @@ Primary Route
         ↓
 Route Capability Pack + Pressure Guards
         ↓
-Project/environment/instruction evidence
+Bounded project/environment/instruction evidence
         ↓
 Required capabilities / decision frame
         ↓
@@ -78,13 +78,13 @@ All converge on:
 → .aaop/routes/<route-id>.json
 ```
 
-AAOP does not generate `.cursor/rules` merely to duplicate root instructions. Host-specific facts and their verification dates stay in `adapters/`, not in the host-neutral Orchestrator.
+AAOP does not generate `.cursor/rules` merely to duplicate root instructions. Host-specific facts and verification dates stay in `adapters/`, not in the host-neutral Orchestrator.
 
 See [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md).
 
-## Instruction topology: see scoped rules before assuming scope
+## Instruction topology
 
-A mature repository can already contain multiple host instruction layers:
+A mature repository can already contain multiple instruction layers:
 
 ```text
 AGENTS.md
@@ -98,20 +98,53 @@ services/CLAUDE.md
 frontend/.cursor/rules/ui.mdc
 ```
 
-The root AAOP bootstrap may be correct without being the only instruction context that matters.
-
-Use the read-only inventory when the repository is unfamiliar, scoped rules are visible, a monorepo has multiple instruction layers, or instruction scope can materially change the task:
+Use the read-only inventory when instruction scope can materially change the task:
 
 ```bash
 python .aaop/tools/instructions.py .
 python .aaop/tools/instructions.py . --json
 ```
 
-It inventories documented repository-local instruction surfaces for Codex, Claude Code, and Cursor and highlights conditions such as nested instructions, same-directory `AGENTS.md` + `AGENTS.override.md`, deprecated `CLAUDE.local.md`, nested Cursor rules, or legacy `.cursorrules`.
-
-**Topology is evidence, not conflict resolution.** Discovery of a nested/newer rule does not prove it is semantically correct, globally active, or safe to rewrite. When effective precedence matters, inspect the actual host/session/config and the conflicting rule contents.
+**Topology is evidence, not conflict resolution.** A nested/newer rule is not automatically correct, globally active, or safe to rewrite.
 
 See [`docs/INSTRUCTION_TOPOLOGY.md`](docs/INSTRUCTION_TOPOLOGY.md).
+
+## Bounded discovery: know when to stop reading
+
+v0.15 adds a rule learned from three real repository shapes: a governance-heavy reference graph, a small handoff repository, and a long-running product repository with explicit first-read/history exclusions.
+
+The target is **minimum sufficient evidence for the current decision**, not maximum repository coverage.
+
+```text
+current request
+→ governing instructions
+→ declared current/canonical entrypoints
+→ material unknown
+→ one supporting reference if needed
+→ relevant implementation/test/runtime evidence
+→ stop
+```
+
+Treat these as navigation, not mandatory reading lists:
+
+- `related` / `depends_on` graphs;
+- source registries and indexes;
+- ADR/RFC link collections;
+- historical release/deployment lists;
+- directory inventories;
+- generated documentation surfaces.
+
+Follow a reference only when it can change the immediate route, current baseline, implementation target, acceptance evidence, or risk boundary.
+
+Three practical rules:
+
+1. **Explicitly governed long-running repo:** obey the project's declared first-read/current-source order and explicit historical exclusions before broad search.
+2. **Governance/reference-heavy repo:** use current/canonical state + source-role registry as navigation anchors; do not recursively traverse the whole governance graph.
+3. **Small repo/handoff:** if README + handoff/current-status + manifest already establish current state and one next target, stop discovery and inspect implementation only as that target requires.
+
+This is not a fixed file/token budget. Sometimes deeper reading is necessary; it must be justified by a concrete unresolved question.
+
+The canonical procedure lives in `.aaop/skills/project-discovery/SKILL.md`. The `repo-recovery` route protects it with the real-project `bounded-evidence-traversal` Pressure Guard.
 
 ## Idea-to-build: outcome before architecture
 
@@ -158,7 +191,7 @@ A pack is an engineering map, not a workflow engine or install bundle.
 
 ```bash
 python .aaop/tools/route.py list
-python .aaop/tools/route.py show bug-fix
+python .aaop/tools/route.py show repo-recovery
 ```
 
 See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
@@ -170,6 +203,7 @@ AAOP evolves by **real developer failures before speculative completeness**.
 `tests/pressure/` contains privacy-safe replay contracts covering all six routes. Current lessons include:
 
 - repository authority/freshness;
+- bounded evidence traversal / stop-when-sufficient discovery;
 - stale bug reports;
 - stale PR salvage;
 - operational blockers;
@@ -201,6 +235,8 @@ unknown
 Hard rules:
 
 - merged/main/newest does not automatically mean authoritative;
+- canonical/current documents can be navigation anchors without making every linked artifact mandatory reading;
+- explicit first-read and historical-exclusion rules narrow discovery unless the task needs the excluded evidence;
 - old PRs/issues/branches are historical evidence until reconciled with the current baseline;
 - prior AI conclusions and issue comments are hypotheses/reference by default;
 - runtime/deployment facts require target-environment evidence;
@@ -333,6 +369,7 @@ Health is **best-effort accidental-drift detection**, not a cryptographic trust 
 - natural-language developer intake and routing;
 - host-native bootstrap conformance and duplicate-context minimization;
 - read-only instruction-topology discovery for scoped host/project rules;
+- bounded project discovery and evidence traversal;
 - Route Capability Packs and real-project Pressure Guards;
 - greenfield outcome/solution-hypothesis discipline;
 - decision-oriented read-only review discipline;
@@ -402,6 +439,7 @@ scripts/validate_pressure.py
 scripts/validate_host_bootstrap.py
 docs/HOST_BOOTSTRAP_CONFORMANCE.md
 docs/INSTRUCTION_TOPOLOGY.md
+docs/REAL_PROJECT_PRESSURE_TESTS.md
 ```
 
 ## Core design principles
@@ -412,30 +450,34 @@ docs/INSTRUCTION_TOPOLOGY.md
 4. Keep one canonical policy and minimize duplicate persistent host context.
 5. See scoped instruction topology before assuming root rules are the complete effective context.
 6. Never treat topology inventory as automatic conflict resolution or permission to rewrite project rules.
-7. For ideas: outcome and evidence-bearing first slice before architecture.
-8. Treat early solution vocabulary as hypothesis unless established as a constraint.
-9. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
-10. Current baseline/source authority before stale artifacts.
-11. Route by observable outcome, not developer jargon.
-12. Detect/reuse existing capability before concluding there is a gap.
-13. Classify blockers before provider escalation.
-14. Install nothing new without a proven technical capability gap.
-15. Re-check applicable provider adoption debt before consequential use.
-16. Preserve runtime/project-owned state across AAOP lifecycle operations.
-17. Remove only what AAOP can prove it owns.
-18. Prefer mature upstream implementations over copies.
-19. Select the minimum provider surface.
-20. Verify outcomes; do not fabricate completion when safely blocked.
-21. Let real-project regressions improve the protocol before theoretical completeness.
-22. Hide orchestration complexity without lowering engineering rigor.
+7. Define the immediate decision horizon before broad discovery.
+8. Start from explicit project first-read/current/canonical entrypoints when they exist.
+9. Treat reference graphs and inventories as navigation, not mandatory coverage.
+10. Stop when additional reading is unlikely to change the route, baseline, target, acceptance evidence, capability plan, or risk model.
+11. For ideas: outcome and evidence-bearing first slice before architecture.
+12. Treat early solution vocabulary as hypothesis unless established as a constraint.
+13. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+14. Current baseline/source authority before stale artifacts.
+15. Route by observable outcome, not developer jargon.
+16. Detect/reuse existing capability before concluding there is a gap.
+17. Classify blockers before provider escalation.
+18. Install nothing new without a proven technical capability gap.
+19. Re-check applicable provider adoption debt before consequential use.
+20. Preserve runtime/project-owned state across AAOP lifecycle operations.
+21. Remove only what AAOP can prove it owns.
+22. Prefer mature upstream implementations over copies.
+23. Select the minimum provider surface.
+24. Verify outcomes; do not fabricate completion when safely blocked.
+25. Let real-project regressions improve the protocol before theoretical completeness.
+26. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.14.0 — read-only instruction topology and scoped-rule visibility.**
+**v0.15.0 — bounded evidence traversal and stop-when-sufficient discovery.**
 
-v0.14 extends project discovery so AAOP can inventory repository-local instruction layers for Codex, Claude Code, and Cursor when scope is material. It recognizes nested/scoped/deprecated rule surfaces and reports review hints without mutating rules or pretending to resolve semantic conflicts. The model is grounded in first-party host behavior rechecked on 2026-08-08.
+v0.15 is grounded in three real repository shapes inspected after v0.14: a governance-heavy public repository with a large reference graph, a small public handoff repository whose README/HANDOFF already bounded the next move, and an anonymized long-running product repository with explicit first-read/history-exclusion rules.
 
-This is a project-understanding release. It adds no new Route, Provider, runtime, package manager, remote updater, automatic rule migration, or proprietary host plugin.
+It adds no new tool, Route, Provider, runtime, package manager, or arbitrary scan budget. It tightens Project Discovery and `repo-recovery` so AAOP starts from explicit current/canonical entrypoints, follows references only for material unresolved questions, and stops when the immediate engineering decision is defensible.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
