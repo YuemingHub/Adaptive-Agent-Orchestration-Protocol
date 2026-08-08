@@ -1,0 +1,43 @@
+{
+  "version": "0.7.0",
+  "id": "repo-authority-recovery",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/MingOS",
+    "reference": "README.md + docs/CROSS_REPOSITORY_COORDINATION.md",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "This project has several repositories, status documents, old branches, and draft ideas. Understand what is actually current and continue from the right place.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "Different repositories own different layers of authority.",
+    "Merged content may still be Draft/Proposed rather than accepted authority.",
+    "Open or historical branches can be materially behind the current product baseline.",
+    "The next useful change should follow the current source of truth rather than whichever artifact is easiest to find."
+  ],
+  "expected_first_moves": [
+    "identify scoped instruction and current-fact sources before broad code reading",
+    "record source authority and freshness for material claims",
+    "separate current, draft/proposed, historical, and unknown evidence",
+    "choose one highest-leverage current blocker only after reconciling contradictory sources"
+  ],
+  "must_preserve": [
+    "original conflicting sources",
+    "draft/proposed status where explicitly declared",
+    "repository ownership boundaries"
+  ],
+  "must_not": [
+    "treat merge-to-main as proof that a document is accepted/stable authority",
+    "pick the newest-looking file as truth without checking its declared role",
+    "start broad cleanup before reconstructing current state",
+    "promote product-specific behavior into a shared protocol merely because it exists"
+  ],
+  "required_guard_ids": ["source-authority-freshness", "preserve-conflicting-evidence"],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Repository recovery needs evidence authority and temporal status, not only file inventory.",
+    "Conflicts should be preserved and reconciled instead of silently choosing a winner.",
+    "Current-fact source selection is an engineering decision that can change the entire route."
+  ]
+}

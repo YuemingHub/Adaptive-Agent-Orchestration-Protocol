@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0",
+  "version": "0.7.0",
   "routes": [
     {
       "id": "idea-to-build",
@@ -20,41 +20,41 @@
       "use_when": "An existing repository is messy, abandoned, unfamiliar, contradictory, partially working, or the user says to understand it and continue from the current state.",
       "first_moves": [
         "preserve current state before broad edits",
-        "read instructions, README, manifests, tests, CI, architecture, and recent history",
-        "build a current-state map and identify the highest-leverage blocker",
-        "separate product intent from accidental implementation",
-        "stabilize one path before refactoring broadly"
+        "identify scoped instructions and candidate current-fact/governance sources",
+        "inspect manifests, tests, CI, architecture, deployment, and recent history",
+        "classify material evidence by authority/freshness and preserve unresolved conflicts",
+        "identify one highest-leverage current blocker before broad cleanup"
       ],
-      "avoid": ["mass cleanup before understanding behavior", "rewriting because the code looks old", "assuming README and code agree"],
-      "completion_shape": "A trustworthy current-state model plus one verified improvement or a prioritized recovery path."
+      "avoid": ["mass cleanup before understanding behavior", "assuming merged/newest means authoritative", "silently resolving contradictory sources", "rewriting because the code looks old"],
+      "completion_shape": "A trustworthy current-state model with evidence authority/freshness plus one verified improvement or prioritized recovery target."
     },
     {
       "id": "bug-fix",
       "situation": "bug",
       "use_when": "Observed behavior is wrong, failing, crashing, regressing, or producing an error and the user wants it fixed.",
       "first_moves": [
-        "capture the observed failure and expected behavior",
+        "capture reported environment/version and expected versus observed behavior",
+        "reconcile historical reports/tracebacks with the current baseline",
         "reproduce or obtain the strongest available failure evidence",
-        "localize root cause before editing",
-        "make the narrowest durable fix",
-        "add or strengthen regression evidence"
+        "test root-cause hypotheses before editing",
+        "make the narrowest durable fix and add regression evidence"
       ],
-      "avoid": ["guess-fixing without reproduction/evidence", "unrelated refactors", "declaring success from code inspection alone"],
-      "completion_shape": "Failure reproduced or evidenced, root cause addressed, regression check passing, no material collateral regression."
+      "avoid": ["treating old traceback/source lines as current fact", "adopting issue-comment workarounds as root cause", "guess-fixing without evidence", "declaring success from code inspection alone"],
+      "completion_shape": "Current baseline reconciled, failure reproduced/evidenced, root cause addressed, and regression evidence passing."
     },
     {
       "id": "feature-change",
       "situation": "feature",
       "use_when": "The user wants new behavior, a changed workflow, an integration, a UI/API capability, or a modification to an existing system.",
       "first_moves": [
-        "translate the request into observable behavior",
-        "inspect the existing path and constraints before designing",
-        "identify impacted interfaces/data/tests",
-        "implement the smallest coherent change",
-        "verify old and new behavior"
+        "translate the request into observable behavior/invariants",
+        "establish the current implementation baseline",
+        "if old PRs/branches matter, salvage behavior/tests/rationale rather than stale commits",
+        "identify impacted interfaces/data/tests and only truly missing behavior",
+        "implement the smallest coherent current-baseline change"
       ],
-      "avoid": ["treating feature wording as a complete specification", "bolting on a parallel architecture without checking existing primitives", "scope expansion"],
-      "completion_shape": "Requested behavior works in the existing system with acceptance evidence and regression checks."
+      "avoid": ["treating feature wording as a complete specification", "merging deeply stale work wholesale", "copying superseded architecture merely to preserve commits", "scope expansion"],
+      "completion_shape": "Requested behavior works on the current system with acceptance/regression evidence and without unnecessary historical implementation baggage."
     },
     {
       "id": "understand-review",
@@ -74,14 +74,14 @@
       "situation": "release-operations",
       "use_when": "The request concerns deploy, release, migration, CI/CD, production behavior, incident recovery, environment configuration, or operational readiness.",
       "first_moves": [
-        "identify target environment and current operational state",
-        "inspect deployment/CI/runtime evidence",
-        "separate reversible validation from consequential writes",
-        "define rollback before high-impact changes",
-        "apply autonomy and approval policy before production actions"
+        "identify target environment, authorization boundary, and exact evidence needed",
+        "check whether the authorized target is reachable from the current execution environment",
+        "classify blockers before calling anything a capability gap",
+        "preserve target state as unknown when direct evidence is unavailable",
+        "define rollback before consequential writes"
       ],
-      "avoid": ["production writes without authorization", "migration without rollback", "assuming local success equals production readiness"],
-      "completion_shape": "Operational objective reached or safely prepared, with validation, rollback, and remaining risk explicit."
+      "avoid": ["bypassing network/authorization policy with new tooling", "treating Git/CI/local health as deployed-state proof", "production writes without authorization", "migration without rollback"],
+      "completion_shape": "Operational objective reached with direct evidence, or safely blocked with unknown state preserved and the minimal legitimate unblock identified."
     }
   ]
 }

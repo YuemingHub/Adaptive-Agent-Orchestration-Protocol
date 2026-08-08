@@ -1,0 +1,42 @@
+{
+  "version": "0.7.0",
+  "id": "stale-bug-report",
+  "provenance": {
+    "kind": "public-issue",
+    "repository": "HKUDS/AutoAgent",
+    "reference": "issue #33",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "AutoAgent crashes on WSL2 while starting the browser environment with OSError: handle is closed. Fix it.",
+  "expected_route": "bug-fix",
+  "known_facts": [
+    "The report includes a concrete platform, command, traceback, and old source line references.",
+    "The issue was opened in 2025 and remained open in 2026, so the reported baseline may differ materially from current head.",
+    "Discussion suggests a multiprocessing start-method hypothesis, but comments are not verified root cause.",
+    "A workaround based on recloning or deleting the repository would not explain or fix the defect."
+  ],
+  "expected_first_moves": [
+    "compare the reported version/source path with the current implementation before editing",
+    "check whether the reported failing code path and forced multiprocessing behavior still exist",
+    "reproduce on the closest practical platform or build a focused compatibility test when exact WSL2 reproduction is unavailable",
+    "treat issue comments as hypotheses to test rather than accepted fixes"
+  ],
+  "must_preserve": [
+    "the reported environment and traceback as historical evidence",
+    "platform-specific behavior that may differ between Linux, WSL2, macOS, and Windows"
+  ],
+  "must_not": [
+    "assume an old traceback describes current head without checking",
+    "apply a comment-suggested code change without testing its causal relationship",
+    "delete or reclone the repository as a substitute for root-cause analysis",
+    "declare fixed solely because current code looks different"
+  ],
+  "required_guard_ids": ["reported-baseline-freshness", "discussion-is-hypothesis"],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Bug intake needs a baseline-freshness check before reproduction and root-cause work.",
+    "Historical issue evidence must be preserved but cannot silently become current fact.",
+    "When exact environment reproduction is unavailable, the route should seek the strongest bounded compatibility evidence rather than guess."
+  ]
+}

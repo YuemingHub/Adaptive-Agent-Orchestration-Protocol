@@ -1,32 +1,42 @@
 {
-  "version": "0.5.0",
+  "version": "0.7.0",
   "route_id": "feature-change",
   "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract and regression evidence.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "behavior-contract",
-      "purpose": "Translate the request into observable behavior, actors, constraints, and non-goals.",
+      "purpose": "Translate the request into observable behavior, actors, constraints, non-goals, and invariants; when historical branches/PRs are referenced, extract their intended behavior without treating their implementation shape as current design.",
       "required_capabilities": ["intent-resolution", "acceptance-criteria"],
-      "optional_capabilities": ["specification-management"],
-      "evidence": ["user request", "existing product behavior", "relevant specs/issues"],
-      "exit_when": "The intended behavior is precise enough to distinguish success from accidental scope expansion."
+      "optional_capabilities": ["specification-management", "historical-artifact-analysis"],
+      "evidence": ["user request", "existing product behavior", "relevant current specs/issues", "historical behavior/security intent when explicitly referenced"],
+      "exit_when": "The intended behavior is precise enough to distinguish success from accidental scope expansion and historical intent is separated from stale implementation."
     },
     {
       "id": "impact-discovery",
-      "purpose": "Trace the existing path and identify affected interfaces, data, tests, permissions, and operational constraints before designing a parallel solution.",
-      "required_capabilities": ["repository-inspection", "impact-analysis"],
-      "optional_capabilities": ["architecture-mapping", "security-impact-analysis"],
-      "evidence": ["existing implementation path", "interfaces/schema", "tests", "adjacent conventions"],
-      "exit_when": "The smallest coherent integration point and regression surface are known."
+      "purpose": "Establish the current implementation baseline, trace the existing path, compare any historical implementation against current behavior, and identify affected interfaces, data, tests, permissions, and operational constraints before designing a parallel solution.",
+      "required_capabilities": ["repository-inspection", "impact-analysis", "current-baseline-comparison"],
+      "optional_capabilities": ["architecture-mapping", "security-impact-analysis", "git-history-analysis"],
+      "evidence": ["current implementation path", "interfaces/schema", "current tests and quality gates", "adjacent conventions", "behavior-by-behavior gap against any historical artifact"],
+      "exit_when": "The smallest coherent integration point, actual missing behaviors, and regression surface are known on the current baseline."
     },
     {
       "id": "implement-and-accept",
-      "purpose": "Implement the smallest coherent change and validate both new and preserved behavior.",
+      "purpose": "Implement only the missing/changed behavior using current primitives and validate both new and preserved behavior.",
       "required_capabilities": ["implementation", "acceptance-validation", "regression-testing"],
       "optional_capabilities": ["browser-e2e-testing"],
-      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions"],
-      "exit_when": "The requested behavior works through the real product path with regression evidence."
+      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "evidence that obsolete historical structure was not copied unnecessarily"],
+      "exit_when": "The requested behavior works through the current product path with regression evidence."
+    }
+  ],
+  "pressure_guards": [
+    {
+      "id": "stale-artifact-salvage",
+      "rule": "When an old PR/branch is materially behind the current baseline, extract useful behavior, invariants, tests, and rationale first; do not merge/rebase/copy the artifact wholesale merely to preserve its commits."
+    },
+    {
+      "id": "behavior-over-commits",
+      "rule": "Historical code is evidence of intent, not the deliverable. Rebuild only behavior still missing on current architecture and current quality/release gates."
     }
   ],
   "escalations": [
@@ -49,6 +59,6 @@
       "selection_rule": "Choose based on the missing execution property, not framework popularity; keep AAOP as the route/policy layer."
     }
   ],
-  "verification": ["new behavior satisfies explicit acceptance evidence", "existing affected behavior still works", "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"],
+  "verification": ["new behavior satisfies explicit acceptance evidence", "existing affected behavior still works", "current baseline rather than stale implementation determined the final architecture", "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"],
   "reroute_signals": ["requested behavior already existed but is broken -> bug-fix", "the existing repository is too contradictory to trust -> repo-recovery", "deployment/production readiness becomes the blocker -> release-operations"]
 }

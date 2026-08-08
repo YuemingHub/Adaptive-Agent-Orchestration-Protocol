@@ -1,32 +1,42 @@
 {
-  "version": "0.5.0",
+  "version": "0.7.0",
   "route_id": "bug-fix",
   "objective": "Turn an observed failure into a verified root-cause fix with the smallest durable change and explicit regression evidence.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "failure-evidence",
-      "purpose": "Capture expected versus observed behavior and reproduce the failure or obtain the strongest available evidence.",
-      "required_capabilities": ["failure-reproduction", "log-test-inspection"],
-      "optional_capabilities": ["browser-validation", "runtime-observability"],
-      "evidence": ["failing test", "runtime error/log", "browser reproduction", "minimal reproduction steps"],
-      "exit_when": "The failure is reproducible or sufficiently evidenced to localize without guessing."
+      "purpose": "Bind the report to the current project baseline, capture expected versus observed behavior, and reproduce the failure or obtain the strongest available evidence without assuming historical evidence is still current.",
+      "required_capabilities": ["failure-reproduction", "log-test-inspection", "baseline-freshness-check"],
+      "optional_capabilities": ["browser-validation", "runtime-observability", "platform-compatibility-analysis"],
+      "evidence": ["reported version/commit and environment", "current implementation baseline", "failing test", "runtime error/log", "browser reproduction", "minimal reproduction steps"],
+      "exit_when": "The report has been reconciled with the current baseline and the failure is reproducible or sufficiently evidenced to localize without guessing."
     },
     {
       "id": "root-cause",
-      "purpose": "Trace the failure through the smallest relevant code/data/config path and distinguish cause from symptom.",
+      "purpose": "Trace the failure through the smallest relevant code/data/config path, distinguish cause from symptom, and treat issue comments/workarounds as hypotheses until tested.",
       "required_capabilities": ["code-tracing", "hypothesis-testing"],
       "optional_capabilities": ["git-regression-analysis"],
-      "evidence": ["causal path", "disproven alternatives", "relevant change/history when useful"],
+      "evidence": ["causal path", "disproven alternatives", "tested external hypotheses", "relevant change/history when useful"],
       "exit_when": "A root-cause hypothesis predicts the observed failure and can be tested by a bounded change."
     },
     {
       "id": "fix-and-regress",
-      "purpose": "Apply the narrowest durable fix and prove the failure no longer reproduces without collateral regression.",
+      "purpose": "Apply the narrowest durable fix and prove the failure no longer reproduces on the strongest practical relevant environment without collateral regression.",
       "required_capabilities": ["targeted-implementation", "regression-testing"],
-      "optional_capabilities": ["browser-e2e-testing"],
-      "evidence": ["passing regression check", "relevant surrounding tests", "before/after runtime evidence"],
-      "exit_when": "The original failure is fixed and regression evidence passes."
+      "optional_capabilities": ["browser-e2e-testing", "cross-platform-validation"],
+      "evidence": ["passing regression check", "relevant surrounding tests", "before/after runtime evidence", "platform-specific compatibility evidence when exact reproduction is unavailable"],
+      "exit_when": "The original failure is fixed on a relevant baseline and regression evidence passes."
+    }
+  ],
+  "pressure_guards": [
+    {
+      "id": "reported-baseline-freshness",
+      "rule": "An issue, traceback, source line, or reproduction from an older version is historical evidence until compared with the current baseline; do not edit current code as though the old report were current fact."
+    },
+    {
+      "id": "discussion-is-hypothesis",
+      "rule": "Issue comments, suggested fixes, and user workarounds are hypotheses/evidence, not verified root cause; test causality before adoption."
     }
   ],
   "escalations": [
@@ -49,6 +59,6 @@
       "selection_rule": "Use Spec Kit's supported bug workflow when it materially improves traceability; do not initialize a full SDD system solely for a trivial one-line defect."
     }
   ],
-  "verification": ["the original failure is no longer reproducible", "a regression check guards the fixed behavior when practical", "unrelated refactoring did not become the main change"],
+  "verification": ["the current baseline corresponding to the fix is explicit", "the original failure is no longer reproducible or the strongest equivalent compatibility evidence passes", "a regression check guards the fixed behavior when practical", "unrelated refactoring did not become the main change"],
   "reroute_signals": ["the failure is actually missing/changed product behavior -> feature-change", "the repository cannot be trusted enough to localize the issue -> repo-recovery", "production mitigation becomes primary -> release-operations"]
 }
