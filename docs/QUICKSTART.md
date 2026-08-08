@@ -18,17 +18,35 @@ python scripts/install.py /path/to/your-project
 
 The installer:
 
-- copies the canonical `.aaop/` package;
-- creates or appends an AAOP bootstrap block in `AGENTS.md`;
-- creates or appends an AAOP bootstrap block in `CLAUDE.md`;
+- copies the canonical AAOP-managed files into `.aaop/`;
+- creates or appends a marked AAOP bootstrap block in `AGENTS.md`;
+- creates or appends a marked AAOP bootstrap block in `CLAUDE.md`;
 - does not replace unrelated existing project rules;
+- installs no third-party provider;
 - does not copy or request secrets.
 
-If the target already contains `.aaop/`, the installer refuses to overwrite it. Review the change first, then deliberately update with:
+### Upgrade an existing AAOP installation
+
+If the target already contains `.aaop/`, use:
 
 ```bash
-python scripts/install.py /path/to/your-project --force
+python scripts/install.py /path/to/your-project --upgrade
 ```
+
+Safe upgrade rules:
+
+- `.aaop/runtime/` is preserved;
+- files inside `.aaop/` that were not installed/managed by AAOP are preserved;
+- AAOP bootstrap text between `<!-- AAOP:BEGIN -->` / `<!-- AAOP:END -->` is updated in place while surrounding project rules remain untouched;
+- an install manifest tracks hashes of AAOP-managed files;
+- if a managed file was locally modified, it is backed up under `.aaop/runtime/upgrade-backups/` before the canonical version replaces it;
+- if a future AAOP release starts managing a path that already belongs to the project, that colliding file is backed up before AAOP claims the path;
+- malformed/duplicated bootstrap markers fail preflight before package mutation;
+- target-only project files are never removed merely because an AAOP release does not know about them.
+
+`--force` remains as a compatibility alias for `--upgrade`; it no longer means destructive replacement of the whole `.aaop` directory.
+
+Legacy installations created before install manifests existed can also be upgraded. Their runtime and target-only files are preserved, but because old hashes are unavailable, the installer cannot distinguish local edits to legacy AAOP-managed paths before refreshing those current paths.
 
 ## 3. Give the outcome, not the team design
 
@@ -59,7 +77,7 @@ For a meaningful task, expect this internal sequence:
 
 The agent does not need to show every runtime artifact to the user. The schemas exist to improve rigor and interoperability.
 
-## 5. If an MCP is needed
+## 5. If an MCP/provider is needed
 
 AAOP should not ask “Which MCP do you want?” by default.
 
@@ -70,7 +88,8 @@ It should first check whether the required capability already exists. If not, it
 - what to install/connect;
 - minimum permission required;
 - whether credentials or cost are involved;
-- what data/action access it gains.
+- what data/action access it gains;
+- whether the selected Recipe carries a scoped adoption review that must be rechecked for this use.
 
 You provide the authorization that only you can provide; the orchestrator does the rest.
 
@@ -80,9 +99,10 @@ From the AAOP repository:
 
 ```bash
 python scripts/validate.py
+python scripts/validate_pressure.py
 ```
 
-This verifies required protocol files, JSON syntax/schema markers, Skill presence, and core Agent Skills naming/metadata constraints without third-party Python packages.
+This verifies required protocol files, JSON syntax/schema markers, Skill presence, route/Recipe contracts, and real-project pressure guards without third-party Python packages.
 
 ## 7. Native host integration
 
