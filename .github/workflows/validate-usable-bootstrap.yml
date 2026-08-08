@@ -61,7 +61,17 @@ jobs:
           echo "$target" > /tmp/aaop-target
           printf '# Existing project rules\n\nKEEP-ME\n' > "$target/AGENTS.md"
 
-          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" > /tmp/bootstrap-install.out
+          if ! python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" 2>&1 | tee /tmp/bootstrap-install.out; then
+            echo '--- health after failed bootstrap ---' >&2
+            if test -f "$target/.aaop/tools/health.py"; then
+              python "$target/.aaop/tools/health.py" "$target" --json || true
+            fi
+            echo '--- manifest after failed bootstrap ---' >&2
+            if test -f "$target/.aaop/.install-manifest.json"; then
+              cat "$target/.aaop/.install-manifest.json" || true
+            fi
+            exit 1
+          fi
           grep -q 'AAOP bootstrap: install' /tmp/bootstrap-install.out
           grep -q 'AAOP READY' /tmp/bootstrap-install.out
           grep -q 'KEEP-ME' "$target/AGENTS.md"
@@ -90,7 +100,7 @@ jobs:
           printf 'runtime-state\n' > "$target/.aaop/runtime/state.txt"
           printf 'project-owned\n' > "$target/.aaop/local-note.txt"
 
-          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" > /tmp/bootstrap-upgrade.out
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" 2>&1 | tee /tmp/bootstrap-upgrade.out
           grep -q 'AAOP bootstrap: upgrade' /tmp/bootstrap-upgrade.out
           grep -q 'AAOP READY' /tmp/bootstrap-upgrade.out
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
@@ -117,7 +127,7 @@ jobs:
         run: |
           set -euo pipefail
           target="$(cat /tmp/aaop-target)"
-          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" --uninstall > /tmp/bootstrap-uninstall.out
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" --uninstall 2>&1 | tee /tmp/bootstrap-uninstall.out
           grep -q 'AAOP bootstrap removal complete' /tmp/bootstrap-uninstall.out
           grep -q 'KEEP-ME' "$target/AGENTS.md"
           ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
