@@ -21,6 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          expected_version="$(cat .aaop/VERSION)"
           target="$(mktemp -d)"
           printf '# Project rules\n\nKEEP-BEFORE-AAOP\n' > "$target/AGENTS.md"
           printf '# Claude project rules\n\nKEEP-CLAUDE-RULE\n' > "$target/CLAUDE.md"
@@ -44,7 +45,7 @@ jobs:
           python scripts/install.py "$target" --uninstall > "$target/uninstall.out"
 
           grep -q 'AAOP uninstalled' "$target/uninstall.out"
-          grep -q 'installed version removed: 0.12.0' "$target/uninstall.out"
+          grep -q "installed version removed: $expected_version" "$target/uninstall.out"
           grep -q 'modified/untracked bootstrap blocks backed up: 1' "$target/uninstall.out"
           grep -q 'third-party providers removed: none' "$target/uninstall.out"
           grep -q 'KEEP-BEFORE-AAOP' "$target/AGENTS.md"

@@ -2,16 +2,28 @@
 
 Purpose: map AAOP concepts onto Codex without making Codex-specific behavior part of the core protocol.
 
+Host behavior last verified: **2026-08-08**
+
+Official sources:
+
+- https://openai.com/index/unrolling-the-codex-agent-loop/
+- https://openai.com/index/introducing-codex/
+
 ## Bootstrap
 
-Codex supports repository `AGENTS.md` instructions. AAOP therefore uses root `AGENTS.md` as the primary Codex bootstrap.
+Codex natively aggregates repository instructions from `AGENTS.md` / `AGENTS.override.md` while walking from the project root toward the current working directory. More specific instruction files can therefore refine root guidance.
+
+AAOP uses the root `AGENTS.md` marked block as the **common cross-host bootstrap**.
 
 For a task:
 
-1. load the governing `AGENTS.md` instruction scope;
+1. honor the active Codex instruction scope and any more-specific project rules;
 2. read `.aaop/ORCHESTRATOR.md` for non-trivial work;
-3. load only the relevant `.aaop/skills/*/SKILL.md` files;
-4. discover the actual tools/apps/skills exposed to the current Codex session before planning providers.
+3. start with `.aaop/skills/developer-intake/SKILL.md`;
+4. after routing, load `.aaop/skills/route-execution/SKILL.md` and only the current route pack;
+5. discover the actual tools/apps/skills exposed to the current Codex session before planning providers.
+
+Do not turn root `AGENTS.md` into an encyclopedia. It should remain a compact table of contents into canonical AAOP/project sources.
 
 ## Skills
 
@@ -36,6 +48,6 @@ Do not require a particular Codex multi-agent primitive. Apply AAOP host degrada
 
 Treat every connected Codex app/tool as a provider in the capability matrix. Discover current availability first. Do not tell the user to install MCP if Codex already exposes an equivalent first-party/native connector.
 
-## Repository guidance
+## Conformance boundary
 
-Keep `AGENTS.md` concise enough to serve as persistent bootstrap context. Put procedures in Skills and normative orchestration behavior in `.aaop/ORCHESTRATOR.md` so they are loaded progressively.
+AAOP depends only on Codex's documented project-instruction discovery surface, not on an AAOP-specific Codex plugin. If Codex changes instruction filenames/scoping, update this adapter and host-bootstrap conformance evidence; do not encode that change into the host-neutral Orchestrator unless it becomes portable across hosts.
