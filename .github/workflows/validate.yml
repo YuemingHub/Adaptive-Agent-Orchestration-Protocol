@@ -1,0 +1,32 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-aaop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate source package
+        run: python scripts/validate.py
+      - name: Smoke-test installer without overwriting project rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          printf '# Existing project rules\n\nKeep this line.\n' > "$target/AGENTS.md"
+          python scripts/install.py "$target"
+          grep -q 'Keep this line.' "$target/AGENTS.md"
+          grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+          python scripts/validate.py --root "$target" --package-only
+          python scripts/install.py "$target" --force
+          test "$(grep -c '<!-- AAOP:BEGIN -->' "$target/AGENTS.md")" -eq 1
