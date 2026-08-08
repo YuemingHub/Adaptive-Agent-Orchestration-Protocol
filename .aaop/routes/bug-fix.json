@@ -1,0 +1,54 @@
+{
+  "version": "0.5.0",
+  "route_id": "bug-fix",
+  "objective": "Turn an observed failure into a verified root-cause fix with the smallest durable change and explicit regression evidence.",
+  "default_execution": "host-native",
+  "stages": [
+    {
+      "id": "failure-evidence",
+      "purpose": "Capture expected versus observed behavior and reproduce the failure or obtain the strongest available evidence.",
+      "required_capabilities": ["failure-reproduction", "log-test-inspection"],
+      "optional_capabilities": ["browser-validation", "runtime-observability"],
+      "evidence": ["failing test", "runtime error/log", "browser reproduction", "minimal reproduction steps"],
+      "exit_when": "The failure is reproducible or sufficiently evidenced to localize without guessing."
+    },
+    {
+      "id": "root-cause",
+      "purpose": "Trace the failure through the smallest relevant code/data/config path and distinguish cause from symptom.",
+      "required_capabilities": ["code-tracing", "hypothesis-testing"],
+      "optional_capabilities": ["git-regression-analysis"],
+      "evidence": ["causal path", "disproven alternatives", "relevant change/history when useful"],
+      "exit_when": "A root-cause hypothesis predicts the observed failure and can be tested by a bounded change."
+    },
+    {
+      "id": "fix-and-regress",
+      "purpose": "Apply the narrowest durable fix and prove the failure no longer reproduces without collateral regression.",
+      "required_capabilities": ["targeted-implementation", "regression-testing"],
+      "optional_capabilities": ["browser-e2e-testing"],
+      "evidence": ["passing regression check", "relevant surrounding tests", "before/after runtime evidence"],
+      "exit_when": "The original failure is fixed and regression evidence passes."
+    }
+  ],
+  "escalations": [
+    {
+      "when": "The issue is well-defined, reproducible, bounded, and should be delegated to a dedicated issue-solving agent instead of the current host.",
+      "capability_gap": "isolated autonomous SWE issue resolution",
+      "provider_candidates": ["mini-swe-agent", "openhands"],
+      "selection_rule": "Prefer mini-SWE-agent for a minimal bounded issue loop; choose OpenHands only when a broader autonomous coding environment is the actual need."
+    },
+    {
+      "when": "The bug is browser-visible and cannot be proven reliably with current tests/tools.",
+      "capability_gap": "deterministic browser reproduction and regression validation",
+      "provider_candidates": ["playwright"],
+      "selection_rule": "Prefer project Playwright Test when adding durable regression coverage; use CLI+Skills for agent-driven checks; use MCP for persistent exploratory browser state."
+    },
+    {
+      "when": "The project already uses Spec Kit or the defect must be reconciled with durable specification artifacts.",
+      "capability_gap": "structured bug artifact/spec reconciliation",
+      "provider_candidates": ["spec-kit"],
+      "selection_rule": "Use Spec Kit's supported bug workflow when it materially improves traceability; do not initialize a full SDD system solely for a trivial one-line defect."
+    }
+  ],
+  "verification": ["the original failure is no longer reproducible", "a regression check guards the fixed behavior when practical", "unrelated refactoring did not become the main change"],
+  "reroute_signals": ["the failure is actually missing/changed product behavior -> feature-change", "the repository cannot be trusted enough to localize the issue -> repo-recovery", "production mitigation becomes primary -> release-operations"]
+}
