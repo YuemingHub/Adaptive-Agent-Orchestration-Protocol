@@ -10,6 +10,14 @@ import sys
 from pathlib import Path
 
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+ROUTE_IDS = {
+    "idea-to-build",
+    "repo-recovery",
+    "bug-fix",
+    "feature-change",
+    "understand-review",
+    "release-operations",
+}
 
 REQUIRED = [
     "AGENTS.md",
@@ -18,9 +26,11 @@ REQUIRED = [
     ".aaop/policies/autonomy.md",
     ".aaop/policies/mcp-and-tools.md",
     ".aaop/policies/progressive-integration.md",
+    ".aaop/registries/routes.json",
     ".aaop/registries/capabilities.json",
     ".aaop/registries/providers.json",
     ".aaop/registries/adoption-profiles.json",
+    ".aaop/schemas/intake-envelope.schema.json",
     ".aaop/schemas/environment-profile.schema.json",
     ".aaop/schemas/project-profile.schema.json",
     ".aaop/schemas/capability-matrix.schema.json",
@@ -96,6 +106,37 @@ def validate_json(path: Path, errors: list[str]) -> None:
         return
     if path.name.endswith(".schema.json") and (not isinstance(payload, dict) or "$schema" not in payload):
         error(errors, f"{path}: schema file missing $schema")
+
+
+def validate_routes(root: Path, errors: list[str]) -> None:
+    path = root / ".aaop/registries/routes.json"
+    payload = load_json(path, errors)
+    if not isinstance(payload, dict):
+        return
+    rows = payload.get("routes")
+    if not isinstance(rows, list):
+        error(errors, f"{path}: routes must be a list")
+        return
+
+    found: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            error(errors, f"{path}: every route must be an object")
+            continue
+        route_id = row.get("id")
+        if route_id not in ROUTE_IDS:
+            error(errors, f"{path}: unknown route id {route_id!r}")
+            continue
+        if route_id in found:
+            error(errors, f"{path}: duplicate route id {route_id!r}")
+        found.add(route_id)
+        for field in ("situation", "use_when", "first_moves", "avoid", "completion_shape"):
+            if field not in row:
+                error(errors, f"{path}: {route_id} missing field {field!r}")
+
+    missing = ROUTE_IDS - found
+    if missing:
+        error(errors, f"{path}: missing routes: {', '.join(sorted(missing))}")
 
 
 def provider_ids(root: Path, errors: list[str]) -> set[str]:
@@ -204,6 +245,7 @@ def main() -> int:
     for path in (root / ".aaop").rglob("*.json") if (root / ".aaop").exists() else []:
         validate_json(path, errors)
 
+    validate_routes(root, errors)
     ids = provider_ids(root, errors)
     validate_provider_model(root, errors, ids)
     validate_recipes(root, errors, ids)
@@ -216,6 +258,7 @@ def main() -> int:
         validate_skill(path, errors)
 
     expected_skills = {
+        "developer-intake",
         "project-discovery",
         "capability-planning",
         "provider-selection",
@@ -231,6 +274,7 @@ def main() -> int:
     if not args.package_only:
         for relative in [
             "README.md",
+            "docs/DEVELOPER_ENTRYPOINT.md",
             "docs/PROGRESSIVE_ADOPTION.md",
             "docs/ECOSYSTEM_MAP.md",
             "adapters/codex.md",
@@ -248,7 +292,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print(f"AAOP validation passed ({len(skills)} Skills, root={root})")
+    print(f"AAOP validation passed ({len(skills)} Skills, {len(ROUTE_IDS)} developer routes, root={root})")
     return 0
 
 
