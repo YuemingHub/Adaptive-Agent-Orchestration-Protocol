@@ -8,8 +8,7 @@
     "avoid_when": ["solo/local work can be completed safely in an existing AI IDE"]
   },
   "detect": {
-    "commands": ["agent-router"],
-    "files": ["package.json"]
+    "commands": ["agent-router"]
   },
   "install": {
     "mode": "manual-choice",
