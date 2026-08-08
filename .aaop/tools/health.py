@@ -214,15 +214,24 @@ def inspect_installation(root: Path | None = None) -> dict[str, Any]:
     version_mismatch = bool(version and report["manifest_version"] and version != report["manifest_version"])
     report["version_mismatch"] = version_mismatch
 
+    bootstrap_failure = bool(
+        bootstrap_states
+        & {"modified", "missing-file", "missing-aaop-block", "malformed-markers", "unreadable"}
+    )
+    old_integrity_baseline = schema_version < SUPPORTED_MANIFEST_SCHEMA or "present-untracked" in bootstrap_states
+
     if missing or unreadable:
         state = "incomplete"
         next_action = "AAOP-managed files are missing/unreadable. Review drift and repair from a trusted AAOP source with --upgrade; local managed-file edits will be backed up."
-    elif modified or version_mismatch or bootstrap_states & {"modified", "missing-file", "missing-aaop-block", "malformed-markers", "unreadable"}:
+    elif modified or bootstrap_failure:
         state = "drifted"
         next_action = "AAOP differs from its installed baseline. Review the listed drift; use a trusted AAOP source with --upgrade only when canonical repair is intended."
-    elif schema_version < SUPPORTED_MANIFEST_SCHEMA or "present-untracked" in bootstrap_states:
+    elif old_integrity_baseline:
         state = "upgrade-recommended"
         next_action = "The package is readable but the integrity baseline is older/incomplete. A safe --upgrade will preserve runtime/project-owned files and refresh tracking."
+    elif version_mismatch:
+        state = "drifted"
+        next_action = "AAOP package VERSION and manifest version disagree under the current integrity schema. Review the installation before relying on it or repairing from a trusted source."
     else:
         state = "healthy"
         next_action = "AAOP-managed files and bootstrap blocks match the installed baseline. Continue with normal developer intake; this does not prove the package is the latest upstream release."
