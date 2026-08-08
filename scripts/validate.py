@@ -27,7 +27,10 @@ REQUIRED = [
     ".aaop/schemas/team-plan.schema.json",
     ".aaop/schemas/execution-plan.schema.json",
     ".aaop/schemas/integration-plan.schema.json",
+    ".aaop/schemas/integration-recipe.schema.json",
+    ".aaop/recipes/README.md",
     ".aaop/tools/doctor.py",
+    ".aaop/tools/recipe.py",
 ]
 
 
@@ -82,7 +85,7 @@ def validate_skill(path: Path, errors: list[str]) -> None:
 def load_json(path: Path, errors: list[str]) -> object | None:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
-    except Exception as exc:  # noqa: BLE001 - validator should report all parse failures
+    except Exception as exc:  # noqa: BLE001
         error(errors, f"{path}: invalid JSON: {exc}")
         return None
 
@@ -95,36 +98,40 @@ def validate_json(path: Path, errors: list[str]) -> None:
         error(errors, f"{path}: schema file missing $schema")
 
 
-def validate_provider_model(root: Path, errors: list[str]) -> None:
-    providers_path = root / ".aaop/registries/providers.json"
-    profiles_path = root / ".aaop/registries/adoption-profiles.json"
-    providers_payload = load_json(providers_path, errors)
-    profiles_payload = load_json(profiles_path, errors)
-    if not isinstance(providers_payload, dict) or not isinstance(profiles_payload, dict):
-        return
+def provider_ids(root: Path, errors: list[str]) -> set[str]:
+    path = root / ".aaop/registries/providers.json"
+    payload = load_json(path, errors)
+    if not isinstance(payload, dict):
+        return set()
+    rows = payload.get("providers")
+    if not isinstance(rows, list) or not rows:
+        error(errors, f"{path}: providers must be a non-empty list")
+        return set()
 
-    provider_rows = providers_payload.get("providers")
-    if not isinstance(provider_rows, list) or not provider_rows:
-        error(errors, f"{providers_path}: providers must be a non-empty list")
-        return
-
-    provider_ids: set[str] = set()
-    for row in provider_rows:
+    ids: set[str] = set()
+    for row in rows:
         if not isinstance(row, dict):
-            error(errors, f"{providers_path}: every provider must be an object")
+            error(errors, f"{path}: every provider must be an object")
             continue
         provider_id = row.get("id")
         if not isinstance(provider_id, str) or not SKILL_NAME_RE.fullmatch(provider_id):
-            error(errors, f"{providers_path}: invalid provider id {provider_id!r}")
+            error(errors, f"{path}: invalid provider id {provider_id!r}")
             continue
-        if provider_id in provider_ids:
-            error(errors, f"{providers_path}: duplicate provider id {provider_id!r}")
-        provider_ids.add(provider_id)
+        if provider_id in ids:
+            error(errors, f"{path}: duplicate provider id {provider_id!r}")
+        ids.add(provider_id)
         level = row.get("adoption_level")
         if not isinstance(level, int) or not 1 <= level <= 5:
-            error(errors, f"{providers_path}: {provider_id} adoption_level must be 1..5")
+            error(errors, f"{path}: {provider_id} adoption_level must be 1..5")
+    return ids
 
-    profiles = profiles_payload.get("profiles")
+
+def validate_provider_model(root: Path, errors: list[str], ids: set[str]) -> None:
+    profiles_path = root / ".aaop/registries/adoption-profiles.json"
+    payload = load_json(profiles_path, errors)
+    if not isinstance(payload, dict):
+        return
+    profiles = payload.get("profiles")
     if not isinstance(profiles, list) or not profiles:
         error(errors, f"{profiles_path}: profiles must be a non-empty list")
         return
@@ -142,8 +149,40 @@ def validate_provider_model(root: Path, errors: list[str]) -> None:
                 error(errors, f"{profiles_path}: {key} must be a list")
                 continue
             for provider_id in refs:
-                if provider_id not in provider_ids:
+                if provider_id not in ids:
                     error(errors, f"{profiles_path}: unknown provider reference {provider_id!r}")
+
+
+def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> None:
+    recipe_root = root / ".aaop/recipes"
+    recipes = sorted(recipe_root.glob("*.json")) if recipe_root.exists() else []
+    if not recipes:
+        error(errors, "no integration recipes found under .aaop/recipes")
+        return
+
+    recipe_ids: set[str] = set()
+    for path in recipes:
+        payload = load_json(path, errors)
+        if not isinstance(payload, dict):
+            continue
+        recipe_id = payload.get("id")
+        provider_id = payload.get("provider_id")
+        if not isinstance(recipe_id, str) or not SKILL_NAME_RE.fullmatch(recipe_id):
+            error(errors, f"{path}: invalid recipe id {recipe_id!r}")
+            continue
+        if path.stem != recipe_id:
+            error(errors, f"{path}: recipe id must match filename stem")
+        if recipe_id in recipe_ids:
+            error(errors, f"{path}: duplicate recipe id {recipe_id!r}")
+        recipe_ids.add(recipe_id)
+        if provider_id not in ids:
+            error(errors, f"{path}: unknown provider_id {provider_id!r}")
+        for required in ("last_verified", "source_of_truth", "selection", "detect", "install", "verify", "rollback"):
+            if required not in payload:
+                error(errors, f"{path}: missing required field {required!r}")
+        install = payload.get("install")
+        if not isinstance(install, dict) or "mode" not in install:
+            error(errors, f"{path}: install.mode is required")
 
 
 def main() -> int:
@@ -165,7 +204,9 @@ def main() -> int:
     for path in (root / ".aaop").rglob("*.json") if (root / ".aaop").exists() else []:
         validate_json(path, errors)
 
-    validate_provider_model(root, errors)
+    ids = provider_ids(root, errors)
+    validate_provider_model(root, errors, ids)
+    validate_recipes(root, errors, ids)
 
     skill_root = root / ".aaop" / "skills"
     skills = sorted(skill_root.glob("*/SKILL.md")) if skill_root.exists() else []
