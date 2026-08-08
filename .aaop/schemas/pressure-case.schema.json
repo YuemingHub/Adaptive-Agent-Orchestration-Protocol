@@ -13,6 +13,7 @@
     "expected_first_moves",
     "must_preserve",
     "must_not",
+    "required_guard_ids",
     "lessons"
   ],
   "properties": {
@@ -38,6 +39,12 @@
     "expected_first_moves": {"type": "array", "items": {"type": "string"}, "minItems": 1},
     "must_preserve": {"type": "array", "items": {"type": "string"}},
     "must_not": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "required_guard_ids": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+      "minItems": 1,
+      "uniqueItems": true
+    },
     "expected_blocker_class": {
       "type": ["string", "null"],
       "enum": [null, "missing-evidence", "environment", "authorization", "credential", "external-dependency", "product-decision"]
