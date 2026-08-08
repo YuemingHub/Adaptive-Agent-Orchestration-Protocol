@@ -33,6 +33,7 @@
     "start broad cleanup before reconstructing current state",
     "promote product-specific behavior into a shared protocol merely because it exists"
   ],
+  "required_guard_ids": ["source-authority-freshness", "preserve-conflicting-evidence"],
   "expected_blocker_class": null,
   "lessons": [
     "Repository recovery needs evidence authority and temporal status, not only file inventory.",
