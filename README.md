@@ -277,38 +277,51 @@ AAOP prefers the smallest provider **surface**, not the entire ecosystem.
 
 ### Provider Adoption Review: remember what deserves another look
 
-v0.9 adds an optional Recipe field called `adoption_review`.
+Recipes may carry scoped adoption review debt when a real adoption decision uncovers a provider-specific concern that future use should re-check.
 
-It exists for a narrow problem: a real review may uncover an adoption concern that is easy to forget, while the provider and its deployment context continue to change.
+AAOP stores the date, scope, reason, observations, evidence sources, and required re-checks. It does **not** store permanent labels such as `SAFE`, `UNSAFE`, `APPROVED`, or `BANNED`.
 
-AAOP stores the concern as:
-
-```text
-reviewed_at
-scope
-reason
-decision_effect
-current observations
-sources to revisit
-required checks
-```
-
-It does **not** store a permanent answer such as:
-
-```text
-SAFE
-UNSAFE
-APPROVED
-BANNED
-```
-
-When a selected provider surface matches the recorded scope, AAOP re-checks current upstream source/status and the actual deployment/permission/network context before consequential adoption.
+When a selected surface matches the recorded scope, AAOP re-checks current upstream source/status and the actual deployment/permission/network context before consequential adoption.
 
 If the concern is fixed upstream or irrelevant to the selected surface, it should not block adoption; update or retire the stale review. If it remains relevant and cannot be mitigated, narrow/isolate the provider, choose another provider, or defer adoption.
 
-The first scoped example is the AutoAgent Docker-backed command execution path. The Recipe records the current source observations and the public issue that motivated re-verification, while explicitly avoiding a project-wide security verdict.
-
 This is **remembered review debt**, not a security vulnerability database.
+
+## Safe install and upgrade
+
+AAOP should not become easy to try but risky to keep current.
+
+Initial install:
+
+```bash
+python scripts/install.py /path/to/project
+```
+
+Upgrade an existing installation:
+
+```bash
+python scripts/install.py /path/to/project --upgrade
+```
+
+The installer now separates AAOP-owned state from project-owned state:
+
+```text
+AAOP-managed protocol files        → upgraded
+.aaop/runtime/                     → preserved
+project-only files inside .aaop/   → preserved
+AGENTS/CLAUDE text outside markers → preserved
+AAOP text inside markers           → updated
+```
+
+An install manifest records hashes for AAOP-managed files. When a managed file has been locally edited, the installer backs it up under `.aaop/runtime/upgrade-backups/` before replacing it with the canonical version. If a future AAOP release starts managing a path that collides with an existing project-owned file, that file is backed up before AAOP claims the path.
+
+Malformed or duplicated bootstrap markers fail preflight **before package mutation**.
+
+`--force` remains a backward-compatible alias for `--upgrade`; it no longer deletes and replaces the whole `.aaop` directory.
+
+Legacy installations without a manifest can still upgrade while preserving runtime and target-only files. Because their original managed-file hashes are unknown, local changes inside legacy AAOP-managed paths cannot be distinguished before those current paths are refreshed.
+
+See [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
 ## What AAOP owns
 
@@ -322,6 +335,7 @@ This is **remembered review debt**, not a security vulnerability database.
 - blocker classification;
 - progressive provider selection and least privilege;
 - scoped provider-adoption review debt and re-verification policy;
+- state-preserving AAOP install/upgrade semantics;
 - verification, replanning, and route correction;
 - graceful degradation across hosts.
 
@@ -351,7 +365,7 @@ See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md).
 python scripts/install.py /path/to/project
 ```
 
-The installer copies the `.aaop` protocol package and adds a compact bootstrap to existing `AGENTS.md` / `CLAUDE.md` without replacing project rules. It installs no third-party runtime/MCP/provider and requests no secret.
+The installer adds the `.aaop` package plus marked bootstrap blocks without replacing unrelated project rules. It installs no third-party runtime/MCP/provider and requests no secret.
 
 Then open the project in the AI host you already use and describe what you want in ordinary language.
 
@@ -361,29 +375,21 @@ Then open the project in the AI host you already use and describe what you want 
 AGENTS.md
 CLAUDE.md
 .aaop/
+├── VERSION                          # installable package release
 ├── ORCHESTRATOR.md
 ├── policies/
 ├── registries/
 ├── routes/                          # route capability packs + pressure guards
 ├── recipes/                         # lazy integration/detection + optional adoption review debt
 ├── schemas/
-│   ├── pressure-case.schema.json
-│   ├── integration-recipe.schema.json
-│   ├── environment-inventory.schema.json
-│   └── ...
 ├── skills/
-│   ├── developer-intake/
-│   ├── provider-selection/
-│   ├── route-execution/
-│   └── ...
 └── tools/
-    ├── doctor.py
-    ├── route.py
-    └── recipe.py
 
 tests/pressure/                      # source-repo regression cases
+scripts/install.py                   # state-preserving install/upgrade
+scripts/validate.py
 scripts/validate_pressure.py
-docs/REAL_PROJECT_PRESSURE_TESTS.md
+docs/QUICKSTART.md
 ```
 
 ## Core design principles
@@ -400,19 +406,22 @@ docs/REAL_PROJECT_PRESSURE_TESTS.md
 10. Classify blockers before provider escalation.
 11. Install nothing new without a proven technical capability gap.
 12. Re-check applicable provider adoption debt before consequential use; never turn it into a permanent label.
-13. Prefer mature upstream implementations over copies.
-14. Select the minimum provider surface.
-15. Verify outcomes; do not fabricate completion when safely blocked.
-16. Let real-project regressions improve the protocol before adding theoretical completeness.
-17. Hide orchestration complexity without lowering engineering rigor.
+13. Upgrade AAOP-owned files without deleting runtime or project-owned state.
+14. Prefer mature upstream implementations over copies.
+15. Select the minimum provider surface.
+16. Verify outcomes; do not fabricate completion when safely blocked.
+17. Let real-project regressions improve the protocol before adding theoretical completeness.
+18. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.9.0 — scoped provider adoption review debt.**
+**v0.10.0 — state-preserving install and upgrade.**
 
-v0.9 adds an optional, schema-validated `adoption_review` to Integration Recipes and teaches provider selection to re-verify relevant concerns against current upstream and actual deployment context before adoption. The first real example is scoped to AutoAgent's Docker-backed command execution surface observed during the v0.8 adoption review.
+v0.10 replaces destructive whole-directory upgrade semantics with managed-file manifests, runtime preservation, target-only file preservation, bootstrap block replacement, preflight marker validation, and automatic backup of locally modified/colliding managed paths.
 
-No new provider/framework/runtime was added in v0.9, and AAOP does not become a security database or provider certification system.
+This is an installation/continuity release; the normative orchestration semantics remain compatible with the v0.9 protocol baseline.
+
+No new provider/framework/runtime was added in v0.10.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
