@@ -1,0 +1,14 @@
+# AAOP derived runtime state
+.aaop/runtime/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
