@@ -1,23 +1,23 @@
 {
-  "version": "0.7.0",
+  "version": "0.15.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then make one evidence-backed improvement without broad speculative cleanup.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "preserve-and-inventory",
-      "purpose": "Preserve current state and inventory instructions, manifests, modules, tests, CI, deployment, recent history, and the declared authority/freshness of material source documents.",
+      "purpose": "Preserve current state and establish the smallest trustworthy discovery surface: governing instructions, declared current/canonical entrypoints, manifests, relevant modules/tests/CI, recent history, and material source authority/freshness.",
       "required_capabilities": ["repository-inspection", "git-history-analysis", "build-test-discovery", "source-authority-analysis"],
       "optional_capabilities": ["architecture-mapping"],
-      "evidence": ["working tree and branch state", "instruction files", "manifests", "test/CI configuration", "recent commits", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals"],
-      "exit_when": "The current technical surface, candidate sources of truth, and material source authority/freshness are known."
+      "evidence": ["working tree and branch state", "governing instruction files", "declared first-read/current/canonical sources", "manifests", "relevant test/CI configuration", "recent commits when material", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals"],
+      "exit_when": "The current technical surface, authoritative entrypoints, and material source authority/freshness needed for the immediate recovery decision are known without recursively traversing unrelated reference graphs."
     },
     {
       "id": "truth-reconstruction",
       "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown evidence without erasing conflicts, and identify the highest-leverage blocker.",
       "required_capabilities": ["cross-evidence-synthesis", "architecture-understanding", "risk-prioritization", "conflict-preservation"],
       "optional_capabilities": ["runtime-probing", "security-risk-review"],
-      "evidence": ["README/spec versus code comparison", "tests versus runtime behavior", "issue/roadmap/history context", "authority/freshness table for conflicting claims", "explicit unresolved conflicts when no justified winner exists"],
+      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "explicit unresolved conflicts when no justified winner exists"],
       "exit_when": "A concise current-state model and prioritized recovery target are defensible from evidence, with conflicts and uncertainty preserved rather than silently resolved."
     },
     {
@@ -37,6 +37,10 @@
     {
       "id": "preserve-conflicting-evidence",
       "rule": "When material sources disagree and authority/freshness do not justify a winner, preserve the conflict and uncertainty instead of silently selecting or rewriting history."
+    },
+    {
+      "id": "bounded-evidence-traversal",
+      "rule": "Start from explicit project first-read/current/canonical entrypoints when available. Treat links, related/depends_on metadata, registries, indexes, historical release lists, and directory inventories as navigation rather than mandatory coverage. Follow an edge only when it can change the immediate route, baseline, target, acceptance evidence, or risk boundary; stop once the recovery target is defensible."
     }
   ],
   "escalations": [
@@ -47,10 +51,10 @@
       "selection_rule": "Prefer core Spec Kit existing-project/evolving-spec workflows first; treat community brownfield extensions as untrusted candidates until source and permissions are reviewed."
     },
     {
-      "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems.",
+      "when": "The repository is too large or long-running for the current host to maintain reliable context and isolated subproblems after bounded discovery has already identified the relevant surface.",
       "capability_gap": "long-horizon repository execution",
       "provider_candidates": ["deepagents", "openhands"],
-      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy."
+      "selection_rule": "Select the runtime property actually missing; do not migrate merely because the repository is messy or exposes a large reference graph."
     },
     {
       "when": "Recovery reveals that the immediate blocker is a bounded reproducible defect.",
@@ -59,6 +63,6 @@
       "selection_rule": "Reroute to bug-fix first; use mini-SWE-agent only if the issue is clear and verifiable."
     }
   ],
-  "verification": ["current-state claims are grounded in repository/runtime evidence", "material sources have authority/freshness considered rather than being flattened into one truth", "unresolved conflicts remain explicit", "one prioritized improvement is verified", "broad cleanup was avoided unless evidence justified it"],
+  "verification": ["current-state claims are grounded in repository/runtime evidence", "material sources have authority/freshness considered rather than being flattened into one truth", "explicit project entrypoints/exclusions were respected", "reference graphs were traversed only for material unresolved questions", "unresolved conflicts remain explicit", "one prioritized improvement is verified", "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"],
   "reroute_signals": ["a specific failing behavior becomes primary -> bug-fix", "a desired new behavior becomes primary -> feature-change", "the user only needs a decision/review -> understand-review"]
 }
