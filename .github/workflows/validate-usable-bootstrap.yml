@@ -1,0 +1,159 @@
+name: validate-usable-bootstrap
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  usable-bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate source and source-tree user CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/validate.py
+          python .aaop/tools/aaop.py version | grep -qx "$(cat .aaop/VERSION)"
+          python .aaop/tools/aaop.py ready . --json > /tmp/aaop-source-ready.json
+          python - /tmp/aaop-source-ready.json <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['ready'] is True, d
+          assert d['health_state'] == 'source-tree', d
+          assert d['version'] == open('.aaop/VERSION').read().strip(), d
+          assert d['starter_prompt'], d
+          PY
+          test ! -d .aaop/tools/__pycache__
+
+      - name: Build polluted local source archive for bootstrap replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+
+          root = Path('.').resolve()
+          out = Path('/tmp/aaop-source.zip')
+          with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+              for path in root.rglob('*'):
+                  if not path.is_file() or '.git' in path.parts:
+                      continue
+                  rel = path.relative_to(root)
+                  z.write(path, (Path('aaop-source') / rel).as_posix())
+              # Explicitly replay a local source checkout polluted by interpreter caches.
+              # These generated files must never become AAOP-managed install content.
+              z.writestr('aaop-source/.aaop/tools/__pycache__/regression.cpython-312.pyc', b'generated-cache')
+              z.writestr('aaop-source/.aaop/tools/regression.pyo', b'generated-cache')
+          print(out)
+          PY
+          test -s /tmp/aaop-source.zip
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('/tmp/aaop-source.zip') as z:
+              names = z.namelist()
+          assert any('__pycache__/' in name for name in names), names
+          assert any(name.endswith('.pyo') for name in names), names
+          PY
+
+      - name: Install without cloning and report READY
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          echo "$target" > /tmp/aaop-target
+          printf '# Existing project rules\n\nKEEP-ME\n' > "$target/AGENTS.md"
+
+          if ! python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" 2>&1 | tee /tmp/bootstrap-install.out; then
+            echo '--- health after failed bootstrap ---' >&2
+            if test -f "$target/.aaop/tools/health.py"; then
+              python "$target/.aaop/tools/health.py" "$target" --json || true
+            fi
+            echo '--- manifest after failed bootstrap ---' >&2
+            if test -f "$target/.aaop/.install-manifest.json"; then
+              cat "$target/.aaop/.install-manifest.json" || true
+            fi
+            exit 1
+          fi
+          grep -q 'AAOP bootstrap: install' /tmp/bootstrap-install.out
+          grep -q 'AAOP READY' /tmp/bootstrap-install.out
+          grep -q 'KEEP-ME' "$target/AGENTS.md"
+          test -f "$target/.aaop/tools/aaop.py"
+          test -f "$target/.aaop/.install-manifest.json"
+          grep -qx "$(cat .aaop/VERSION)" "$target/.aaop/VERSION"
+
+          python - "$target/.aaop/.install-manifest.json" <<'PY'
+          import json, sys
+          manifest = json.load(open(sys.argv[1]))
+          managed = list(manifest['files'])
+          assert not any('__pycache__' in path for path in managed), managed
+          assert not any(path.endswith(('.pyc', '.pyo')) for path in managed), managed
+          PY
+
+          python "$target/.aaop/tools/aaop.py" ready "$target" --json > /tmp/aaop-ready.json
+          python - /tmp/aaop-ready.json <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['ready'] is True, d
+          assert d['health_state'] == 'healthy', d
+          assert 'AGENTS.md' in d['instruction_files'], d
+          assert d['starter_prompt'], d
+          PY
+
+          python "$target/.aaop/tools/aaop.py" prompt | grep -q 'continue autonomously'
+          test ! -d "$target/.aaop/tools/__pycache__"
+
+      - name: Re-running bootstrap is a safe upgrade
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(cat /tmp/aaop-target)"
+          mkdir -p "$target/.aaop/runtime"
+          printf 'runtime-state\n' > "$target/.aaop/runtime/state.txt"
+          printf 'project-owned\n' > "$target/.aaop/local-note.txt"
+
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" 2>&1 | tee /tmp/bootstrap-upgrade.out
+          grep -q 'AAOP bootstrap: upgrade' /tmp/bootstrap-upgrade.out
+          grep -q 'AAOP READY' /tmp/bootstrap-upgrade.out
+          grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
+          grep -qx 'project-owned' "$target/.aaop/local-note.txt"
+          grep -q 'KEEP-ME' "$target/AGENTS.md"
+          test ! -d "$target/.aaop/tools/__pycache__"
+
+      - name: Bootstrap refuses to claim unrelated .aaop directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          mkdir -p "$target/.aaop"
+          printf 'unrelated\n' > "$target/.aaop/owner.txt"
+          if python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" > /tmp/bootstrap-refuse.out 2>&1; then
+            echo 'expected unrelated .aaop bootstrap to fail' >&2
+            exit 1
+          fi
+          grep -q 'not recognizable as AAOP' /tmp/bootstrap-refuse.out
+          grep -qx 'unrelated' "$target/.aaop/owner.txt"
+          test ! -f "$target/.aaop/VERSION"
+
+      - name: Safe removal through the same bootstrap surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(cat /tmp/aaop-target)"
+          python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" --uninstall 2>&1 | tee /tmp/bootstrap-uninstall.out
+          grep -q 'AAOP bootstrap removal complete' /tmp/bootstrap-uninstall.out
+          grep -q 'KEEP-ME' "$target/AGENTS.md"
+          ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+          grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
+          grep -qx 'project-owned' "$target/.aaop/local-note.txt"
+          test ! -f "$target/.aaop/ORCHESTRATOR.md"
+          test ! -f "$target/.aaop/tools/aaop.py"

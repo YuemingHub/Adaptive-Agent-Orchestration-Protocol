@@ -122,12 +122,21 @@ def aaop_version(source_package: Path) -> str:
 
 
 def source_files(source_package: Path) -> dict[str, Path]:
+    """Return only canonical source files that AAOP may own in an installation.
+
+    Interpreter caches are local execution by-products, not package contents. If a
+    developer runs AAOP tools in the source checkout before installing, Python may
+    create ``__pycache__`` / ``.pyc`` / ``.pyo`` files. Never copy or manifest
+    those generated artifacts as AAOP-owned state.
+    """
     files: dict[str, Path] = {}
     for path in sorted(source_package.rglob("*")):
         if not path.is_file():
             continue
         relative = path.relative_to(source_package)
         if "runtime" in relative.parts or relative.as_posix() == MANIFEST_NAME:
+            continue
+        if "__pycache__" in relative.parts or path.suffix in {".pyc", ".pyo"}:
             continue
         files[relative.as_posix()] = path
     return files
