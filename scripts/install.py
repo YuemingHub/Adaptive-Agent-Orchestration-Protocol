@@ -23,18 +23,22 @@ AAOP_END = "<!-- AAOP:END -->"
 AGENTS_BLOCK = f"""{AAOP_BEGIN}
 ## Adaptive Agent Orchestration Protocol (AAOP)
 
-For non-trivial developer work, read `.aaop/ORCHESTRATOR.md` and begin with
-`.aaop/skills/developer-intake/SKILL.md`. Infer the user's current situation and
-one primary development route from ordinary language plus available project
-evidence. Then load `.aaop/skills/route-execution/SKILL.md` and only the matching
-`.aaop/routes/<route-id>.json` capability pack.
+For non-trivial developer work, read `.aaop/ORCHESTRATOR.md`, begin with
+`.aaop/skills/developer-intake/SKILL.md`, select one primary route, then load
+`.aaop/skills/route-execution/SKILL.md` plus only `.aaop/routes/<route-id>.json`.
 
-Do not make the user choose an Agent, workflow, Skill, MCP server, provider, or
-runtime. Read accessible repository/log/test evidence before asking questions.
-Satisfy route capabilities with the current host/repository first. A provider
-candidate in a route pack is not a dependency: add the smallest provider surface
-only after a concrete capability gap is proven. Apply risk-based autonomy,
-verify the route outcome, and reroute when evidence changes the situation.
+Accept ordinary developer language. Read accessible project evidence before asking
+for facts already present. Establish the relevant current baseline/source authority
+before treating old issues, PRs, branches, status files, or prior AI conclusions as
+current truth. Apply route pressure guards when their condition is present.
+
+Reuse current host/repository capabilities first. If work is blocked, distinguish
+missing evidence, environment/network limits, authorization, credentials, external
+dependencies, and product decisions from a genuine technical capability gap. Only
+a proven capability gap justifies provider selection, and then choose the smallest
+provider surface. Do not widen access or install workaround machinery to bypass a
+non-capability blocker. Verify the outcome; if safely blocked, preserve unknown
+state and report the smallest legitimate unblock rather than claiming completion.
 
 Canonical orchestration Skills live under `.aaop/skills/`.
 {AAOP_END}
@@ -45,11 +49,12 @@ CLAUDE_BLOCK = f"""{AAOP_BEGIN}
 
 Read `AGENTS.md`, `.aaop/ORCHESTRATOR.md`, and start developer requests with
 `.aaop/skills/developer-intake/SKILL.md`. After routing, load
-`.aaop/skills/route-execution/SKILL.md` and only the current
-`.aaop/routes/<route-id>.json` capability pack. Accept natural language, inspect
-the workspace before asking for technical facts already present, and prefer
-existing Claude Code/native capabilities. Do not create a fixed team or add a
-provider merely because a route pack lists it; prove the capability gap first.
+`.aaop/skills/route-execution/SKILL.md` and only the current route pack. Prefer
+current project evidence and existing Claude Code/native capabilities. Reconcile
+stale artifacts with the current baseline, apply route pressure guards, and classify
+blockers before calling them capability gaps. Do not add providers merely because
+they are listed; prove a technical gap first. Do not fabricate completion when an
+environment/permission/evidence blocker requires a legitimate unblock.
 {AAOP_END}
 """
 
