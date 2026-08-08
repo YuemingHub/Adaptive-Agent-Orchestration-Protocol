@@ -32,8 +32,9 @@ jobs:
           assert d['version'] == open('.aaop/VERSION').read().strip(), d
           assert d['starter_prompt'], d
           PY
+          test ! -d .aaop/tools/__pycache__
 
-      - name: Build local source archive for bootstrap replay
+      - name: Build polluted local source archive for bootstrap replay
         shell: bash
         run: |
           set -euo pipefail
@@ -49,18 +50,19 @@ jobs:
                       continue
                   rel = path.relative_to(root)
                   z.write(path, (Path('aaop-source') / rel).as_posix())
+              # Explicitly replay a local source checkout polluted by interpreter caches.
+              # These generated files must never become AAOP-managed install content.
+              z.writestr('aaop-source/.aaop/tools/__pycache__/regression.cpython-312.pyc', b'generated-cache')
+              z.writestr('aaop-source/.aaop/tools/regression.pyo', b'generated-cache')
           print(out)
           PY
           test -s /tmp/aaop-source.zip
-          # The prior source-tree readiness step imports health/doctor and normally
-          # creates Python bytecode caches. Keep them in this replay archive on purpose:
-          # a local source checkout may contain the same generated artifacts, and the
-          # canonical installer must never claim them as package-owned files.
           python - <<'PY'
           import zipfile
           with zipfile.ZipFile('/tmp/aaop-source.zip') as z:
               names = z.namelist()
-          assert any('__pycache__/' in name or name.endswith(('.pyc', '.pyo')) for name in names), names
+          assert any('__pycache__/' in name for name in names), names
+          assert any(name.endswith('.pyo') for name in names), names
           PY
 
       - name: Install without cloning and report READY
@@ -108,6 +110,7 @@ jobs:
           PY
 
           python "$target/.aaop/tools/aaop.py" prompt | grep -q 'continue autonomously'
+          test ! -d "$target/.aaop/tools/__pycache__"
 
       - name: Re-running bootstrap is a safe upgrade
         shell: bash
@@ -124,6 +127,7 @@ jobs:
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
           grep -qx 'project-owned' "$target/.aaop/local-note.txt"
           grep -q 'KEEP-ME' "$target/AGENTS.md"
+          test ! -d "$target/.aaop/tools/__pycache__"
 
       - name: Bootstrap refuses to claim unrelated .aaop directory
         shell: bash
