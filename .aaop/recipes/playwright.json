@@ -9,7 +9,8 @@
   },
   "detect": {
     "commands": ["playwright", "playwright-cli"],
-    "files": ["playwright.config.ts", "playwright.config.js", ".mcp.json", ".cursor/mcp.json"]
+    "files": ["playwright.config.ts", "playwright.config.js", "playwright.config.mts", "playwright.config.mjs"],
+    "node_packages": ["@playwright/test", "playwright", "playwright-core", "@playwright/mcp", "@playwright/cli"]
   },
   "install": {
     "mode": "manual-choice",

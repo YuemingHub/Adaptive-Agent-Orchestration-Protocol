@@ -18,7 +18,7 @@ jobs:
           python-version: "3.12"
       - name: Validate source package
         run: python scripts/validate.py
-      - name: Smoke-test installer, doctor, routes, recipes, and project-rule preservation
+      - name: Smoke-test installer, environment resolution, routes, recipes, and project-rule preservation
         shell: bash
         run: |
           set -euo pipefail
@@ -32,8 +32,52 @@ jobs:
           test -f "$target/.aaop/tools/route.py"
           test -f "$target/.aaop/tools/recipe.py"
           test -f "$target/.aaop/routes/bug-fix.json"
-          python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor.json"
-          python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert "observed_surface_level" in d' "$target/doctor.json"
+          test -f "$target/.aaop/schemas/environment-inventory.schema.json"
+
+          # AAOP's own canonical Skills must not inflate the observed external surface.
+          python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor-clean.json"
+          python - "$target/doctor-clean.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d["observed_surface_level"] == 0, d["observed_surface_level"]
+          assert d["provider_detection"]["agent-skills"]["detected"] is True
+          assert d["provider_detection"]["agentspace"]["detected"] is False
+          assert d["provider_detection"]["autoagent"]["detected"] is False
+          assert d["provider_detection"]["microsoft-agent-framework"]["detected"] is False
+          PY
+
+          # Simulate an existing Spec Kit CLI and Playwright project dependency.
+          mkdir -p "$target/fakebin"
+          printf '#!/usr/bin/env sh\nexit 0\n' > "$target/fakebin/specify"
+          chmod +x "$target/fakebin/specify"
+          cat > "$target/package.json" <<'JSON'
+          {
+            "devDependencies": {
+              "@playwright/test": "1.0.0",
+              "some-unrelated-package": "1.0.0"
+            }
+          }
+          JSON
+          printf '[project]\nname = "ordinary-python-project"\nversion = "0.0.0"\n' > "$target/pyproject.toml"
+
+          PATH="$target/fakebin:$PATH" python "$target/.aaop/tools/doctor.py" "$target" --route feature-change --json > "$target/doctor-route.json"
+          python - "$target/doctor-route.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          providers = d["provider_detection"]
+          assert providers["spec-kit"]["detected"] is True
+          assert providers["playwright"]["detected"] is True
+          assert providers["agentspace"]["detected"] is False
+          assert providers["autoagent"]["detected"] is False
+          assert providers["microsoft-agent-framework"]["detected"] is False
+          assert d["project_signals"]["node_dependencies"]["@playwright/test"] == "1.0.0"
+          assert d["route_context"]["route_id"] == "feature-change"
+          route_candidates = {x["provider_id"]: x["status"] for x in d["route_context"]["provider_candidates"]}
+          assert route_candidates["spec-kit"] == "detected"
+          assert route_candidates["playwright"] == "detected"
+          assert d["observed_surface_level"] >= 2
+          PY
+
           python "$target/.aaop/tools/route.py" list | grep -q 'bug-fix'
           python "$target/.aaop/tools/route.py" show bug-fix --json > "$target/bug-route.json"
           python -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d["route_id"] == "bug-fix"; assert len(d["stages"]) >= 3' "$target/bug-route.json"

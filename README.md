@@ -17,7 +17,9 @@ Primary development route
               ↓
 Route Capability Pack
               ↓
-What capabilities are needed now?
+Environment inventory: what already exists?
+              ↓
+What capabilities are still needed now?
               ↓
 Reuse what already exists
               ↓
@@ -94,6 +96,34 @@ python .aaop/tools/route.py show bug-fix
 
 See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
 
+## Recipe-driven environment resolution
+
+Before AAOP concludes that a route is missing a capability, it should first inspect what the developer already has.
+
+`.aaop/tools/doctor.py` now reads provider `detect` hints directly from Integration Recipes instead of maintaining a second hard-coded provider list.
+
+It can inventory:
+
+- visible Codex / Claude Code / Cursor host commands;
+- basic toolchain commands such as Git, Python, Node, package managers and Docker;
+- project manifests, test signals, CI and deployment signals;
+- Skill and MCP configuration surfaces;
+- provider-specific command/file/Python-package/Node-package evidence;
+- provider presence relevant to one current Route Capability Pack.
+
+Examples:
+
+```bash
+python .aaop/tools/doctor.py .
+python .aaop/tools/doctor.py . --route bug-fix --json
+```
+
+The output answers **“what appears to be present?”**, not **“what should we use?”**
+
+A detected provider may be irrelevant, misconfigured, under-permissioned, or unsafe for the current route. A provider that is not detected may still be unnecessary. Route capability matching and provider-selection policy remain authoritative.
+
+Recipe detection hints are intentionally narrow. Generic manifests such as `package.json`, `pyproject.toml`, or `requirements.txt` cannot by themselves prove a specific provider exists.
+
 ## Why AAOP exists
 
 The agent ecosystem is capable but fragmented. Developers may encounter Agent Skills, MCP, A2A, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, AutoAgent, Deep Agents, Microsoft Agent Framework, CAMEL, AgentSpace, and many other systems — each solving a real layer of the problem.
@@ -102,7 +132,7 @@ The answer should not be to reinstall or reimplement all of them in every projec
 
 AAOP's job is:
 
-> **Understand the developer's actual situation first, derive the capabilities the route needs, then integrate only the mature capability that is actually missing.**
+> **Understand the developer's actual situation first, inventory existing capability, derive what the route still needs, then integrate only the mature capability that is actually missing.**
 
 ## Progressive adoption
 
@@ -156,6 +186,7 @@ Current recipes include Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-a
 
 - natural-language developer intake and internal routing;
 - Route Capability Packs;
+- recipe-driven environment/provider presence inventory;
 - project/environment discovery policy;
 - outcome and constraint resolution;
 - capability-first planning;
@@ -220,25 +251,20 @@ CLAUDE.md
 ├── ORCHESTRATOR.md
 ├── policies/
 ├── registries/
-│   ├── routes.json                  # developer situation → primary route
+│   ├── routes.json
 │   ├── capabilities.json
 │   ├── providers.json
 │   └── adoption-profiles.json
 ├── routes/                          # route capability packs
-│   ├── idea-to-build.json
-│   ├── repo-recovery.json
-│   ├── bug-fix.json
-│   ├── feature-change.json
-│   ├── understand-review.json
-│   └── release-operations.json
-├── recipes/                         # lazy provider integration knowledge
+├── recipes/                         # lazy integration + detection knowledge
 ├── schemas/
 │   ├── intake-envelope.schema.json
 │   ├── route-capability-pack.schema.json
+│   ├── environment-inventory.schema.json
 │   └── ...
 ├── skills/
-│   ├── developer-intake/            # natural-language front door
-│   ├── route-execution/             # execute current pack progressively
+│   ├── developer-intake/
+│   ├── route-execution/
 │   ├── project-discovery/
 │   ├── capability-planning/
 │   ├── provider-selection/
@@ -246,7 +272,7 @@ CLAUDE.md
 │   ├── tool-resolution/
 │   └── verification-loop/
 └── tools/
-    ├── doctor.py
+    ├── doctor.py                    # recipe-driven read-only inventory
     ├── route.py
     └── recipe.py
 
@@ -263,22 +289,23 @@ scripts/
 2. Read available evidence before asking the user.
 3. Route by the next observable outcome, not by developer jargon.
 4. Use Route Capability Packs as thin engineering maps, not proprietary workflows.
-5. Derive capabilities before inventing roles or choosing providers.
-6. Start with what the developer already has.
+5. **Detect/reuse existing capability before concluding there is a gap.**
+6. Derive capabilities before inventing roles or choosing providers.
 7. Install nothing new without a proven capability gap.
 8. Prefer mature upstream implementations over copies.
 9. Select the minimum provider surface, not the whole ecosystem.
-10. Community catalogs are discovery surfaces, not automatic trust boundaries.
-11. Verify outcomes and verify every provider actually closes the gap that justified it.
-12. Hide orchestration complexity from the user without lowering engineering rigor.
+10. Provider detection means presence, not relevance/trust/recommendation.
+11. Community catalogs are discovery surfaces, not automatic trust boundaries.
+12. Verify outcomes and verify every provider actually closes the gap that justified it.
+13. Hide orchestration complexity from the user without lowering engineering rigor.
 
 ## Status
 
-**v0.5.0 — route capability packs and mature SDLC provider composition.**
+**v0.6.0 — recipe-driven environment resolution.**
 
-v0.5 moves route execution out of the monolithic orchestrator and into six thin capability packs. It adds route-aware mature providers and recipes for Spec Kit, Playwright, mini-SWE-agent, and OpenHands, while keeping host-native execution as the default.
+v0.6 makes AAOP inspect what the developer already has before provider selection. The Doctor now derives provider-presence detection from Integration Recipes, adds project/toolchain signals and route-aware provider context, rejects generic-manifest provider detection, and keeps AAOP's own built-in Skills from inflating the observed integration level.
 
-AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
+AAOP still does not install providers from detection results and still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
 ## License
 

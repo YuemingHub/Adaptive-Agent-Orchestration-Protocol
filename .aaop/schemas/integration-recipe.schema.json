@@ -20,10 +20,12 @@
     },
     "detect": {
       "type": "object",
+      "description": "Read-only recognition hints consumed by AAOP environment inventory. Any matching hint is evidence of presence, never a recommendation to use the provider.",
       "properties": {
-        "commands": {"type": "array", "items": {"type": "string"}},
-        "python_packages": {"type": "array", "items": {"type": "string"}},
-        "files": {"type": "array", "items": {"type": "string"}}
+        "commands": {"type": "array", "items": {"type": "string"}, "description": "Executable names resolved through PATH."},
+        "python_packages": {"type": "array", "items": {"type": "string"}, "description": "Python distribution or top-level import package names detectable from the active interpreter environment."},
+        "node_packages": {"type": "array", "items": {"type": "string"}, "description": "Package names looked up in the target project's root package.json dependency sections."},
+        "files": {"type": "array", "items": {"type": "string"}, "description": "Project-root-relative file/directory glob patterns. Patterns must be provider-specific enough to avoid generic-manifest false positives."}
       },
       "additionalProperties": true
     },
