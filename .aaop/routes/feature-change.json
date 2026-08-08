@@ -1,7 +1,7 @@
 {
-  "version": "0.7.0",
+  "version": "0.18.0",
   "route_id": "feature-change",
-  "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract and regression evidence.",
+  "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract, current write baseline, and regression evidence.",
   "default_execution": "host-native",
   "stages": [
     {
@@ -14,19 +14,19 @@
     },
     {
       "id": "impact-discovery",
-      "purpose": "Establish the current implementation baseline, trace the existing path, compare any historical implementation against current behavior, and identify affected interfaces, data, tests, permissions, and operational constraints before designing a parallel solution.",
+      "purpose": "Establish the current implementation baseline, trace the existing path, compare any historical implementation against current behavior, and identify affected interfaces, data, tests, permissions, operational constraints, and write preconditions before designing a parallel solution.",
       "required_capabilities": ["repository-inspection", "impact-analysis", "current-baseline-comparison"],
       "optional_capabilities": ["architecture-mapping", "security-impact-analysis", "git-history-analysis"],
-      "evidence": ["current implementation path", "interfaces/schema", "current tests and quality gates", "adjacent conventions", "behavior-by-behavior gap against any historical artifact"],
-      "exit_when": "The smallest coherent integration point, actual missing behaviors, and regression surface are known on the current baseline."
+      "evidence": ["current implementation path", "interfaces/schema", "current tests and quality gates", "adjacent conventions", "behavior-by-behavior gap against any historical artifact", "current file/branch/resource version when subsequent writes can conflict"],
+      "exit_when": "The smallest coherent integration point, actual missing behaviors, regression surface, and material write baseline/preconditions are known on the current state."
     },
     {
       "id": "implement-and-accept",
-      "purpose": "Implement only the missing/changed behavior using current primitives and validate both new and preserved behavior.",
+      "purpose": "Implement only the missing/changed behavior using current primitives, revalidate material write preconditions at the write boundary, reconcile concurrent changes if the target moved, and validate both new and preserved behavior.",
       "required_capabilities": ["implementation", "acceptance-validation", "regression-testing"],
       "optional_capabilities": ["browser-e2e-testing"],
-      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "evidence that obsolete historical structure was not copied unnecessarily"],
-      "exit_when": "The requested behavior works through the current product path with regression evidence."
+      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "write/merge precondition evidence when concurrency is material", "evidence that obsolete historical structure or stale whole-file content was not copied unnecessarily"],
+      "exit_when": "The requested behavior works through the current product path with regression evidence and no unreviewed concurrent state was overwritten."
     }
   ],
   "pressure_guards": [
@@ -37,6 +37,10 @@
     {
       "id": "behavior-over-commits",
       "rule": "Historical code is evidence of intent, not the deliverable. Rebuild only behavior still missing on current architecture and current quality/release gates."
+    },
+    {
+      "id": "revalidate-write-precondition",
+      "rule": "Before a consequential file, branch, PR, config, or remote write, revalidate the baseline/precondition used to compute the change and use native conditional-write semantics when available. If the target moved, treat that as new evidence: re-read, preserve concurrent state, recompute the intended delta against the new baseline, and retry conditionally only if it is still justified. Do not force-overwrite stale state merely to keep automation moving."
     }
   ],
   "escalations": [
@@ -59,6 +63,13 @@
       "selection_rule": "Choose based on the missing execution property, not framework popularity; keep AAOP as the route/policy layer."
     }
   ],
-  "verification": ["new behavior satisfies explicit acceptance evidence", "existing affected behavior still works", "current baseline rather than stale implementation determined the final architecture", "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"],
+  "verification": [
+    "new behavior satisfies explicit acceptance evidence",
+    "existing affected behavior still works",
+    "current baseline rather than stale implementation determined the final architecture",
+    "material writes/merges were conditional on or revalidated against the current baseline when practical",
+    "stale-write/precondition conflicts were reconciled by re-reading and recomputing the delta rather than force-overwriting concurrent state",
+    "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"
+  ],
   "reroute_signals": ["requested behavior already existed but is broken -> bug-fix", "the existing repository is too contradictory to trust -> repo-recovery", "deployment/production readiness becomes the blocker -> release-operations"]
 }
