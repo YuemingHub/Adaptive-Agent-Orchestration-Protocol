@@ -303,9 +303,14 @@ def infer_surface(
     levels: dict[str, int],
 ) -> int:
     level = 1 if host_commands else 0
-    if mcp or any(value > 0 for value in skills.values()):
+    external_skills = any(relative != ".aaop/skills" and value > 0 for relative, value in skills.items())
+    if mcp or external_skills:
         level = max(level, 2)
     for provider_id, detection in detections.items():
+        # AAOP's own canonical SKILL.md files use the Agent Skills format but do
+        # not mean the developer adopted a separate Level-2 provider surface.
+        if provider_id == "agent-skills":
+            continue
         if detection.get("detected"):
             level = max(level, levels.get(provider_id, 0))
     return min(level, 5)
