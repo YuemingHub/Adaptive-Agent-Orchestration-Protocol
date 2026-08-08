@@ -16,9 +16,15 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import sys
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+
+# The human-facing CLI is observational. Dynamic loading of health/doctor should not
+# create __pycache__ files inside an installed AAOP package merely because a user ran
+# `ready`, `status`, or `doctor`.
+sys.dont_write_bytecode = True
 
 STARTER_PROMPT = (
     "Understand this project and its current rules, determine the highest-value "
