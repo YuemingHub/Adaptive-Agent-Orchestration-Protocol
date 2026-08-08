@@ -18,9 +18,13 @@ Bounded project / instruction / cross-repository evidence
 Desired outcome vs current evidence
         ↓
 Proven execution delta?
-  local delta       → execute / reroute → verify
+  local delta       → prepare smallest change
   verified no-op    → stop without cosmetic diff
-  blocked           → precise legitimate unblock
+  reroute / blocked → correct scope or legitimate unblock
+        ↓
+At write boundary: baseline/precondition still current?
+  yes → write / merge / operate → verify
+  no  → re-read → preserve concurrent work → re-prove delta
         ↓
 Only a proven capability gap may justify a Provider
 ```
@@ -77,18 +81,7 @@ See [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md).
 
 ## Instruction topology
 
-Mature repositories can contain scoped host rules below the root:
-
-```text
-AGENTS.md
-backend/AGENTS.override.md
-CLAUDE.md
-services/CLAUDE.md
-.cursor/rules/global.mdc
-frontend/.cursor/rules/ui.mdc
-```
-
-When that scope can materially change the task:
+Mature repositories can contain scoped host rules below the root. When that scope can materially change the task:
 
 ```bash
 python .aaop/tools/instructions.py .
@@ -117,7 +110,7 @@ Treat `related` / `depends_on` graphs, registries, indexes, ADR/RFC collections,
 
 Follow an edge only when it can change the route, current baseline, implementation target, acceptance evidence, dependency status, or risk boundary. This is not a fixed file/token budget; deeper reading is appropriate when a concrete material question remains unresolved.
 
-The `repo-recovery` route protects this with `bounded-evidence-traversal`.
+`repo-recovery` protects this with `bounded-evidence-traversal`.
 
 ## Cross-repository scope
 
@@ -128,14 +121,11 @@ local decision
 → active repository/work target
 → identify external claim owner
 → check local dependency/coordination record
-→ current + sufficient? → stay local
+→ current + sufficient? stay local
 → stale / ambiguous / insufficient?
-     ↓
-  read minimum authoritative external source/revision
-     ↓
-  record source + revision + status
-     ↓
-  return to local decision
+    read minimum authoritative external source/revision
+    record source + revision + status
+    return to local decision
 ```
 
 Hard boundaries:
@@ -150,14 +140,12 @@ AAOP does not provide a multi-repository runtime, repository graph crawler, or s
 
 ## Prove the execution delta before mutation
 
-v0.17 closes the gap between “understand” and “act”.
-
 Authorization to continue work is not evidence that a change is necessary. Before material mutation, compare the requested/route outcome with current evidence:
 
 ```text
 local-delta
 → a current difference exists in the active work target
-→ execute the smallest coherent change and verify
+→ prepare the smallest coherent change
 
 verified-no-op
 → the desired state already holds, or no current local mutation is justified
@@ -171,15 +159,64 @@ blocked
    credential, external dependency, or product decision
 ```
 
-This rule cuts both ways:
+The rule cuts both ways:
 
 - **no proven delta** → do not edit merely to demonstrate progress;
 - **proven local authorized delta** → do not remain in analysis mode;
 - project-declared planning, test, review, permission, and release gates still apply once a delta is proven.
 
-For `repo-recovery`, recovery can therefore end in a verified `no-local-mutation-justified` result, or transition directly into the smallest local stabilization / `bug-fix` / `feature-change` path.
-
 The general behavior lives in `.aaop/skills/route-execution/SKILL.md`; `repo-recovery` protects it with `prove-delta-before-mutation`.
+
+## Revalidate the baseline at the write boundary
+
+A delta can be correct when discovered and stale by the time the write lands.
+
+v0.18 therefore adds a second correctness gate:
+
+```text
+read baseline A
+→ prove delta
+→ before consequential write require/revalidate A
+→ still A?
+     write + verify
+→ target is now B?
+     re-read B
+     preserve concurrent work
+     recompute the intended delta
+     rerun the execution-delta gate
+     re-check authorization/risk if the action changed
+     retry conditionally from B only if still justified
+```
+
+Prefer the strongest native precondition available:
+
+- Git content/blob SHA;
+- expected branch/PR head or ref ancestry;
+- ETag / `If-Match`;
+- resource version/generation;
+- database row/version;
+- lease/lock token;
+- deployment revision.
+
+A failed precondition is **new evidence**, not a nuisance retry. It is first a baseline/concurrency problem—not automatically a capability gap.
+
+Do not:
+
+```text
+conditional write rejected
+→ force stale whole-file content            ✗
+
+PR reviewed at H1, head moved to H2
+→ merge using H1 review/CI anyway           ✗
+
+release preflight validated revision R1,
+target moved to R2
+→ deploy stale plan without revalidation    ✗
+```
+
+`force` is a separate, higher-risk action class. It is appropriate only when repository policy and user authorization intentionally permit replacement and the overwritten state has been understood/preserved as required.
+
+The general contract lives in `.aaop/policies/autonomy.md` and `.aaop/skills/route-execution/SKILL.md`. `feature-change` and `release-operations` protect consequential writes with `revalidate-write-precondition`.
 
 ## Idea-to-build: outcome before architecture
 
@@ -189,16 +226,7 @@ AAOP first finds one actor, one real situation, one observable improvement, the 
 
 ## Review: decision before coverage
 
-`understand-review` starts from the decision it must support and distinguishes:
-
-```text
-current verified facts
-historical/external claims
-inference
-assumptions
-unknowns
-recommendations
-```
+`understand-review` starts from the decision it must support and distinguishes current verified facts, historical/external claims, inference, assumptions, unknowns, and recommendations.
 
 Review is read-only by default. A finding does not authorize a patch. Risk is contextualized to actual exposure and permissions rather than copied from a headline.
 
@@ -210,7 +238,7 @@ A pack is an engineering map, not a workflow engine.
 
 ```bash
 python .aaop/tools/route.py list
-python .aaop/tools/route.py show repo-recovery
+python .aaop/tools/route.py show feature-change
 python scripts/validate_pressure.py
 ```
 
@@ -219,7 +247,8 @@ python scripts/validate_pressure.py
 - source authority/freshness and conflict preservation;
 - stop-when-sufficient discovery;
 - cross-repository evidence vs work scope;
-- **prove delta before mutation / verified no-op vs action paralysis**;
+- prove delta before mutation / verified no-op vs action paralysis;
+- **write-precondition revalidation / stale-write reconciliation**;
 - stale bug/PR baselines;
 - operational blockers;
 - broad-vision overbuild and solution-vocabulary capture;
@@ -243,16 +272,9 @@ product-decision
 capability-gap
 ```
 
-Only `capability-gap` directly justifies adding another provider.
+A stale/moved write target is handled first by revalidation/reconciliation, not by adding another Provider.
 
-```text
-network policy blocks target → install tunnel/runtime      ✗
-missing deployment auth      → find another write path     ✗
-product decision unresolved  → create more agents          ✗
-no current local delta       → invent cleanup/refactor      ✗
-```
-
-Sometimes the correct result is a precise blocker; sometimes it is a verified no-op. Neither should be disguised as a need for more machinery.
+Only a genuine `capability-gap` directly justifies adding machinery.
 
 ## Environment resolution and progressive adoption
 
@@ -280,15 +302,7 @@ These are not mandatory cumulative levels.
 
 ## Integration Recipes
 
-`.aaop/recipes/` contains lazy integration knowledge, not vendored dependencies or an AAOP package manager:
-
-- when a provider is/is not appropriate;
-- detection hints;
-- smallest current upstream integration path;
-- credentials/permissions;
-- optional scoped `adoption_review` debt;
-- verification and rollback/removal;
-- source of truth + last verified date.
+`.aaop/recipes/` contains lazy integration knowledge, not vendored dependencies or an AAOP package manager: selection conditions, detection hints, smallest upstream integration path, credentials/permissions, scoped adoption-review debt, verification, rollback/removal, and source-of-truth metadata.
 
 ```bash
 python .aaop/tools/recipe.py list
@@ -336,11 +350,7 @@ python .aaop/tools/health.py .
 python .aaop/tools/health.py . --json
 ```
 
-Health asks only:
-
-> Does this local AAOP installation still match the baseline installed/upgraded here?
-
-It is best-effort accidental-drift detection, not a cryptographic trust root and not a latest-version checker.
+Health asks only whether the local AAOP installation still matches the baseline installed/upgraded here. It is best-effort accidental-drift detection, not a cryptographic trust root and not a latest-version checker.
 
 ## What AAOP owns
 
@@ -348,7 +358,8 @@ It is best-effort accidental-drift detection, not a cryptographic trust root and
 - host-native bootstrap conformance;
 - read-only instruction-topology discovery;
 - bounded project and cross-repository evidence resolution;
-- **execution-delta proof before mutation and verified no-op discipline**;
+- execution-delta proof before mutation and verified no-op discipline;
+- **write-baseline/precondition revalidation before consequential autonomous mutation**;
 - Route Capability Packs and real-project Pressure Guards;
 - outcome-before-architecture and decision-before-coverage discipline;
 - evidence authority/freshness;
@@ -360,25 +371,7 @@ It is best-effort accidental-drift detection, not a cryptographic trust root and
 - read-only AAOP installation health;
 - verification, replanning, and route correction.
 
-## What AAOP deliberately reuses
-
-| Need | Mature ecosystem layer |
-| --- | --- |
-| reusable procedure | Agent Skills |
-| external tools/services | MCP |
-| independent agent interoperability | A2A |
-| broad agentic resource discovery | ARD |
-| structured spec-driven SDLC | GitHub Spec Kit when justified |
-| browser testing/automation | appropriate Playwright surface |
-| bounded SWE issue solver | mini-SWE-agent when justified |
-| autonomous coding runtime/SDK | OpenHands when justified |
-| long-horizon/subagent harness | Deep Agents or equivalent |
-| production workflow runtime | Microsoft Agent Framework or equivalent |
-| dynamic workforce patterns | CAMEL or equivalent |
-| agent/tool/workflow generation | AutoAgent when justified |
-| multi-user governance/workspace | AgentSpace or equivalent |
-
-See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md).
+AAOP deliberately reuses mature upstream layers for Skills, MCP, A2A, ARD, spec-driven workflows, browser automation, coding runtimes, long-horizon harnesses, and governed workspaces rather than copying them into AAOP. See [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md).
 
 ## Quick start
 
@@ -424,30 +417,32 @@ docs/
 5. Treat instruction/reference/repository graphs as navigation, not automatic authority or execution scope.
 6. Stop discovery when additional evidence is unlikely to change the current decision.
 7. Keep cross-repository evidence access separate from mutation authorization.
-8. **Prove a current execution delta before material mutation.**
+8. Prove a current execution delta before material mutation.
 9. Accept verified no-op when no mutation is justified; never create a cosmetic diff for progress theater.
 10. When a current authorized local delta is proven, execute/reroute rather than remaining in analysis.
-11. Preserve repository-specific planning, test, review, permission, and release gates.
-12. For ideas: outcome and evidence-bearing first slice before architecture.
-13. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
-14. Current source authority/freshness before stale artifacts.
-15. Detect/reuse existing capability before concluding there is a gap.
-16. Classify blockers before provider escalation.
-17. Install nothing new without a proven technical capability gap.
-18. Preserve runtime/project-owned state across AAOP lifecycle operations.
-19. Remove only what AAOP can prove it owns.
-20. Prefer mature upstream implementations and the minimum provider surface.
-21. Verify outcomes; do not fabricate completion when safely blocked.
-22. Let real-project regressions improve the protocol before theoretical completeness.
-23. Hide orchestration complexity without lowering engineering rigor.
+11. **Revalidate the write/merge/operational baseline at the consequential write boundary.**
+12. A failed write precondition is new evidence: re-read, preserve concurrent work, re-prove the delta, then retry conditionally if still justified.
+13. Never use force as the default recovery path for stale state.
+14. Preserve repository-specific planning, test, review, permission, and release gates.
+15. For ideas: outcome and evidence-bearing first slice before architecture.
+16. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+17. Detect/reuse existing capability before concluding there is a gap.
+18. Classify blockers before provider escalation.
+19. Install nothing new without a proven technical capability gap.
+20. Preserve runtime/project-owned state across AAOP lifecycle operations.
+21. Remove only what AAOP can prove it owns.
+22. Prefer mature upstream implementations and the minimum provider surface.
+23. Verify outcomes; do not fabricate completion when safely blocked.
+24. Let real-project regressions improve the protocol before theoretical completeness.
+25. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.17.0 — prove execution delta before mutation.**
+**v0.18.0 — write-precondition revalidation and stale-write reconciliation.**
 
-v0.17 is grounded in two opposite public-repository pressure cases. Current MingOS coordination showed that “continue autonomously” can correctly resolve to no local mutation when the next shared-protocol change is conditional on evidence not yet available. `ymai-website` showed the opposite: when recovery finds a concrete current local stale reference inside the requested action class, AAOP must leave analysis and move into the bounded fix/verification path.
+v0.18 is grounded in two real concurrency failures: an anonymized AAOP GitHub update rejected because its content SHA became stale between read and write, and public MingOS PR #16 whose own record said its branch had baseline drift and required re-check before merge.
 
-The release makes `verified-no-op` a first-class successful engineering result while simultaneously requiring execution when a real current local delta is proven. It adds no Route, Provider, Recipe, runtime, tool, mandatory diff, or bypass around project-specific gates.
+The release makes conditional-write and revision-scoped validation part of autonomous correctness. When a target moves, AAOP re-reads current state, preserves concurrent work, recomputes the intended delta, reruns the execution-delta gate, and writes only against the newly validated baseline. It adds no lock manager, CRDT/runtime, source-control replacement, Route, Provider, Recipe, or tool.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 

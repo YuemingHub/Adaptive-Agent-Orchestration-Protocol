@@ -1,0 +1,44 @@
+{
+  "version": "0.18.0",
+  "id": "public-stale-pr-head-requires-revalidation",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/MingOS",
+    "reference": "PR #16 docs: establish three-repository coordination contract",
+    "captured_at": "2026-08-08",
+    "privacy": "public"
+  },
+  "developer_request": "Finish this coordination change and merge it if it is still the right change on the current repository baseline.",
+  "expected_route": "feature-change",
+  "known_facts": [
+    "The historical coordination PR explicitly stated that its branch had baseline drift relative to current main and must be rechecked before merge.",
+    "The PR remained Draft and closed unmerged rather than being treated as automatically safe because its original intent was useful.",
+    "A later coordination PR rebuilt/rebased the relevant contract against a newer current baseline and became the accepted merged path.",
+    "Any earlier review/CI result belongs to the reviewed PR head and does not validate a later moved head or changed main baseline."
+  ],
+  "expected_first_moves": [
+    "Compare the reviewed PR head and intended behavior with the current main/current coordination state before attempting merge.",
+    "Salvage still-valid behavior, invariants, tests, and rationale rather than preserving the stale commits as the deliverable.",
+    "Recompute whether a current feature/documentation delta remains and rebuild/rebase only that justified delta against the new baseline.",
+    "Require the merge to target the exact revalidated head/revision and re-run the relevant validation before merging."
+  ],
+  "must_preserve": [
+    "The useful coordination intent and boundary constraints that remain valid on the current baseline.",
+    "Concurrent/newer mainline coordination changes that supersede or refine the stale PR implementation."
+  ],
+  "must_not": [
+    "Merge a stale PR solely because an older review or CI run passed on its previous head/baseline.",
+    "Force-update or force-merge the stale branch without reconciling current main and current coordination authority.",
+    "Treat historical commits as the deliverable when current behavior can be rebuilt more safely.",
+    "Assume a moved PR head is covered by an earlier merge decision without revalidation."
+  ],
+  "required_guard_ids": [
+    "stale-artifact-salvage",
+    "behavior-over-commits",
+    "revalidate-write-precondition"
+  ],
+  "lessons": [
+    "Review and CI evidence are revision-scoped. If the branch/head/baseline moves, merge authorization must be re-grounded in the current revision.",
+    "A stale PR should contribute intent and evidence, not force its obsolete commit graph into the current system."
+  ]
+}
