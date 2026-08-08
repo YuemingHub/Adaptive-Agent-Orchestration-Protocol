@@ -20,8 +20,9 @@ Route Capability Pack + Pressure Guards
 Environment/project evidence
   • what already exists?
   • what is actually current/authoritative?
+  • which named technologies are real constraints vs hypotheses?
               ↓
-Required capabilities
+Required capabilities / decision frame
               ↓
 Blocked?
   environment / authorization / credential /
@@ -46,6 +47,7 @@ Minimal requests are enough:
 “Login returns 500. Fix it.”
 “Add family invitations.”
 “Review this before I merge.”
+“Should we adopt this agent framework?”
 “Get this ready to deploy.”
 ```
 
@@ -55,14 +57,66 @@ AAOP routes internally:
 
 | Situation | Route | First correct move |
 | --- | --- | --- |
-| idea / no trustworthy implementation | `idea-to-build` | smallest observable product slice before architecture |
+| idea / no trustworthy implementation | `idea-to-build` | outcome + first evidence-bearing slice before architecture |
 | messy/unfamiliar/contradictory repo | `repo-recovery` | reconstruct current truth before broad edits |
 | failure/error/regression | `bug-fix` | baseline → reproduce/evidence → root cause → narrow fix |
 | new/changed behavior | `feature-change` | behavior contract → current path → smallest coherent change |
-| explanation/review/audit | `understand-review` | inspect for the decision; no mutation by default |
+| explanation/review/audit/adoption decision | `understand-review` | frame the decision, inspect current material evidence, no mutation by default |
 | deploy/release/migration/incident | `release-operations` | environment truth + authorization + rollback/blocker boundary |
 
 See [`docs/DEVELOPER_ENTRYPOINT.md`](docs/DEVELOPER_ENTRYPOINT.md).
+
+## Idea-to-build: outcome before architecture
+
+A greenfield user may describe a vision together with technologies they have heard about:
+
+```text
+“Build it with agents, MCP, RAG, memory, a vector database and graph orchestration.”
+```
+
+AAOP does not automatically turn those nouns into architecture requirements.
+
+Classify each named technology as:
+
+```text
+hard constraint
+preference
+solution hypothesis
+```
+
+Then find:
+
+1. one actor;
+2. one real situation;
+3. one observable improvement;
+4. the riskiest assumption worth testing now;
+5. the smallest end-to-end slice that can produce evidence;
+6. only then, the minimum reversible technical shape.
+
+A large future vision is direction, not first-slice scope.
+
+The first slice must **buy learning**. A generated codebase, architecture diagram, ten-agent organization, or polished demo that tests no important assumption is activity, not product evidence.
+
+The non-technical user should not be asked to choose a stack the system can derive later.
+
+## Understand-review: decision before coverage
+
+A review should answer a decision, not maximize how much repository content was read.
+
+For review/adoption/audit work, AAOP asks internally:
+
+```text
+What decision are we supporting?
+What usage/deployment context changes materiality?
+Which claims are current verified facts?
+Which are external reports or historical evidence?
+What is inference/assumption/unknown?
+What recommendation follows for this context?
+```
+
+Review is read-only by default. Finding a fixable issue does not authorize a patch, PR, configuration change, or upstream mutation.
+
+Security/reliability severity must be contextualized. An issue headline is not a present-tense conclusion; when practical, material external claims should be checked against the current relevant source/status first.
 
 ## Route Capability Packs
 
@@ -81,25 +135,32 @@ A pack remains useful even if every named external provider disappears. It is an
 
 ```bash
 python .aaop/tools/route.py list
-python .aaop/tools/route.py show bug-fix
+python .aaop/tools/route.py show idea-to-build
+python .aaop/tools/route.py show understand-review
 ```
 
 See [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md).
 
 ## Real-project pressure tests
 
-AAOP v0.7 changes how the protocol evolves: **real developer failures before speculative completeness**.
+AAOP evolves by **real developer failures before speculative completeness**.
 
 `tests/pressure/` contains replay contracts derived from real repositories/issues. Public sources may be named; lessons from private projects are anonymized before entering this public repository.
 
-The first pressure set caught four important failure modes:
+v0.7 established four pressure families:
 
 1. **Repository authority/freshness** — merged/newest/detailed does not automatically mean current truth.
 2. **Stale bug reports** — old traceback/source lines must be reconciled with current baseline; issue comments are hypotheses.
 3. **Stale PR salvage** — preserve behavior/invariants/tests, not obsolete commits and architecture.
 4. **Operational blockers** — network/authorization/credential/external/product blockers are not technical capability gaps.
 
-Each case binds to one or more Route `pressure_guards`. Removing the guard breaks CI until the regression is intentionally re-evaluated.
+v0.8 adds:
+
+5. **Broad-vision overbuild** — first slice must test a material assumption before platform architecture.
+6. **Solution vocabulary capture** — Agent/MCP/RAG/vector DB/graph/memory names are hypotheses unless established as constraints.
+7. **Review decision discipline** — current source before conclusion, contextual risk, and read-only review boundaries.
+
+Every AAOP route now has at least one real pressure case. CI preserves that earned baseline and binds each case to route `pressure_guards`.
 
 ```bash
 python scripts/validate_pressure.py
@@ -130,6 +191,7 @@ Hard rules:
 - newest timestamp does not automatically beat an explicit current-fact source;
 - old PRs/branches/issues are historical evidence until reconciled with current baseline;
 - prior AI conclusions and issue comments are not current facts by default;
+- external issue/advisory claims should be checked against current source/status when practical;
 - deployment/runtime facts require target-environment evidence;
 - unresolved conflicts should remain explicit rather than being silently overwritten.
 
@@ -160,6 +222,9 @@ no deployment authorization
 
 product decision unresolved
 → create more agents               ✗
+
+user mentioned vector DB in an idea
+→ install retrieval stack          ✗
 ```
 
 The correct result can be: preserve unknown state, stop safely, and state the smallest legitimate unblock.
@@ -219,6 +284,8 @@ AAOP prefers the smallest provider **surface**, not the entire ecosystem.
 
 - natural-language developer intake and routing;
 - Route Capability Packs and real-project Pressure Guards;
+- greenfield outcome/solution-hypothesis discipline;
+- decision-oriented read-only review discipline;
 - evidence authority/freshness discipline;
 - recipe-driven environment/provider presence inventory;
 - project/outcome/capability discovery;
@@ -291,23 +358,28 @@ docs/REAL_PROJECT_PRESSURE_TESTS.md
 
 1. Situation before machinery.
 2. Read available evidence before asking the user.
-3. Current baseline and source authority before trusting stale artifacts.
-4. Route by observable outcome, not developer jargon.
-5. Route Packs are thin engineering maps, not proprietary workflows.
-6. Detect/reuse existing capability before concluding there is a gap.
-7. Classify blockers before provider escalation.
-8. Install nothing new without a proven technical capability gap.
-9. Prefer mature upstream implementations over copies.
-10. Select the minimum provider surface.
-11. Verify outcomes; do not fabricate completion when safely blocked.
-12. Let real-project regressions improve the protocol before adding theoretical completeness.
-13. Hide orchestration complexity without lowering engineering rigor.
+3. For ideas: outcome and evidence-bearing first slice before architecture.
+4. Treat early solution vocabulary as hypothesis unless established as a constraint.
+5. For reviews: decision before coverage; current evidence before conclusion; no mutation by default.
+6. Current baseline and source authority before trusting stale artifacts.
+7. Route by observable outcome, not developer jargon.
+8. Route Packs are thin engineering maps, not proprietary workflows.
+9. Detect/reuse existing capability before concluding there is a gap.
+10. Classify blockers before provider escalation.
+11. Install nothing new without a proven technical capability gap.
+12. Prefer mature upstream implementations over copies.
+13. Select the minimum provider surface.
+14. Verify outcomes; do not fabricate completion when safely blocked.
+15. Let real-project regressions improve the protocol before adding theoretical completeness.
+16. Hide orchestration complexity without lowering engineering rigor.
 
 ## Status
 
-**v0.7.0 — real-project pressure guards and evidence/blocker discipline.**
+**v0.8.0 — greenfield first-proof and decision-oriented review pressure.**
 
-v0.7 is the first release driven primarily by real-project pressure tests rather than ecosystem expansion. It adds source authority/freshness handling, stale bug/PR safeguards, explicit blocker classification, privacy-safe pressure fixtures, and CI-bound Route Pressure Guards.
+v0.8 completes the first real-pressure baseline across all six routes. It hardens `idea-to-build` against architecture-first overbuild and solution-vocabulary capture, and hardens `understand-review` around decision framing, current-source verification, contextual risk, and read-only boundaries.
+
+No new provider/framework/runtime was added in v0.8.
 
 AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
 
