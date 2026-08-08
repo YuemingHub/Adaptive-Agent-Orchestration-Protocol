@@ -1,0 +1,98 @@
+name: validate-uninstall
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  safe-uninstall:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Preserve project-owned state while removing AAOP ownership
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          printf '# Project rules\n\nKEEP-BEFORE-AAOP\n' > "$target/AGENTS.md"
+          printf '# Claude project rules\n\nKEEP-CLAUDE-RULE\n' > "$target/CLAUDE.md"
+          python scripts/install.py "$target"
+
+          mkdir -p "$target/.aaop/runtime"
+          printf 'runtime-history\n' > "$target/.aaop/runtime/history.txt"
+          printf 'project-owned\n' > "$target/.aaop/project-note.txt"
+          printf 'provider-owned\n' > "$target/provider.config"
+          printf '\nLOCAL-MANAGED-EDIT\n' >> "$target/.aaop/ORCHESTRATOR.md"
+
+          python scripts/install.py "$target" --uninstall > "$target/uninstall.out"
+
+          grep -q 'AAOP uninstalled' "$target/uninstall.out"
+          grep -q 'installed version removed: 0.12.0' "$target/uninstall.out"
+          grep -q 'third-party providers removed: none' "$target/uninstall.out"
+          grep -q 'KEEP-BEFORE-AAOP' "$target/AGENTS.md"
+          grep -q 'KEEP-CLAUDE-RULE' "$target/CLAUDE.md"
+          ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+          ! grep -q '<!-- AAOP:END -->' "$target/AGENTS.md"
+          ! grep -q '<!-- AAOP:BEGIN -->' "$target/CLAUDE.md"
+          ! grep -q '<!-- AAOP:END -->' "$target/CLAUDE.md"
+          grep -qx 'runtime-history' "$target/.aaop/runtime/history.txt"
+          grep -qx 'project-owned' "$target/.aaop/project-note.txt"
+          grep -qx 'provider-owned' "$target/provider.config"
+          test ! -f "$target/.aaop/.install-manifest.json"
+          test ! -f "$target/.aaop/ORCHESTRATOR.md"
+          test ! -f "$target/.aaop/VERSION"
+          grep -R -q 'LOCAL-MANAGED-EDIT' "$target/.aaop/runtime/uninstall-backups"
+          test -d "$target/.aaop"
+
+      - name: Remove empty AAOP package completely
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+          python scripts/install.py "$target" --uninstall
+          test ! -d "$target/.aaop"
+          test -f "$target/AGENTS.md"
+          test -f "$target/CLAUDE.md"
+          ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+          ! grep -q '<!-- AAOP:BEGIN -->' "$target/CLAUDE.md"
+
+      - name: Refuse legacy uninstall without ownership manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+          rm "$target/.aaop/.install-manifest.json"
+          printf '\nLEGACY-SENTINEL\n' >> "$target/.aaop/ORCHESTRATOR.md"
+          if python scripts/install.py "$target" --uninstall > "$target/uninstall.out" 2>&1; then
+            echo 'expected legacy uninstall to fail' >&2
+            exit 1
+          fi
+          grep -q 'Upgrade first to establish ownership' "$target/uninstall.out"
+          grep -q 'LEGACY-SENTINEL' "$target/.aaop/ORCHESTRATOR.md"
+          grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
+
+      - name: Refuse malformed bootstrap before deleting managed files
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+          printf '\nPACKAGE-SENTINEL\n' >> "$target/.aaop/ORCHESTRATOR.md"
+          printf '\n<!-- AAOP:BEGIN -->\n' >> "$target/AGENTS.md"
+          if python scripts/install.py "$target" --uninstall > "$target/uninstall.out" 2>&1; then
+            echo 'expected malformed-marker uninstall to fail' >&2
+            exit 1
+          fi
+          grep -q 'expected exactly one matching AAOP marker pair' "$target/uninstall.out"
+          grep -q 'PACKAGE-SENTINEL' "$target/.aaop/ORCHESTRATOR.md"
+          test -f "$target/.aaop/.install-manifest.json"
