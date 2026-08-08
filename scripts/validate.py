@@ -11,6 +11,8 @@ from pathlib import Path
 
 SKILL_NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$")
+AMBIGUOUS_SKILL_VERSION_RE = re.compile(r"(?m)^\s*aaop-version\s*:")
 ROUTE_IDS = {
     "idea-to-build",
     "repo-recovery",
@@ -40,6 +42,8 @@ ADOPTION_DECISION_EFFECTS = {
 REQUIRED = [
     "AGENTS.md",
     "CLAUDE.md",
+    ".aaop/VERSION",
+    ".aaop/VERSIONING.md",
     ".aaop/ORCHESTRATOR.md",
     ".aaop/policies/autonomy.md",
     ".aaop/policies/mcp-and-tools.md",
@@ -69,6 +73,38 @@ def error(errors: list[str], message: str) -> None:
     errors.append(message)
 
 
+def validate_release_identity(root: Path, errors: list[str]) -> None:
+    version_path = root / ".aaop/VERSION"
+    if version_path.is_file():
+        try:
+            version = version_path.read_text(encoding="utf-8").strip()
+        except OSError as exc:
+            error(errors, f"{version_path}: cannot read authoritative package release: {exc}")
+        else:
+            if not version:
+                error(errors, f"{version_path}: authoritative package release must not be empty")
+            elif not SEMVER_RE.fullmatch(version):
+                error(errors, f"{version_path}: package release must be SemVer, got {version!r}")
+
+    orchestrator = root / ".aaop/ORCHESTRATOR.md"
+    if orchestrator.is_file():
+        try:
+            text = orchestrator.read_text(encoding="utf-8")
+        except OSError as exc:
+            error(errors, f"{orchestrator}: cannot read protocol header: {exc}")
+            return
+        top = text.splitlines()[:12]
+        if any(line.startswith("Version:") for line in top):
+            error(
+                errors,
+                f"{orchestrator}: ambiguous 'Version:' header is forbidden; use Protocol-Revision and .aaop/VERSION for package release",
+            )
+        if not any(line.startswith("Protocol-Revision:") for line in top):
+            error(errors, f"{orchestrator}: missing Protocol-Revision header")
+        if "Package-Release: see `.aaop/VERSION`" not in top:
+            error(errors, f"{orchestrator}: must point package release identity to .aaop/VERSION")
+
+
 def parse_frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -91,6 +127,7 @@ def parse_frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
 
 
 def validate_skill(path: Path, errors: list[str]) -> None:
+    text = path.read_text(encoding="utf-8")
     values = parse_frontmatter(path, errors)
     name = values.get("name", "")
     description = values.get("description", "")
@@ -109,7 +146,20 @@ def validate_skill(path: Path, errors: list[str]) -> None:
     elif len(description) > 1024:
         error(errors, f"{path}: description exceeds 1024 characters")
 
-    if len(path.read_text(encoding="utf-8").splitlines()) > 500:
+    lines = text.splitlines()
+    try:
+        frontmatter_end = lines[1:].index("---") + 1
+    except ValueError:
+        frontmatter_end = 0
+    if frontmatter_end:
+        frontmatter_text = "\n".join(lines[1:frontmatter_end])
+        if AMBIGUOUS_SKILL_VERSION_RE.search(frontmatter_text):
+            error(
+                errors,
+                f"{path}: ambiguous aaop-version Skill metadata is forbidden; .aaop/VERSION is the package release identity and Git/component-specific metadata should be used for component history",
+            )
+
+    if len(lines) > 500:
         error(errors, f"{path}: SKILL.md exceeds recommended 500 lines")
 
 
@@ -423,6 +473,8 @@ def main() -> int:
     for relative in REQUIRED:
         if not (root / relative).exists():
             error(errors, f"missing required file: {relative}")
+
+    validate_release_identity(root, errors)
 
     for path in (root / ".aaop").rglob("*.json") if (root / ".aaop").exists() else []:
         validate_json(path, errors)
