@@ -91,6 +91,13 @@ def sha256_file(path: Path) -> str:
 
 
 def aaop_version(source_package: Path) -> str:
+    version_file = source_package / "VERSION"
+    if version_file.exists():
+        version = version_file.read_text(encoding="utf-8").strip()
+        if version:
+            return version
+
+    # Backward-compatible fallback for source trees created before VERSION existed.
     orchestrator = source_package / "ORCHESTRATOR.md"
     for line in orchestrator.read_text(encoding="utf-8").splitlines():
         if line.startswith("Version:"):
