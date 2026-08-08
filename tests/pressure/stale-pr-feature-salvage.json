@@ -30,6 +30,7 @@
     "assume every file changed historically still represents missing behavior",
     "equate successful merge with deployment or production readiness"
   ],
+  "required_guard_ids": ["stale-artifact-salvage", "behavior-over-commits"],
   "expected_blocker_class": null,
   "lessons": [
     "Feature work needs a historical-intent salvage pattern for stale PRs and abandoned branches.",
