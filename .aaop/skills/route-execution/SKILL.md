@@ -78,7 +78,7 @@ Before a material code/config/document mutation, compare the route's observable 
 
 Rules:
 
-1. `local-delta` → execute the smallest coherent change and verify it.
+1. `local-delta` → prepare the smallest coherent change.
 2. `verified-no-op` → do not create a diff for appearances. Record the evidence that makes no mutation the correct result.
 3. `reroute` → move the immediate outcome to the correct route; for another repository, preserve the cross-repository scope boundary and require separate mutation scope there.
 4. `blocked` → classify the blocker precisely and state the smallest legitimate unblock.
@@ -91,7 +91,40 @@ Conversely, when recovery exposes a concrete local defect or desired behavior al
 
 Project-declared engineering gates still apply. Proving a delta does not authorize bypassing a repository's required planning, tests, review, or release process.
 
-## Step 5 — Classify blockers before declaring a capability gap
+## Step 5 — Revalidate write preconditions at the write boundary
+
+A proven delta can become stale after it was discovered. Before a consequential write, merge, deployment mutation, or remote update, verify that the baseline/preconditions used to compute the delta still hold.
+
+Prefer the strongest native conditional-write mechanism available, for example:
+
+- Git blob/content SHA for file updates;
+- expected branch/PR head SHA or ref ancestry for merges/pushes;
+- ETag / `If-Match`;
+- resource version/generation;
+- database row/version checks;
+- lease/lock tokens;
+- deployment revision/version preconditions.
+
+If the precondition holds, perform the authorized write and verify the result.
+
+If it fails or the target moved:
+
+1. treat the failure as **new evidence**, not a nuisance retry;
+2. do not automatically force, overwrite, reset, or replay stale whole-file content;
+3. re-read the current target/baseline and identify concurrent changes;
+4. preserve concurrent work unless it is explicitly intended to be superseded;
+5. recompute the intended change against the new baseline;
+6. **re-run Step 4** because the delta may now be satisfied, smaller, conflicting, rerouted, or blocked;
+7. re-check authorization/risk if the reconciled action materially changed;
+8. retry conditionally and re-verify only if the write remains justified.
+
+A conditional-write failure is first a **baseline/concurrency problem**, not a `capability-gap` and not a reason to add another Provider or alternate write path.
+
+`force` is a separate action class. Use it only when repository policy and user authorization make intentional replacement appropriate and the state being overwritten has been understood/preserved as required.
+
+Apply `.aaop/policies/autonomy.md` for the full write-precondition contract.
+
+## Step 6 — Classify blockers before declaring a capability gap
 
 When work cannot proceed, diagnose the blocker before searching for another tool/framework.
 
@@ -107,9 +140,9 @@ Common blocker classes:
 
 Only the last class directly justifies provider selection.
 
-Do **not** respond to environment/authorization/credential/external/product blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, alternate access path, or unrelated local change. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
+Do **not** respond to environment/authorization/credential/external/product/concurrency blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, alternate access path, or unrelated local change. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
 
-## Step 6 — Prove a gap before escalation
+## Step 7 — Prove a gap before escalation
 
 Use an escalation only when its `when` condition is actually present, the blocker is truly a `capability-gap`, and the named `capability_gap` remains unresolved.
 
@@ -126,7 +159,7 @@ Then:
 
 If no provider is justified, keep using the current host.
 
-## Step 7 — Prefer provider surfaces, not provider brands
+## Step 8 — Prefer provider surfaces, not provider brands
 
 When a provider exposes several surfaces, select only the one needed.
 
@@ -139,15 +172,15 @@ Examples:
 
 Do not install a provider's entire ecosystem to obtain one narrow capability.
 
-## Step 8 — Treat community catalogs as discovery, not trust
+## Step 9 — Treat community catalogs as discovery, not trust
 
 Before adopting a community extension/plugin/bundle check source repository and publisher, maintenance, install scripts/hooks, filesystem/network/write permissions, credentials/data egress, and rollback/removal path.
 
 Catalog presence alone is never sufficient authorization.
 
-## Step 9 — Correct the route when evidence changes the situation
+## Step 10 — Correct the route when evidence changes the situation
 
-Evaluate `reroute_signals` after meaningful discoveries and after the execution-delta gate.
+Evaluate `reroute_signals` after meaningful discoveries, after the execution-delta gate, and again if write-precondition revalidation changes the baseline.
 
 Examples:
 
@@ -156,11 +189,12 @@ Examples:
 - feature implementation is complete and deployment becomes the blocker → `release-operations`;
 - review becomes an explicit implementation request → `feature-change` or `bug-fix`;
 - repository recovery exposes a current local feature gap → `feature-change`;
-- repository recovery shows the supposed next local change is already satisfied or not currently justified → verified no-op rather than invented work.
+- repository recovery shows the supposed next local change is already satisfied or not currently justified → verified no-op rather than invented work;
+- concurrent work satisfies or invalidates the planned change → recompute/reroute instead of applying the stale patch.
 
 Re-routing is progress, not failure. Keep queued secondary intents, but only one route should normally own the immediate outcome.
 
-## Step 10 — Verify route completion
+## Step 11 — Verify route completion
 
 Use the pack's `verification` list as the final route-level evidence contract.
 
@@ -178,6 +212,8 @@ Route execution is complete when:
 
 - the current route's observable outcome is supported by evidence, the task is explicitly and safely blocked, or a verified no-op is the correct result;
 - any material mutation was preceded by evidence of a real execution delta;
+- any consequential write used/revalidated the strongest practical baseline precondition and did not knowingly overwrite concurrent state without explicit authorization;
+- stale-write/precondition failures were reconciled by re-reading and re-proving the delta rather than force-retrying stale content;
 - material evidence freshness/authority and repository scope have been respected where relevant;
 - required capabilities were satisfied with the smallest practical integration surface;
 - existing environment capability was reused instead of duplicated;
