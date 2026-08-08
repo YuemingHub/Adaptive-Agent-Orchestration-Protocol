@@ -9,7 +9,7 @@
   },
   "detect": {
     "commands": ["specify"],
-    "files": [".specify", "specs"]
+    "files": [".specify"]
   },
   "install": {
     "mode": "package-manager",
