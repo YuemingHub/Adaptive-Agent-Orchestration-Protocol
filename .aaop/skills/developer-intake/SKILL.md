@@ -65,6 +65,12 @@ Examples:
 
 Do not create parallel routes merely because the sentence contains multiple verbs.
 
+### Broad end-to-end goals use the Journey, not a new route
+
+If the user's desired outcome explicitly spans multiple route transitions — for example “I have an idea; take it all the way to a real app and get it online” — load `../end-to-end-delivery/SKILL.md` in addition to this intake Skill.
+
+The Journey preserves continuity across the existing routes; it does not replace route selection. Still choose exactly one **current** primary route from the list above, then reroute only when evidence changes the immediate problem.
+
 ## Step 3 — Translate language into an observable outcome
 
 Do not treat the literal wording as the complete specification.
@@ -143,6 +149,8 @@ After routing:
 - `feature-change` → behavior contract → impact discovery → implementation → acceptance/regression verification.
 - `understand-review` → decision-oriented inspection; current evidence; no mutation by default.
 - `release-operations` → environment/runtime evidence + blocker classification + rollback + autonomy policy before consequential action.
+
+For a broad end-to-end goal, the loaded `end-to-end-delivery` Skill keeps the user's original product outcome active while the current route changes. Do not ask the user to re-specify the full journey at every transition.
 
 Only after the route exposes a real capability gap should AAOP run provider selection.
 
