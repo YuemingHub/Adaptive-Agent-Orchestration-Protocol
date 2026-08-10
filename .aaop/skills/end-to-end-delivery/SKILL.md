@@ -1,6 +1,6 @@
 ---
 name: end-to-end-delivery
-description: Coordinate a non-technical or novice developer from a rough idea or partial implementation through a verified application release by sequencing existing AAOP routes. This is not a seventh route or a new workflow engine; use it when the user's goal spans multiple route transitions such as idea -> build -> iterate -> release.
+description: Coordinate a non-technical or novice developer from a rough idea or partial implementation through verified application releases by sequencing existing AAOP routes. This is not a seventh route or a new workflow engine; use it when the user's goal spans multiple route transitions such as idea -> build -> iterate -> release.
 ---
 
 # End-to-End Delivery Journey
@@ -22,6 +22,7 @@ AAOP owns the engineering process:
 - verify before claiming completion;
 - reroute only when evidence changes the problem;
 - preserve resumable Journey checkpoints without treating them as current truth;
+- scope production verification to the current release cycle;
 - do not make a novice choose frameworks, databases, Agent topology, MCP servers, or deployment machinery unless a real user-owned constraint requires it.
 
 The default experience is one natural-language surface. The user should be able to begin with:
@@ -42,15 +43,15 @@ python .aaop/tools/journey.py start idea-to-production --goal "<long-horizon pro
 python .aaop/tools/journey.py checkpoint idea-to-production ...
 ```
 
-The checkpoint lives under `.aaop/runtime/journeys/` and is preserved across AAOP upgrades. It records the original goal, current gate/route, evidence, blockers, route history, and next action.
+The checkpoint lives under `.aaop/runtime/journeys/` and is preserved across AAOP upgrades. It records the original goal, current release cycle, current gate/route, evidence, blockers, route history, completed release history, and next action.
 
 **It is not a workflow engine or source of truth.** At the start of a new session, reconcile the saved checkpoint against current repository/runtime/target evidence and project instructions. If they disagree, current evidence wins and the checkpoint must be updated rather than forcing the old plan.
 
-Do not overwrite an existing Journey checkpoint merely because a new conversation started.
+Do not overwrite an existing Journey checkpoint merely because a new conversation started. Do not silently stamp a stale Journey definition current: reconciliation requires current evidence.
 
 ## Journey shape
 
-A common greenfield sequence is:
+A common greenfield release cycle is:
 
 ```text
 rough idea
@@ -60,7 +61,7 @@ rough idea
   -> release candidate
   -> release-operations
   -> deployed + directly verified target outcome
-  -> next evidence-driven loop
+  -> release cycle complete
 ```
 
 But this is **not** a mandatory route order.
@@ -224,7 +225,7 @@ Historical source: this preserves the core safety boundary from `solo-dev-autopi
 
 A deployment event is not the finish line.
 
-Verify the deployed behavior against the intended outcome using the strongest practical **target-environment** evidence:
+Verify the deployed behavior against the intended outcome using the strongest practical **target-environment** evidence for the **current release cycle**:
 
 - version/revision identity;
 - health/readiness;
@@ -233,15 +234,36 @@ Verify the deployed behavior against the intended outcome using the strongest pr
 - browser smoke check when material;
 - data/migration result when material.
 
-Local Git state, local tests, or CI success cannot substitute for target evidence.
+Local Git state, local tests, CI success, or target evidence from a previous release cycle cannot substitute for current-cycle target evidence.
 
 If target evidence is unavailable, preserve production state as unknown, checkpoint the exact blocker, and keep the Journey **blocked/not-complete**. Do not convert “unknown but probably deployed” into a completed release.
 
 If failure thresholds are crossed, execute the prepared rollback when authorized, then reroute using the observed failure.
 
-The Journey checkpoint may be marked `complete` only after direct target verification; `.aaop/tools/journey.py` enforces this invariant.
+The Journey checkpoint may be marked `complete` only after direct current-cycle target verification; `.aaop/tools/journey.py` enforces this invariant.
 
-## Gate 9 — Learning loop
+## Gate 9 — Learning loop and next release cycle
+
+A completed release cycle becomes immutable historical evidence. If real use or a new product decision creates more build/fix work, **do not mutate the completed cycle and do not reuse its target verification**.
+
+Open the next release cycle only from fresh evidence:
+
+```bash
+python .aaop/tools/journey.py checkpoint idea-to-production \
+  --start-next-cycle \
+  --gate <current-gate> \
+  --route <current-route> \
+  --reason "<why a new release cycle exists>" \
+  --evidence "<current evidence that creates the new delta>"
+```
+
+Starting the next cycle:
+
+- archives the completed cycle's outcome and target evidence into `release_history`;
+- increments the cycle number;
+- resets current-cycle `target_verified` and `target_evidence`;
+- keeps the long-horizon product goal and route history;
+- requires the new current gate/route to be selected from present evidence.
 
 After a real use, release, failure, or near-miss:
 
@@ -265,7 +287,7 @@ The user should usually see:
 The user should **not** be asked to operate:
 
 - route names;
-- Journey checkpoint mechanics;
+- Journey checkpoint or release-cycle mechanics;
 - Agent counts;
 - Skill selection;
 - MCP/provider selection;
@@ -278,10 +300,10 @@ A novice is the product owner of intent, not the scheduler of the engineering ma
 
 ## Completion criterion
 
-The end-to-end Journey is complete for the current release only when:
+The end-to-end Journey is complete for the **current release cycle** only when:
 
 - a real user-visible application slice is deployed to the intended target;
-- the deployed target revision/state is directly verified with target-environment evidence;
+- the deployed target revision/state is directly verified with current-cycle target-environment evidence;
 - the intended acceptance path is proven in the target context where practical;
 - rollback/recovery status is known;
 - material residual risks are visible;
