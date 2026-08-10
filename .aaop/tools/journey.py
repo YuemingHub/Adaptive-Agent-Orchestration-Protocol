@@ -17,6 +17,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
+from journey_state import (
+    CURRENT_STATE_SCHEMA_VERSION,
+    CheckpointError,
+    FutureCheckpointSchema,
+    checkpoint_revision,
+    load_checkpoint,
+    recover_checkpoint_unlocked,
+    save_checkpoint_unlocked,
+)
+
 ROUTES = {
     "idea-to-build",
     "repo-recovery",
@@ -26,7 +36,7 @@ ROUTES = {
     "release-operations",
 }
 STATUSES = {"active", "blocked", "complete"}
-STATE_SCHEMA_VERSION = "0.3.2"
+STATE_SCHEMA_VERSION = CURRENT_STATE_SCHEMA_VERSION
 
 
 def package_root() -> Path:
@@ -74,28 +84,48 @@ def lock_path(journey_id: str) -> Path:
 
 
 def load_state(journey_id: str) -> dict[str, Any]:
-    return load_json(state_path(journey_id))
+    try:
+        return load_checkpoint(journey_id, state_path(journey_id))
+    except FutureCheckpointSchema as exc:
+        raise SystemExit(
+            "AAOP Journey checkpoint requires a newer state reader: "
+            f"{exc}. Use a matching/newer trusted AAOP tool. Do not downgrade, recover, "
+            "or overwrite future continuity state with this version."
+        ) from exc
+    except CheckpointError as exc:
+        raise SystemExit(f"AAOP Journey checkpoint is invalid: {exc}") from exc
 
 
 def current_revision(state: dict[str, Any]) -> int:
     """Return the checkpoint CAS revision.
 
-    v0.21.0/v0.21.1 checkpoints predate this field. Treat them as revision 0 so
-    the first v0.21.2 mutation can migrate them explicitly with
-    ``--expected-revision 0`` instead of silently claiming a newer baseline.
+    Known v0.21.0/v0.21.1 schema 0.3.1 checkpoints predate this field. They
+    surface as revision 0 so the first current-format mutation can migrate them
+    explicitly with ``--expected-revision 0``. Current schema checkpoints must
+    carry a positive revision; missing revision is not treated as legacy unless
+    the checkpoint explicitly identifies the known legacy schema.
     """
-    value = state.get("revision", 0)
-    if not isinstance(value, int) or value < 0:
-        raise SystemExit(f"AAOP Journey checkpoint has invalid revision: {value!r}")
-    return value
+    try:
+        return checkpoint_revision(state)
+    except FutureCheckpointSchema as exc:
+        raise SystemExit(
+            f"AAOP Journey checkpoint requires a newer state reader: {exc}"
+        ) from exc
+    except CheckpointError as exc:
+        raise SystemExit(f"AAOP Journey checkpoint has invalid revision/state: {exc}") from exc
 
 
 def save_state_unlocked(journey_id: str, payload: dict[str, Any]) -> None:
-    path = state_path(journey_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    try:
+        save_checkpoint_unlocked(journey_id, state_path(journey_id), payload)
+    except FutureCheckpointSchema as exc:
+        raise SystemExit(
+            f"Refusing to save Journey checkpoint through an unsupported future schema: {exc}"
+        ) from exc
+    except CheckpointError as exc:
+        raise SystemExit(f"Refusing to save invalid Journey checkpoint: {exc}") from exc
+    except OSError as exc:
+        raise SystemExit(f"AAOP Journey checkpoint write failed: {exc}") from exc
 
 
 @contextmanager
@@ -297,6 +327,32 @@ def command_status(journey_id: str, as_json: bool) -> int:
     return 0
 
 
+def command_recover(journey_id: str) -> int:
+    definition = load_definition(journey_id)
+    with checkpoint_lock(journey_id):
+        try:
+            state, archive = recover_checkpoint_unlocked(journey_id, state_path(journey_id))
+        except FutureCheckpointSchema as exc:
+            raise SystemExit(
+                "AAOP Journey checkpoint/recovery snapshot requires a newer state reader: "
+                f"{exc}. Recovery with an older tool is forbidden because it could downgrade "
+                "unknown continuity semantics."
+            ) from exc
+        except CheckpointError as exc:
+            raise SystemExit(f"AAOP Journey recovery refused: {exc}") from exc
+        except OSError as exc:
+            raise SystemExit(f"AAOP Journey recovery failed while preserving/restoring files: {exc}") from exc
+
+    print("AAOP Journey checkpoint recovered explicitly from last-good snapshot")
+    if archive is not None:
+        print(f"damaged checkpoint preserved: {archive}")
+    else:
+        print("damaged checkpoint preserved: current file was missing")
+    render_state(state, definition)
+    print("next: reconcile this recovered continuity state against current project/runtime/target evidence before mutation")
+    return 0
+
+
 def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state: dict[str, Any]) -> None:
     if state.get("status") != "complete":
         raise SystemExit("--start-next-cycle is valid only from a completed release cycle.")
@@ -458,7 +514,7 @@ def command_checkpoint(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Inspect and checkpoint AAOP multi-route Journeys")
+    parser = argparse.ArgumentParser(description="Inspect, checkpoint, and explicitly recover AAOP multi-route Journeys")
     sub = parser.add_subparsers(dest="command", required=True)
 
     show = sub.add_parser("show", help="Show one Journey definition")
@@ -475,6 +531,12 @@ def main() -> int:
     status = sub.add_parser("status", help="Read the current Journey checkpoint")
     status.add_argument("journey_id")
     status.add_argument("--json", action="store_true")
+
+    recover = sub.add_parser(
+        "recover",
+        help="Explicitly restore a damaged/missing checkpoint from the last-good recovery snapshot",
+    )
+    recover.add_argument("journey_id")
 
     checkpoint = sub.add_parser("checkpoint", help="Update continuity state after meaningful evidence")
     checkpoint.add_argument("journey_id")
@@ -503,6 +565,8 @@ def main() -> int:
         return command_start(args.journey_id, args.goal, args.gate, args.route, args.reason)
     if args.command == "status":
         return command_status(args.journey_id, args.json)
+    if args.command == "recover":
+        return command_recover(args.journey_id)
     if args.command == "checkpoint":
         return command_checkpoint(args)
     parser.error(f"Unknown command {args.command!r}")

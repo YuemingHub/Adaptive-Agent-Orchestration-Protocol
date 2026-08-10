@@ -73,7 +73,15 @@ Handle checkpoint status explicitly:
 - `blocked` — first re-check the recorded unblock condition against current evidence. If it is unchanged, do not blindly retry the same failed action, widen permissions, or install a provider to bypass the blocker. Keep it blocked unless independent authorized work can genuinely advance the same outcome.
 - `complete` — the completed release cycle is immutable historical evidence. A vague “continue” does not authorize invented features or a new release cycle. Start the next cycle only when fresh user/product/runtime evidence creates a real new delta, using the explicit next-cycle contract from `end-to-end-delivery`.
 
-If the checkpoint is malformed, stale relative to the installed Journey definition, or contradicted by current project evidence, preserve the conflict and reconcile it; do not silently overwrite or ignore it.
+If `journey.py status ...` fails, **do not interpret the failure as “there is no Journey.”** Preserve the checkpoint file and follow the state-reader boundary:
+
+- malformed/current-schema corruption with an available last-good snapshot → use `python .aaop/tools/journey.py recover idea-to-production` only through a trusted matching/newer AAOP tool; recovery preserves the damaged file and advances the revision, then the recovered checkpoint must still be reconciled against current repository/runtime/target evidence before mutation;
+- future/unsupported checkpoint schema → do **not** run old recovery, edit the JSON, delete the checkpoint, or start a replacement Journey. Use a matching/newer trusted AAOP state reader first;
+- no safe recovery snapshot → preserve the damaged checkpoint as evidence and stop continuity mutation until it can be reconciled manually or with a compatible tool.
+
+A recovery command is not a way to roll back valid but inconvenient state. The current checkpoint must actually be missing/invalid; a valid current checkpoint continues through ordinary reconciliation + revision CAS.
+
+If the checkpoint is stale relative to the installed Journey definition or contradicted by current project evidence, preserve the conflict and reconcile it; do not silently overwrite or ignore it.
 
 ## Step 2 — Infer the primary route
 
@@ -213,7 +221,7 @@ The route is an internal coordination mechanism, not a form the user must operat
 Developer intake is complete when:
 
 - the current situation is sufficiently understood;
-- any relevant existing Journey checkpoint has been reconciled rather than ignored;
+- any relevant existing Journey checkpoint has been read/recovered/reconciled rather than ignored or restarted;
 - one primary route is selected;
 - a provisional observable outcome is defined;
 - proposed solution vocabulary is not being mistaken for requirements without evidence;
