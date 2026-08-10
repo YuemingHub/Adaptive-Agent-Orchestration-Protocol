@@ -49,6 +49,19 @@ The checkpoint lives under `.aaop/runtime/journeys/` and is preserved across AAO
 
 Do not overwrite an existing Journey checkpoint merely because a new conversation started. Do not silently stamp a stale Journey definition current: reconciliation requires current evidence.
 
+### Checkpoint ownership is single-writer
+
+The Journey checkpoint has one logical writer: the primary orchestration/coordinator context that owns the current Route decision.
+
+When specialist agents or parallel workers are used:
+
+- they may inspect the checkpoint and project evidence;
+- they return bounded findings, test results, diffs, or review evidence to the coordinator;
+- they do **not** independently mutate the Journey checkpoint in parallel;
+- the coordinator re-reads current evidence and serializes the checkpoint update after integrating the relevant findings.
+
+This prevents last-writer-wins state loss from turning parallel work into false Route changes, erased blockers, or lost evidence. The checkpoint is coordination state, so adding a distributed workflow/locking system merely to permit many writers would violate AAOP's minimum-machinery principle.
+
 ## Journey shape
 
 A common greenfield release cycle is:
@@ -180,7 +193,7 @@ Before adding a specialist:
 
 `agent-bundles` is an optional curated specialist-agent source. It is **not** part of the default stack and must not be installed because “more agents sounds better.” Load its Integration Recipe only when a bounded specialist role is genuinely missing.
 
-Agent-role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities.
+Agent-role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities. Specialist workers also do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context.
 
 ## Gate 6 — Release-candidate proof
 
