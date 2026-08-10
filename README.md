@@ -114,7 +114,9 @@ Use existing capability first
         ↓
 Only a real capability gap may justify a Provider
         ↓
-Execute → revalidate write baseline → verify → reroute if evidence changes
+Resolve explicit write target
+        ↓
+Execute conditionally → verify destination + outcome → reroute if evidence changes
 ```
 
 Current primary routes:
@@ -143,19 +145,10 @@ python .aaop/tools/aaop.py <command>
 Useful commands:
 
 ```bash
-# Am I ready to use AAOP here?
 python .aaop/tools/aaop.py ready .
-
-# Is the local AAOP installation healthy?
 python .aaop/tools/aaop.py status .
-
-# What project/tool/provider evidence is present?
 python .aaop/tools/aaop.py doctor .
-
-# Print the starter prompt
 python .aaop/tools/aaop.py prompt
-
-# Print installed AAOP version
 python .aaop/tools/aaop.py version
 ```
 
@@ -204,8 +197,11 @@ AAOP aims for high autonomy without pretending all actions are equivalent.
 - read/analyze/test/reversible project work: normally autonomous;
 - ordinary engineering decisions within the stated goal: autonomous where project rules allow;
 - credentials, new external accounts, costs, production writes, destructive changes, consequential publication, or materially expanded permissions: require the appropriate authorization;
+- remote write destination: resolve explicitly when branch/ref/environment/destination omission would silently select a target;
 - stale write/merge preconditions: re-read and reconcile instead of forcing over concurrent work;
 - no proven current delta: do not manufacture a diff merely to look productive.
+
+A repository API's default branch is metadata, not the default engineering write destination. When a project requires a working branch + PR, remote file/ref mutations must explicitly target that branch; a syntactically optional `branch`/`ref` field must not be omitted if omission writes to `main`, `production`, or another implicit destination. Verify after the write that the intended target changed and the protected/default target did not change unexpectedly.
 
 For end-to-end delivery, a safely blocked release is not complete. Direct target-environment evidence is required to complete the current release cycle, and evidence from an earlier completed release cannot prove a later one.
 
@@ -219,7 +215,7 @@ AAOP reuses mature upstream layers instead of recreating them. It does not try t
 
 - a general agent runtime;
 - a generic workflow engine;
-- a global MCP/Skill/Agent registry;
+- a global agent/MCP/Skill registry;
 - a package manager for third-party agent systems;
 - a competing Skill/MCP/A2A protocol;
 - an organizational control plane;
@@ -236,16 +232,17 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 5. Cross-repository relevance does not automatically create cross-repository work scope.
 6. Prove a real execution delta before mutation.
 7. Accept a verified no-op when nothing should change.
-8. Revalidate the target baseline immediately before consequential writes.
-9. Reuse current capabilities before adding providers.
-10. Classify blockers before calling them capability gaps.
-11. Preserve project/runtime state across install, upgrade, and removal.
-12. Verify the outcome, not merely that code was written.
-13. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
-14. Scope production verification to the current release cycle.
-15. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
-16. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
-17. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
+8. Resolve the explicit destination before a consequential remote mutation; do not let an optional API field silently choose the write target.
+9. Revalidate the target baseline immediately before consequential writes.
+10. Reuse current capabilities before adding providers.
+11. Classify blockers before calling them capability gaps.
+12. Preserve project/runtime state across install, upgrade, and removal.
+13. Verify the outcome, not merely that code was written.
+14. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
+15. Scope production verification to the current release cycle.
+16. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
+17. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
+18. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
 
 ## Repository map
 
@@ -295,11 +292,13 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.3 — consumer integration freshness hardening.**
+**v0.21.4 — explicit remote write-target protection.**
 
-v0.21.3 adds a `repo-recovery` pressure guard for real consumer drift: project-local orchestration adapters, pinned protocol/provider revisions, generated bridges, and cached observation SHAs are execution dependencies rather than product truth. AAOP now explicitly requires checking a consumer pin when it materially changes current execution semantics, rejects stale observation SHAs as new-task baselines, and also rejects the opposite failure of auto-upgrading upstream merely because a newer release exists. A new anonymized real-project pressure case captures the failure mode where AAOP itself is green while a downstream repository silently remains on an older behavioral contract.
+v0.21.4 hardens a failure that conditional SHA/CAS checks alone cannot prevent: a mutation may be concurrency-safe yet still land on the wrong branch because a host API silently defaults an omitted target. Remote repository/config/deployment writes now resolve the exact destination before the baseline precondition, project-required working-branch/PR flows cannot be bypassed by optional API defaults, and post-write verification must confirm that the intended destination changed. A real-project pressure case captures an accidental direct production/default-branch write followed by a revert.
 
-v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state. The regression suite proves that a stale writer cannot erase a newer checkpoint update, including on Windows.
+v0.21.3 adds a `repo-recovery` pressure guard for real consumer drift: project-local orchestration adapters, pinned protocol/provider revisions, generated bridges, and cached observation SHAs are execution dependencies rather than product truth. AAOP checks a consumer pin only when it materially changes current execution semantics and rejects both stale-pin assumptions and automatic upstream adoption.
+
+v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state, including on Windows.
 
 v0.21.1 hardened terse cross-session continuation: `continue` or `what next?` resumes an existing Journey before a new goal is inferred, while blocked and completed states retain their correct boundaries.
 
