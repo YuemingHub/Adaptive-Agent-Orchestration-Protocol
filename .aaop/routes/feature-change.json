@@ -1,7 +1,7 @@
 {
-  "version": "0.18.0",
+  "version": "0.19.0",
   "route_id": "feature-change",
-  "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract, current write baseline, and regression evidence.",
+  "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract, current write baseline, explicit mutation destination, and regression evidence.",
   "default_execution": "host-native",
   "stages": [
     {
@@ -14,19 +14,19 @@
     },
     {
       "id": "impact-discovery",
-      "purpose": "Establish the current implementation baseline, trace the existing path, compare any historical implementation against current behavior, and identify affected interfaces, data, tests, permissions, operational constraints, and write preconditions before designing a parallel solution.",
+      "purpose": "Establish the current implementation baseline, trace the existing path, compare any historical implementation against current behavior, and identify affected interfaces, data, tests, permissions, operational constraints, mutation destination, and write preconditions before designing a parallel solution.",
       "required_capabilities": ["repository-inspection", "impact-analysis", "current-baseline-comparison"],
       "optional_capabilities": ["architecture-mapping", "security-impact-analysis", "git-history-analysis"],
-      "evidence": ["current implementation path", "interfaces/schema", "current tests and quality gates", "adjacent conventions", "behavior-by-behavior gap against any historical artifact", "current file/branch/resource version when subsequent writes can conflict"],
-      "exit_when": "The smallest coherent integration point, actual missing behaviors, regression surface, and material write baseline/preconditions are known on the current state."
+      "evidence": ["current implementation path", "interfaces/schema", "current tests and quality gates", "adjacent conventions", "behavior-by-behavior gap against any historical artifact", "explicit intended branch/ref/resource destination for remote mutation when relevant", "current file/branch/resource version when subsequent writes can conflict"],
+      "exit_when": "The smallest coherent integration point, actual missing behaviors, regression surface, intended mutation destination, and material write baseline/preconditions are known on the current state."
     },
     {
       "id": "implement-and-accept",
-      "purpose": "Implement only the missing/changed behavior using current primitives, revalidate material write preconditions at the write boundary, reconcile concurrent changes if the target moved, and validate both new and preserved behavior.",
+      "purpose": "Implement only the missing/changed behavior using current primitives, explicitly target the project-authorized destination for remote writes, revalidate material write preconditions at the write boundary, reconcile concurrent/wrong-target conditions, and validate both new and preserved behavior.",
       "required_capabilities": ["implementation", "acceptance-validation", "regression-testing"],
       "optional_capabilities": ["browser-e2e-testing"],
-      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "write/merge precondition evidence when concurrency is material", "evidence that obsolete historical structure or stale whole-file content was not copied unnecessarily"],
-      "exit_when": "The requested behavior works through the current product path with regression evidence and no unreviewed concurrent state was overwritten."
+      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "explicit mutation destination evidence for remote writes", "write/merge precondition evidence when concurrency is material", "post-write evidence that the intended destination changed and protected/default target policy was preserved", "evidence that obsolete historical structure or stale whole-file content was not copied unnecessarily"],
+      "exit_when": "The requested behavior works through the current product path with regression evidence, the intended destination was used, and no unreviewed concurrent or protected/default-branch state was overwritten."
     }
   ],
   "pressure_guards": [
@@ -39,8 +39,12 @@
       "rule": "Historical code is evidence of intent, not the deliverable. Rebuild only behavior still missing on current architecture and current quality/release gates."
     },
     {
+      "id": "explicit-remote-write-target",
+      "rule": "Before any remote repository mutation, resolve and pass the exact branch/ref/resource destination required by current project policy. An API field that is optional syntactically but defaults an omitted target to main/master/production or another implicit destination must not be omitted when target identity matters. Generic authorization to implement/continue does not authorize bypassing a project-required working-branch/PR path. Verify after the write that the intended destination changed and the protected/default target did not change unexpectedly."
+    },
+    {
       "id": "revalidate-write-precondition",
-      "rule": "Before a consequential file, branch, PR, config, or remote write, revalidate the baseline/precondition used to compute the change and use native conditional-write semantics when available. If the target moved, treat that as new evidence: re-read, preserve concurrent state, recompute the intended delta against the new baseline, and retry conditionally only if it is still justified. Do not force-overwrite stale state merely to keep automation moving."
+      "rule": "After resolving the explicit destination and before a consequential file, branch, PR, config, or remote write, revalidate the baseline/precondition used to compute the change and use native conditional-write semantics when available. If the target moved, treat that as new evidence: re-read, preserve concurrent state, recompute the intended delta against the new baseline, and retry conditionally only if it is still justified. Do not force-overwrite stale state merely to keep automation moving."
     }
   ],
   "escalations": [
@@ -67,8 +71,10 @@
     "new behavior satisfies explicit acceptance evidence",
     "existing affected behavior still works",
     "current baseline rather than stale implementation determined the final architecture",
+    "remote mutations used an explicit project-authorized destination rather than relying on an implicit host/API default when target identity mattered",
+    "post-write verification proved the intended branch/ref/resource changed and protected/default target policy was preserved",
     "material writes/merges were conditional on or revalidated against the current baseline when practical",
-    "stale-write/precondition conflicts were reconciled by re-reading and recomputing the delta rather than force-overwriting concurrent state",
+    "stale-write/precondition or wrong-target conflicts were reconciled by stopping, re-reading, and recomputing the target/delta rather than compounding the mistake",
     "the change reuses existing system primitives where appropriate instead of creating a needless parallel architecture"
   ],
   "reroute_signals": ["requested behavior already existed but is broken -> bug-fix", "the existing repository is too contradictory to trust -> repo-recovery", "deployment/production readiness becomes the blocker -> release-operations"]

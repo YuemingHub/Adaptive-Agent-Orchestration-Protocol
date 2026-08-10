@@ -91,9 +91,43 @@ Conversely, when recovery exposes a concrete local defect or desired behavior al
 
 Project-declared engineering gates still apply. Proving a delta does not authorize bypassing a repository's required planning, tests, review, or release process.
 
-## Step 5 — Revalidate write preconditions at the write boundary
+## Step 5 — Resolve target, then revalidate write preconditions
 
-A proven delta can become stale after it was discovered. Before a consequential write, merge, deployment mutation, or remote update, verify that the baseline/preconditions used to compute the delta still hold.
+A proven delta can still be written to the wrong place. Before a consequential write, merge, deployment mutation, or remote update, first resolve the **exact destination**, then verify that the baseline/preconditions used to compute the delta still hold.
+
+### 5.1 Resolve the explicit write target
+
+For remote mutations, identify the exact repository/resource and target branch/ref/environment/destination from current project policy and task evidence.
+
+Hard rules:
+
+- If a host/tool API makes a branch/ref/environment/destination optional but omission causes a write to some default target, **do not rely on omission**. Pass the intended target explicitly.
+- A repository's API default branch is metadata, not automatic authorization to write there.
+- If the project says changes flow through a working branch + PR, create/resolve the working branch first and mutate that branch explicitly.
+- Treat `main`, `master`, `production`, release branches, protected branches, or any project-designated merge/release target as consequential. Direct writes need the authorization/policy required by that repository; “continue”, “fix”, or general implementation authority does not silently bypass the branch/PR path.
+- Re-check the destination immediately before the write. A correct file SHA on the wrong branch is still a wrong write.
+
+Example:
+
+```text
+project policy: agent/* branch + PR
+→ resolve current production head H
+→ create/resolve agent/change from H
+→ write with branch=agent/change + expected blob/ref precondition
+→ verify agent/change changed and production did not
+→ open PR
+```
+
+Do not do:
+
+```text
+project policy: agent/* branch + PR
+→ update remote file with branch omitted
+→ host silently writes default production branch
+→ repair with a revert
+```
+
+### 5.2 Revalidate the baseline/precondition
 
 Prefer the strongest native conditional-write mechanism available, for example:
 
@@ -105,24 +139,26 @@ Prefer the strongest native conditional-write mechanism available, for example:
 - lease/lock tokens;
 - deployment revision/version preconditions.
 
-If the precondition holds, perform the authorized write and verify the result.
+If target + precondition hold, perform the authorized write and verify both the content/result **and the destination**.
 
-If it fails or the target moved:
+If the precondition fails, target moved, or the write landed somewhere other than intended:
 
-1. treat the failure as **new evidence**, not a nuisance retry;
-2. do not automatically force, overwrite, reset, or replay stale whole-file content;
-3. re-read the current target/baseline and identify concurrent changes;
-4. preserve concurrent work unless it is explicitly intended to be superseded;
-5. recompute the intended change against the new baseline;
-6. **re-run Step 4** because the delta may now be satisfied, smaller, conflicting, rerouted, or blocked;
-7. re-check authorization/risk if the reconciled action materially changed;
-8. retry conditionally and re-verify only if the write remains justified.
+1. treat the condition as **new evidence**, not a nuisance retry;
+2. stop additional consequential mutation on the ambiguous/wrong target;
+3. do not automatically force, overwrite, reset, replay stale whole-file content, or keep using an implicit target;
+4. re-read the intended target/baseline and identify concurrent changes;
+5. if an unintended target changed, inspect and preserve that state; any revert/repair is itself a separate conditional write to an explicitly resolved destination;
+6. recompute the intended change against the correct current baseline;
+7. **re-run Step 4** because the delta may now be satisfied, smaller, conflicting, rerouted, or blocked;
+8. re-check authorization/risk if the reconciled action materially changed;
+9. retry against an explicit destination and conditional precondition only if the write remains justified;
+10. verify the destination and result after the reconciled write.
 
-A conditional-write failure is first a **baseline/concurrency problem**, not a `capability-gap` and not a reason to add another Provider or alternate write path.
+A conditional-write or target-resolution failure is first a **baseline/target/concurrency problem**, not a `capability-gap` and not a reason to add another Provider or alternate write path.
 
 `force` is a separate action class. Use it only when repository policy and user authorization make intentional replacement appropriate and the state being overwritten has been understood/preserved as required.
 
-Apply `.aaop/policies/autonomy.md` for the full write-precondition contract.
+Apply `.aaop/policies/autonomy.md` for the full target-resolution and write-precondition contract.
 
 ## Step 6 — Classify blockers before declaring a capability gap
 
@@ -140,7 +176,7 @@ Common blocker classes:
 
 Only the last class directly justifies provider selection.
 
-Do **not** respond to environment/authorization/credential/external/product/concurrency blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, alternate access path, or unrelated local change. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
+Do **not** respond to environment/authorization/credential/external/product/concurrency/target blockers by silently adding a runtime, VPN/tunnel, browser, MCP server, agent framework, alternate access path, or unrelated local change. Record the smallest unblock condition and preserve unknown state when evidence cannot be obtained.
 
 ## Step 7 — Prove a gap before escalation
 
@@ -180,7 +216,7 @@ Catalog presence alone is never sufficient authorization.
 
 ## Step 10 — Correct the route when evidence changes the situation
 
-Evaluate `reroute_signals` after meaningful discoveries, after the execution-delta gate, and again if write-precondition revalidation changes the baseline.
+Evaluate `reroute_signals` after meaningful discoveries, after the execution-delta gate, and again if target/write-precondition revalidation changes the baseline.
 
 Examples:
 
@@ -190,7 +226,8 @@ Examples:
 - review becomes an explicit implementation request → `feature-change` or `bug-fix`;
 - repository recovery exposes a current local feature gap → `feature-change`;
 - repository recovery shows the supposed next local change is already satisfied or not currently justified → verified no-op rather than invented work;
-- concurrent work satisfies or invalidates the planned change → recompute/reroute instead of applying the stale patch.
+- concurrent work satisfies or invalidates the planned change → recompute/reroute instead of applying the stale patch;
+- the intended mutation target differs from the actual/authorized target → resolve the target boundary before continuing; do not hide it as a route or capability problem.
 
 Re-routing is progress, not failure. Keep queued secondary intents, but only one route should normally own the immediate outcome.
 
@@ -212,8 +249,10 @@ Route execution is complete when:
 
 - the current route's observable outcome is supported by evidence, the task is explicitly and safely blocked, or a verified no-op is the correct result;
 - any material mutation was preceded by evidence of a real execution delta;
+- any remote/consequential mutation used an explicitly resolved destination rather than relying on an optional host default when target identity matters;
 - any consequential write used/revalidated the strongest practical baseline precondition and did not knowingly overwrite concurrent state without explicit authorization;
-- stale-write/precondition failures were reconciled by re-reading and re-proving the delta rather than force-retrying stale content;
+- default/protected/release/production branch policy was respected and direct writes were not inferred from generic implementation authorization;
+- stale-write/precondition or wrong-target failures were reconciled by stopping, re-reading, re-proving the target/delta, and using a conditional explicit destination rather than force-retrying;
 - material evidence freshness/authority and repository scope have been respected where relevant;
 - required capabilities were satisfied with the smallest practical integration surface;
 - existing environment capability was reused instead of duplicated;

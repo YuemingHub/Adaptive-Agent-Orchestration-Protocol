@@ -1,6 +1,6 @@
 # AAOP Autonomy Policy
 
-Policy-Revision: 0.18.0
+Policy-Revision: 0.19.0
 
 AAOP uses risk-based autonomy rather than a universal “ask before every step” or “do everything without asking” mode.
 
@@ -17,7 +17,8 @@ Evaluate an action across:
 - production impact;
 - legal/compliance consequence;
 - ambiguity of user intent;
-- **staleness/concurrency risk between the evidence read and the write performed**.
+- **staleness/concurrency risk between the evidence read and the write performed**;
+- **write-target ambiguity when a host/tool can silently default an omitted branch, ref, environment, resource, or destination**.
 
 Use the highest material risk dimension to determine the action class.
 
@@ -64,7 +65,8 @@ Typical examples:
 - changing access control, IAM, billing, DNS, or security policy;
 - publishing publicly under the user's identity when publication was not the requested deliverable;
 - merging/deploying when repository/project policy explicitly requires human approval;
-- **forcing an overwrite/merge/update after a conditional-write or baseline precondition failed when force was not already part of the authorized action class**.
+- **forcing an overwrite/merge/update after a conditional-write or baseline precondition failed when force was not already part of the authorized action class**;
+- **directly mutating a protected/default/release/production branch when project policy requires branch/PR delivery and direct-default-branch mutation was not already explicitly authorized**.
 
 ## BLOCK
 
@@ -80,13 +82,48 @@ Do not ask again for an authorization the user has already clearly provided for 
 - the prior authorization has become stale due to a new risk;
 - **concurrent state changed enough that the intended write now has a materially different effect or blast radius**.
 
+## Explicit remote-write target
+
+A remote mutation is not fully specified until its **destination** is explicit. Some host APIs allow fields such as branch/ref/environment/destination to be omitted and then silently write to a repository default or another implicit target. That defaulting behavior is a transport convenience, **not authorization**.
+
+Before any remote repository/config/deployment mutation:
+
+1. Resolve the intended repository/resource and exact write target from current project policy and task evidence.
+2. When the tool exposes an optional target field whose omission has write semantics, pass the target explicitly instead of relying on its default.
+3. If project policy requires a working branch + PR, create/resolve that working branch first and write there. Do not omit the branch merely because the API would accept it.
+4. Treat `main`, `master`, `production`, release branches, protected branches, or whatever the project designates as merge/release targets as consequential destinations. Direct writes require project/user authorization appropriate to that target; ordinary authorization to “continue”, “fix”, or “implement” does not silently become authorization to bypass the branch/PR path.
+5. Verify the resolved target immediately before the write together with its baseline/version precondition.
+6. After the write, verify that the changed resource/branch/ref is the intended destination. If the tool wrote somewhere else, stop and reconcile; do not compound the mistake with more writes.
+
+A host API's default branch is metadata, not the default engineering write destination.
+
+Correct:
+
+```text
+project policy: changes via agent/* branch + PR
+→ resolve current production/main head
+→ create/resolve agent/my-change from that head
+→ update file with branch=agent/my-change and expected blob SHA
+→ verify branch changed, production/main did not
+→ open PR
+```
+
+Incorrect:
+
+```text
+project policy: changes via branch + PR
+→ update_file(path, content, sha)  # branch omitted
+→ API silently writes default production branch
+→ create a revert to repair the accidental direct write
+```
+
 ## Write-precondition revalidation
 
 Evidence can be correct when read and stale when written. Autonomous execution must preserve concurrent work rather than treating a precondition failure as friction to bypass.
 
 Before a consequential write whose target may have changed since it was inspected:
 
-1. **Use the host's strongest available conditional-write primitive.** Examples include Git blob/content SHA, expected branch/PR head SHA, Git ref ancestry, ETag / `If-Match`, resource version/generation, database row/version check, lease/lock token, or deployment revision.
+1. **Resolve the explicit target first; then use the host's strongest available conditional-write primitive.** Examples include Git blob/content SHA, expected branch/PR head SHA, Git ref ancestry, ETag / `If-Match`, resource version/generation, database row/version check, lease/lock token, or deployment revision.
 2. **Revalidate the target baseline immediately before the write** when the interval, collaboration level, side effects, or target sensitivity makes drift material.
 3. **If the precondition still holds**, execute within the already-authorized action class.
 4. **If the precondition fails or the target moved**, treat that as new evidence:
@@ -106,14 +143,14 @@ A stale-write conflict is not evidence that another Provider, agent, or alternat
 Correct:
 
 ```text
-read file @ blob A
+read file @ blob A on explicit branch feature/x
 → plan bounded edit
-→ conditional update requires blob A
+→ conditional update requires blob A on feature/x
 → server says current blob is B
-→ read B
+→ read B from feature/x
 → merge intended change with B
 → prove delta still exists
-→ conditional update from B
+→ conditional update from B on feature/x
 → verify
 ```
 
@@ -149,7 +186,7 @@ review PR head H1
 
 ## Failure behavior
 
-A permission or write-precondition failure is evidence, not a reason to repeatedly retry.
+A permission, target-resolution, or write-precondition failure is evidence, not a reason to repeatedly retry.
 
 For permission failures, diagnose whether the correct response is:
 
@@ -157,6 +194,14 @@ For permission failures, diagnose whether the correct response is:
 2. use an already-authorized provider;
 3. request the minimum missing permission;
 4. stop the external action while completing independent work.
+
+For ambiguous/wrong-target conditions:
+
+1. stop additional remote mutation;
+2. identify the actual target that changed and the intended target;
+3. preserve/revert only through the repository's authorized recovery path;
+4. re-establish explicit destination + baseline evidence before continuing;
+5. treat any cleanup write as a separate write with its own target/precondition, not as permission to keep using implicit defaults.
 
 For stale-write/precondition failures:
 
