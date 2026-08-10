@@ -34,6 +34,12 @@ jobs:
           PY
           test ! -d .aaop/tools/__pycache__
 
+      - name: Validate transactional lifecycle and manifest trust boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scripts/validate_install_transaction.py
+
       - name: Validate production bootstrap defaults and hostile archive bounds
         shell: bash
         run: |
@@ -141,6 +147,10 @@ jobs:
             if test -f "$target/.aaop/.install-manifest.json"; then
               cat "$target/.aaop/.install-manifest.json" || true
             fi
+            if test -d "$target/.aaop-install-transaction"; then
+              echo '--- interrupted lifecycle transaction ---' >&2
+              find "$target/.aaop-install-transaction" -maxdepth 3 -type f -print || true
+            fi
             exit 1
           fi
           grep -q 'AAOP bootstrap: install' /tmp/bootstrap-install.out
@@ -148,6 +158,7 @@ jobs:
           grep -q 'KEEP-ME' "$target/AGENTS.md"
           test -f "$target/.aaop/tools/aaop.py"
           test -f "$target/.aaop/.install-manifest.json"
+          test ! -e "$target/.aaop-install-transaction"
           grep -qx "$(cat .aaop/VERSION)" "$target/.aaop/VERSION"
 
           python - "$target/.aaop/.install-manifest.json" <<'PY'
@@ -183,6 +194,7 @@ jobs:
           python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" 2>&1 | tee /tmp/bootstrap-upgrade.out
           grep -q 'AAOP bootstrap: upgrade' /tmp/bootstrap-upgrade.out
           grep -q 'AAOP READY' /tmp/bootstrap-upgrade.out
+          test ! -e "$target/.aaop-install-transaction"
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
           grep -qx 'project-owned' "$target/.aaop/local-note.txt"
           grep -q 'KEEP-ME' "$target/AGENTS.md"
@@ -203,6 +215,7 @@ jobs:
           grep -q 'legacy upgrade:' /tmp/bootstrap-legacy-upgrade.out
           grep -q 'AAOP READY' /tmp/bootstrap-legacy-upgrade.out
           test -f "$legacy/.aaop/.install-manifest.json"
+          test ! -e "$legacy/.aaop-install-transaction"
 
       - name: Bootstrap refuses unproven .aaop ownership
         shell: bash
@@ -231,6 +244,7 @@ jobs:
           target="$(cat /tmp/aaop-target)"
           python scripts/bootstrap.py --archive /tmp/aaop-source.zip --target "$target" --uninstall 2>&1 | tee /tmp/bootstrap-uninstall.out
           grep -q 'AAOP bootstrap removal complete' /tmp/bootstrap-uninstall.out
+          test ! -e "$target/.aaop-install-transaction"
           grep -q 'KEEP-ME' "$target/AGENTS.md"
           ! grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
           grep -qx 'runtime-state' "$target/.aaop/runtime/state.txt"
