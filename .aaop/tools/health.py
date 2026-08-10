@@ -12,14 +12,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 AAOP_BEGIN = "<!-- AAOP:BEGIN -->"
 AAOP_END = "<!-- AAOP:END -->"
 MANIFEST_NAME = ".install-manifest.json"
+TRANSACTION_DIR_NAME = ".aaop-install-transaction"
 SUPPORTED_MANIFEST_SCHEMA = 2
 BOOTSTRAP_FILES = ("AGENTS.md", "CLAUDE.md")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def sha256_file(path: Path) -> str:
@@ -59,6 +62,24 @@ def is_source_tree(package: Path) -> bool:
     return (root / "scripts" / "install.py").is_file() and (root / "README.md").is_file()
 
 
+def validate_managed_relative(relative: object) -> str:
+    raw = str(relative)
+    normalized = raw.replace("\\", "/")
+    parts = normalized.split("/")
+    has_drive = bool(parts and len(parts[0]) == 2 and parts[0][1] == ":")
+    if (
+        not normalized
+        or normalized.startswith("/")
+        or normalized.startswith("//")
+        or has_drive
+        or any(part in {"", ".", ".."} for part in parts)
+        or parts[0] == "runtime"
+        or normalized == MANIFEST_NAME
+    ):
+        raise ValueError(f"unsafe managed path: {raw!r}")
+    return "/".join(parts)
+
+
 def read_manifest(package: Path) -> tuple[dict[str, Any] | None, str | None]:
     path = package / MANIFEST_NAME
     if not path.exists():
@@ -71,6 +92,32 @@ def read_manifest(package: Path) -> tuple[dict[str, Any] | None, str | None]:
         return None, "manifest must be a JSON object"
     if not isinstance(payload.get("files"), dict):
         return None, "manifest.files must be an object"
+
+    schema = payload.get("schema_version")
+    if isinstance(schema, int) and 1 <= schema <= SUPPORTED_MANIFEST_SCHEMA:
+        normalized: dict[str, str] = {}
+        try:
+            for raw_relative, raw_hash in payload["files"].items():
+                relative = validate_managed_relative(raw_relative)
+                if relative in normalized:
+                    return None, f"duplicate normalized managed path: {relative}"
+                digest = str(raw_hash)
+                if not SHA256_RE.fullmatch(digest):
+                    return None, f"invalid SHA-256 digest for managed path: {raw_relative!r}"
+                normalized[relative] = digest
+        except ValueError as exc:
+            return None, str(exc)
+        payload["files"] = normalized
+
+        bootstrap = payload.get("bootstrap_blocks")
+        if bootstrap is not None:
+            if not isinstance(bootstrap, dict):
+                return None, "manifest.bootstrap_blocks must be an object"
+            for name, raw_hash in bootstrap.items():
+                if str(name) not in BOOTSTRAP_FILES:
+                    return None, f"unsupported bootstrap ownership key: {name!r}"
+                if not SHA256_RE.fullmatch(str(raw_hash)):
+                    return None, f"invalid bootstrap SHA-256 digest for {name!r}"
     return payload, None
 
 
@@ -117,6 +164,21 @@ def marker_status(path: Path, expected_hash: str | None) -> dict[str, Any]:
     }
 
 
+def interrupted_transaction_state(root: Path) -> tuple[bool, str | None]:
+    transaction = root / TRANSACTION_DIR_NAME
+    if not transaction.exists():
+        return False, None
+    state = None
+    metadata = transaction / "transaction.json"
+    try:
+        payload = json.loads(metadata.read_text(encoding="utf-8"))
+        if isinstance(payload, dict) and isinstance(payload.get("state"), str):
+            state = payload["state"]
+    except Exception:
+        state = "unreadable"
+    return True, state
+
+
 def inspect_installation(root: Path | None = None) -> dict[str, Any]:
     package = package_root()
     root = (root or project_root()).expanduser().resolve()
@@ -145,10 +207,21 @@ def inspect_installation(root: Path | None = None) -> dict[str, Any]:
         "next_action": "",
     }
 
+    interrupted, transaction_state = interrupted_transaction_state(root)
+    if interrupted:
+        report["state"] = "interrupted-install"
+        report["transaction_state"] = transaction_state
+        report["transaction_path"] = str(root / TRANSACTION_DIR_NAME)
+        report["next_action"] = (
+            "Do not continue normal work or overwrite the package. Use a trusted matching/newer AAOP "
+            "bootstrap/installer with --recover-interrupted, then run health/ready again before retrying."
+        )
+        return report
+
     if manifest_error:
         report["state"] = "invalid-manifest"
         report["manifest_error"] = manifest_error
-        report["next_action"] = "Do not silently overwrite. Review the manifest, then use a trusted AAOP source with --upgrade if repair is intended."
+        report["next_action"] = "Do not silently overwrite. Review the manifest, then use a trusted matching/newer AAOP source only if repair is intended."
         return report
 
     if manifest is None:
@@ -181,7 +254,7 @@ def inspect_installation(root: Path | None = None) -> dict[str, Any]:
 
     if schema_version > SUPPORTED_MANIFEST_SCHEMA:
         report["state"] = "unsupported-manifest"
-        report["next_action"] = "The installed manifest is newer than this health tool understands. Use a matching/newer trusted AAOP health tool before drawing conclusions."
+        report["next_action"] = "The installed manifest is newer than this health tool understands. Use a matching/newer trusted AAOP health/installer before drawing conclusions or mutating ownership state."
         return report
 
     raw_files = manifest.get("files", {})
@@ -253,6 +326,8 @@ def render(report: dict[str, Any]) -> None:
     print(f"  project: {report['project_root']}")
     print(f"  package version: {report.get('package_version') or 'unknown'}")
     print(f"  state: {report['state']}")
+    if report.get("transaction_path"):
+        print(f"  transaction: {report.get('transaction_state') or 'unknown'} at {report['transaction_path']}")
     if report.get("manifest_present"):
         print(f"  manifest: schema={report.get('manifest_schema_version')} version={report.get('manifest_version')}")
 
