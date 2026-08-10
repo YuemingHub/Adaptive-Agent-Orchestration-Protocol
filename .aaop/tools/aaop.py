@@ -6,6 +6,7 @@ wrapper gives a developer one stable entrypoint for the common human workflow:
 
     python .aaop/tools/aaop.py ready .
     python .aaop/tools/aaop.py status .
+    python .aaop/tools/aaop.py provenance
     python .aaop/tools/aaop.py doctor .
     python .aaop/tools/aaop.py prompt
     python .aaop/tools/aaop.py version
@@ -21,9 +22,9 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-# The human-facing CLI is observational. Dynamic loading of health/doctor should not
-# create __pycache__ files inside an installed AAOP package merely because a user ran
-# `ready`, `status`, or `doctor`.
+# The human-facing CLI is observational. Dynamic loading of health/doctor/provenance
+# should not create __pycache__ files inside an installed AAOP package merely because
+# a user ran a diagnostic command.
 sys.dont_write_bytecode = True
 
 STARTER_PROMPT = (
@@ -68,6 +69,24 @@ def package_version() -> str:
     return value
 
 
+def provenance_summary(source_tree: bool) -> dict[str, Any]:
+    if source_tree:
+        return {
+            "state": "source-tree",
+            "source": {"kind": "source-tree", "ref": None},
+            "package_fingerprint": None,
+            "next_action": "Source-tree validation is not an installed bootstrap provenance record.",
+        }
+    provenance_module = load_tool("provenance")
+    report = provenance_module.inspect(package_root())
+    return {
+        "state": report.get("state"),
+        "source": report.get("source"),
+        "package_fingerprint": report.get("current_fingerprint") or report.get("recorded_fingerprint"),
+        "next_action": report.get("next_action"),
+    }
+
+
 def readiness(root: Path) -> dict[str, Any]:
     health_module = load_tool("health")
     doctor_module = load_tool("doctor")
@@ -79,6 +98,7 @@ def readiness(root: Path) -> dict[str, Any]:
     source_tree = health_state == "source-tree"
     install_ready = health_state == "healthy"
     ready = install_ready or source_tree
+    provenance = provenance_summary(source_tree)
 
     hosts = doctor.get("host_commands", {})
     if not isinstance(hosts, dict):
@@ -104,6 +124,10 @@ def readiness(root: Path) -> dict[str, Any]:
         "health_state": health_state,
         "health_next_action": health.get("next_action"),
         "source_tree": source_tree,
+        "provenance_state": provenance.get("state"),
+        "provenance_source": provenance.get("source"),
+        "package_fingerprint": provenance.get("package_fingerprint"),
+        "provenance_next_action": provenance.get("next_action"),
         "instruction_files": instructions,
         "host_commands": hosts,
         "observed_surface_level": doctor.get("observed_surface_level"),
@@ -118,6 +142,15 @@ def render_ready(report: dict[str, Any]) -> None:
     print(f"  version: {report['version']}")
     print(f"  project: {report['project_root']}")
     print(f"  health: {report['health_state']}")
+
+    provenance_state = report.get("provenance_state") or "unknown"
+    source = report.get("provenance_source")
+    source_label = "-"
+    if isinstance(source, dict):
+        source_label = str(source.get("kind") or "unknown")
+        if source.get("ref"):
+            source_label += f"@{source['ref']}"
+    print(f"  provenance: {provenance_state} ({source_label})")
 
     instructions = report.get("instruction_files", [])
     print(f"  project instructions: {', '.join(instructions) if instructions else 'none detected'}")
@@ -139,6 +172,8 @@ def render_ready(report: dict[str, Any]) -> None:
         )
 
     if report["ready"]:
+        if provenance_state in {"missing", "invalid", "mismatch", "unverifiable"}:
+            print(f"  provenance note: {report.get('provenance_next_action') or 'Review install provenance.'}")
         print()
         print("Open this project in Codex, Claude Code, Cursor, or another host that reads project instructions.")
         print("Then say:")
@@ -167,6 +202,34 @@ def command_status(root: Path, as_json: bool) -> int:
     return 0 if report.get("state") in {"healthy", "source-tree"} else 2
 
 
+def command_provenance(as_json: bool) -> int:
+    provenance_module = load_tool("provenance")
+    if (package_root().parent / "scripts" / "install.py").is_file():
+        report = {
+            "state": "source-tree",
+            "package_root": str(package_root()),
+            "source": {"kind": "source-tree", "ref": None},
+            "next_action": "Source tree has repository identity; bootstrap install provenance applies to installed packages.",
+            "authority": "diagnostic-only; does not grant managed-file ownership or mutation authority",
+        }
+        if as_json:
+            print(json.dumps(report, ensure_ascii=False, indent=2))
+        else:
+            print("AAOP install provenance")
+            print("  state: source-tree")
+            print("  source: source-tree")
+            print(f"  next: {report['next_action']}")
+            print(f"  authority: {report['authority']}")
+        return 0
+
+    report = provenance_module.inspect(package_root())
+    if as_json:
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    else:
+        provenance_module.render(report)
+    return 0 if report.get("state") == "verified" else 2
+
+
 def command_doctor(root: Path, route: str | None, as_json: bool) -> int:
     doctor_module = load_tool("doctor")
     report = doctor_module.inspect(root, route)
@@ -179,7 +242,7 @@ def command_doctor(root: Path, route: str | None, as_json: bool) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="AAOP user entrypoint: readiness, status, environment, starter prompt, and version"
+        description="AAOP user entrypoint: readiness, status, provenance, environment, starter prompt, and version"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -190,6 +253,9 @@ def main() -> int:
     status_parser = subparsers.add_parser("status", help="Show AAOP installation health")
     status_parser.add_argument("root", nargs="?", type=Path, default=default_project_root())
     status_parser.add_argument("--json", action="store_true")
+
+    provenance_parser = subparsers.add_parser("provenance", help="Verify recorded install source and managed-byte fingerprint")
+    provenance_parser.add_argument("--json", action="store_true")
 
     doctor_parser = subparsers.add_parser("doctor", help="Show project/environment capability evidence")
     doctor_parser.add_argument("root", nargs="?", type=Path, default=default_project_root())
@@ -208,6 +274,8 @@ def main() -> int:
     if command == "status":
         root = args.root.expanduser().resolve()
         return command_status(root, args.json)
+    if command == "provenance":
+        return command_provenance(args.json)
     if command == "doctor":
         root = args.root.expanduser().resolve()
         return command_doctor(root, args.route, args.json)
