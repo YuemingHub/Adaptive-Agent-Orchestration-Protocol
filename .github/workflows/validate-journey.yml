@@ -40,6 +40,7 @@ jobs:
           d = json.load(open(sys.argv[1]))
           assert d['routing_policy']['intake_selects_current_route'] is True
           assert d['routing_policy']['greenfield_gates_are_conditional'] is True
+          assert d['routing_policy']['reroute_requires_new_evidence'] is True
           assert d['completion_policy']['blocked_is_complete'] is False
           assert d['completion_policy']['target_verification_required'] is True
           intake = next(g for g in d['gates'] if g['id'] == 'intake')
@@ -50,7 +51,7 @@ jobs:
           assert first['applies_when'] and first['skip_when']
           PY
 
-          # Simulate resuming an existing partial implementation: current route is
+          # Simulate an existing partial implementation: current route is
           # feature-change, not forcibly idea-to-build merely because the Journey began.
           python "$target/.aaop/tools/journey.py" start idea-to-production \
             --goal 'turn the existing partial app into a verified online release' \
@@ -64,8 +65,31 @@ jobs:
           assert d['current_route'] == 'feature-change'
           assert d['current_gate'] == 'intake'
           assert d['target_verified'] is False
+          assert d['target_evidence'] == []
           assert d['checkpoint_needs_reconcile'] is False
           PY
+
+          # Simulate a definition upgrade. A stale checkpoint cannot silently stamp
+          # itself current; reconciliation must cite current evidence.
+          python - "$target/.aaop/runtime/journeys/idea-to-production.json" <<'PY'
+          import json, sys
+          p = sys.argv[1]
+          d = json.load(open(p))
+          d['journey_version'] = '0.1.0'
+          with open(p, 'w') as f:
+              json.dump(d, f, indent=2)
+              f.write('\n')
+          PY
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --outcome 'resume work' > "$target/reconcile-without-evidence.out" 2>&1; then
+            echo 'expected stale checkpoint reconciliation without evidence to fail' >&2
+            exit 1
+          fi
+          grep -q 'Reconciliation requires --reason and at least one --evidence' "$target/reconcile-without-evidence.out"
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --reason 'reconciled saved Journey state with the current repository baseline' \
+            --evidence 'current repository still contains the trusted partial implementation' \
+            --outcome 'continue the existing implementation path'
 
           # Route changes must be evidence-backed. Lack of progress alone may not
           # bounce the Journey to another route.
@@ -91,8 +115,23 @@ jobs:
             --status blocked \
             --blocker 'target environment is not reachable from the authorized execution path'
 
+          # Blockers cannot be erased without evidence that the condition changed.
           if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
-              --gate deploy-observe --status complete --clear-blockers > "$target/complete-without-target.out" 2>&1; then
+              --clear-blockers --status active > "$target/clear-without-evidence.out" 2>&1; then
+            echo 'expected blocker clearing without evidence to fail' >&2
+            exit 1
+          fi
+          grep -q 'Clearing Journey blockers requires --reason and at least one --evidence' "$target/clear-without-evidence.out"
+
+          # Even with evidence that the blocker cleared, completion still requires
+          # explicit target-environment evidence.
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --gate deploy-observe \
+              --status complete \
+              --clear-blockers \
+              --reason 'authorized target path is reachable again' \
+              --evidence 'target connection and deployment command are reachable' \
+              > "$target/complete-without-target.out" 2>&1; then
             echo 'expected completion without target verification to fail' >&2
             exit 1
           fi
@@ -102,8 +141,9 @@ jobs:
             --gate deploy-observe \
             --status complete \
             --clear-blockers \
-            --target-verified \
-            --evidence 'target revision and representative acceptance path verified directly' \
+            --reason 'authorized target path restored and deployed behavior verified' \
+            --evidence 'target connection and deployment path are healthy' \
+            --target-evidence 'target revision matches the intended release and the representative acceptance path passed directly' \
             --outcome 'intended release behavior verified on target'
 
           python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-complete.json"
@@ -112,6 +152,7 @@ jobs:
           d = json.load(open(sys.argv[1]))
           assert d['status'] == 'complete'
           assert d['target_verified'] is True
+          assert len(d['target_evidence']) >= 1
           assert d['blockers'] == []
           assert len(d['route_history']) >= 3
           PY
@@ -129,4 +170,5 @@ jobs:
           import json, sys
           d = json.load(open(sys.argv[1]))
           assert d['provider_detection']['agent-bundles']['detected'] is False, d['provider_detection']['agent-bundles']
+          assert d['provider_detection']['agent-bundles']['status'] == 'no_detector'
           PY
