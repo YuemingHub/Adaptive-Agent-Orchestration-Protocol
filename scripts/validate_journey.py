@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Validate AAOP's multi-route Journey invariants without external dependencies.
-
-The main AAOP validator intentionally focuses on the route/provider package model.
-This validator protects cross-route semantics that can otherwise look structurally
-valid while producing incorrect end-to-end behavior.
-"""
+"""Validate AAOP's multi-route Journey invariants without external dependencies."""
 
 from __future__ import annotations
 
@@ -189,7 +184,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         return
 
     seen: set[str] = set()
-    gate_map: dict[str, dict[str, Any]] = {}
+    gates_by_id: dict[str, dict[str, Any]] = {}
     for gate in gates:
         if not isinstance(gate, dict):
             fail(errors, f"{path}: every gate must be an object")
@@ -201,7 +196,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         if gate_id in seen:
             fail(errors, f"{path}: duplicate gate id {gate_id!r}")
         seen.add(gate_id)
-        gate_map[gate_id] = gate
+        gates_by_id[gate_id] = gate
 
         route = gate.get("primary_route")
         selector = gate.get("route_selection")
@@ -223,11 +218,11 @@ def validate_journey(root: Path, errors: list[str]) -> None:
             fail(errors, f"{path}: gate {gate_id!r} needs a goal")
         nonempty_string_list(path, f"gate {gate_id}.exit_evidence", gate.get("exit_evidence"), errors)
 
-    intake = gate_map.get("intake")
+    intake = gates_by_id.get("intake")
     if not intake or intake.get("route_selection") != "developer-intake" or "primary_route" in intake:
         fail(errors, f"{path}: intake must let developer-intake select the current route instead of forcing greenfield")
 
-    first_slice = gate_map.get("first-slice")
+    first_slice = gates_by_id.get("first-slice")
     if not first_slice:
         fail(errors, f"{path}: missing first-slice gate")
     else:
@@ -238,7 +233,11 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         if not isinstance(first_slice.get("skip_when"), str) or not first_slice.get("skip_when", "").strip():
             fail(errors, f"{path}: first-slice must define the existing-implementation skip condition")
 
-    deploy = gate_map.get("deploy-observe")
+    implementation = gates_by_id.get("implementation-loop")
+    if not implementation or implementation.get("route_selection") != "current-route" or "primary_route" in implementation:
+        fail(errors, f"{path}: implementation-loop must follow the evidence-selected current route instead of forcing feature-change")
+
+    deploy = gates_by_id.get("deploy-observe")
     if not deploy or deploy.get("primary_route") != "release-operations":
         fail(errors, f"{path}: deploy-observe must run under release-operations")
     elif not any("current release cycle" in str(item).lower() for item in deploy.get("exit_evidence", [])):
@@ -266,9 +265,15 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
         fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
     if "end-to-end-delivery" not in intake_text:
         fail(errors, f"{intake}: broad goals are not wired to end-to-end-delivery")
-    for required in ("--start-next-cycle", "release_history", "target_evidence", "complete and immutable"):
+    for required in (
+        "--start-next-cycle",
+        "release_history",
+        "target_evidence",
+        "complete and immutable",
+        "incompatible Gate and Route",
+    ):
         if required not in tool_text:
-            fail(errors, f"{journey_tool}: missing release-cycle safeguard {required!r}")
+            fail(errors, f"{journey_tool}: missing Journey safeguard {required!r}")
 
 
 def validate_agent_bundles_detection(root: Path, errors: list[str]) -> None:
@@ -305,7 +310,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print("AAOP Journey validation passed (routing, completion, resumability, release-cycle isolation, specialist detection)")
+    print("AAOP Journey validation passed (routing, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
     return 0
 
 
