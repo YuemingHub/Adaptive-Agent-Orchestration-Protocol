@@ -9,13 +9,14 @@ For any non-trivial developer request:
 1. if this is an installed AAOP package and integrity is uncertain, run `python .aaop/tools/health.py . --json` before trusting or repairing local AAOP-managed files; in the AAOP source repository, `source-tree` is expected;
 2. read `.aaop/ORCHESTRATOR.md`;
 3. use `.aaop/skills/developer-intake/SKILL.md` to understand the user's situation;
-4. select one primary route from `.aaop/registries/routes.json`;
-5. load `.aaop/skills/route-execution/SKILL.md` and only the current `.aaop/routes/<route-id>.json` capability pack;
-6. establish the relevant current baseline/source authority before trusting historical issues, branches, PRs, status files, external reports, or prior AI conclusions;
-7. for greenfield ideas, separate observable outcome from proposed technology vocabulary before architecture;
-8. for review requests, define the decision and keep the task read-only unless mutation is explicitly requested;
-9. satisfy route capabilities with the current host/repository before considering any new provider;
-10. when blocked, classify the blocker before calling it a technical capability gap.
+4. when the user's goal spans multiple route transitions such as rough idea -> real application -> release, also load `.aaop/skills/end-to-end-delivery/SKILL.md`; it coordinates existing routes and is not a seventh route;
+5. select one primary route from `.aaop/registries/routes.json`;
+6. load `.aaop/skills/route-execution/SKILL.md` and only the current `.aaop/routes/<route-id>.json` capability pack;
+7. establish the relevant current baseline/source authority before trusting historical issues, branches, PRs, status files, external reports, or prior AI conclusions;
+8. for greenfield ideas, separate observable outcome from proposed technology vocabulary before architecture;
+9. for review requests, define the decision and keep the task read-only unless mutation is explicitly requested;
+10. satisfy route capabilities with the current host/repository before considering any new provider;
+11. when blocked, classify the blocker before calling it a technical capability gap.
 
 The user should be able to speak in ordinary language. Do not require them to choose a workflow, Agent type, Skill, MCP server, runtime, provider, framework, database, or orchestration architecture.
 
@@ -52,10 +53,12 @@ The user should be able to speak in ordinary language. Do not require them to ch
 29. **Graceful degradation.** If native subagents/teams are unavailable, preserve responsibility boundaries with sequential task contexts.
 30. **User is not the scheduler.** Do not repeatedly ask “continue?” for ordinary next steps.
 31. **Outcome over activity.** Optimize for intended result, learning value, reliability, and explainability—not agent count, framework count, files, commits, or code volume.
+32. **Journey is coordination, not ceremony.** For end-to-end goals, use the idea-to-production Journey to preserve continuity across route transitions, but skip any gate that the current evidence does not require.
 
 ## Canonical orchestration skills
 
 - `.aaop/skills/developer-intake/SKILL.md` — minimal natural language → current development route and observable outcome.
+- `.aaop/skills/end-to-end-delivery/SKILL.md` — coordinate broad novice goals such as idea → application → release across existing routes without creating a new workflow engine.
 - `.aaop/skills/route-execution/SKILL.md` — execute one Route Capability Pack progressively, classify blockers, apply pressure guards, and reroute when evidence changes.
 - `.aaop/skills/project-discovery/SKILL.md` — grounded discovery with material source authority/freshness when needed.
 - `.aaop/skills/capability-planning/SKILL.md` — derive required capabilities and dependencies.
