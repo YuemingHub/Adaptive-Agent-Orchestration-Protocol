@@ -12,32 +12,58 @@ AAOP is **not** another agent runtime, package manager, workflow engine, or mult
 
 ### 1. Open a terminal in your project
 
-Then run one command.
+For normal/production use, install from the deliberately promoted `stable` channel rather than the fast-moving `main` development branch.
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target .
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target .
 ```
 
 **Windows PowerShell**
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target .
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target .
 ```
 
 If your Windows Python command is `python`, replace `py` with `python`.
 
-The bootstrap downloads the official AAOP repository archive into a temporary directory, delegates all project mutation to the canonical state-preserving installer, then runs a readiness check. It installs no third-party provider and asks for no secret.
+The stable bootstrap downloads the AAOP archive from the same deliberately promoted channel into a temporary directory, validates compressed and expanded archive resource limits plus path safety, delegates all project mutation to the canonical state-preserving installer, then runs a readiness check. It installs no third-party provider and asks for no secret.
 
-If you prefer to inspect the bootstrap before running it:
+If you prefer to inspect the stable bootstrap before running it:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py -o aaop-bootstrap.py
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py -o aaop-bootstrap.py
 python3 aaop-bootstrap.py --target .
 ```
 
-For reproducible installation, pin `--ref` to a specific commit or tag instead of `main`.
+### Exact-revision installation
+
+`stable` is a release channel: it changes only when a candidate has passed the release gates, but it is intentionally movable. When the exact source revision must be reproducible, resolve and use one commit SHA for **both** the bootstrap script and package archive:
+
+```bash
+AAOP_REF=<validated-commit-sha>
+curl -fsSL "https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/${AAOP_REF}/scripts/bootstrap.py" | python3 - --target . --ref "${AAOP_REF}"
+```
+
+PowerShell:
+
+```powershell
+$AAOP_REF = '<validated-commit-sha>'
+curl.exe -fsSL "https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/$AAOP_REF/scripts/bootstrap.py" | py - --target . --ref $AAOP_REF
+```
+
+Using the same commit for both steps prevents a bootstrap from one revision from silently installing a package from another.
+
+### Development / edge channel
+
+`main` is the development channel. Opt into it explicitly only when testing unreleased AAOP changes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target . --ref main
+```
+
+Do not use `main` merely because it is newer. A consumer should upgrade because a concrete compatibility, safety, or capability delta justifies the change.
 
 ### 2. Confirm that the project is ready
 
@@ -156,7 +182,9 @@ Lower-level tools such as `health.py`, `doctor.py`, `route.py`, `recipe.py`, `jo
 
 ## Upgrade
 
-Run the same bootstrap command again.
+Run the current `stable` bootstrap command again. It upgrades only when the `stable` channel has been deliberately advanced to a new fully gated release candidate; ordinary commits to `main` do not change the production install path.
+
+If a consumer is intentionally pinned to an exact commit, keep using that exact command for reproducibility. To upgrade it, choose the newly validated commit deliberately rather than silently replacing the pin.
 
 A recognizable AAOP installation is upgraded through the existing state-preserving installer. Bootstrap requires actual AAOP ownership evidence before it will claim an existing `.aaop/` directory: a managed install manifest is sufficient; for legacy no-manifest installs, the Orchestrator must contain a recognizable AAOP identity. A generic `.aaop` directory name or standalone `VERSION` file is **not** ownership evidence.
 
@@ -174,21 +202,29 @@ A project-local AAOP/provider pin is not automatically wrong merely because upst
 
 ## Remove AAOP
 
-Use the same bootstrap surface with `--uninstall`.
+Use the stable bootstrap surface with `--uninstall`.
 
 **macOS / Linux**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target . --uninstall
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target . --uninstall
 ```
 
 **Windows PowerShell**
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target . --uninstall
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target . --uninstall
 ```
 
 Removal is manifest-scoped: AAOP removes only what it can prove it owns, preserves runtime/project-owned files, preserves project rules outside AAOP markers, and does not uninstall third-party providers.
+
+## Release channels
+
+- `main` — development/edge. It may advance whenever reviewed development work lands.
+- `stable` — production channel. Advance it only to a candidate that has already passed the full AAOP release gate and production-readiness checks relevant to that release.
+- exact commit — immutable revision pin for consumers that require repeatable source identity.
+
+A green `main` commit does not automatically move `stable`. Promotion is a separate release decision so downstream repositories are not silently upgraded by ordinary AAOP development.
 
 ## Safety and autonomy boundary
 
@@ -246,6 +282,7 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 17. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
 18. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
 19. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
+20. Treat `stable` promotion as a release action, not a synonym for whatever happens to be on `main`.
 
 ## Repository map
 
@@ -295,15 +332,13 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.5 — semantic PR merge-order review.**
+**v0.22.0 — production bootstrap channel and bounded archive extraction.**
 
-v0.21.5 hardens multi-PR convergence: GitHub textual mergeability no longer counts as proof that active PRs are semantically independent. `understand-review` now treats repository-declared predecessor order, shared authority/configuration surfaces, and base/head relationships as merge evidence. A dependent PR built before its required predecessor is only conditionally mergeable; once the predecessor lands, the dependent delta must be rebuilt/rebased from the new base, affected validation rerun, and the new head reviewed. A real-project pressure case captures two individually plausible Draft PRs that modify the same authority profile with different required semantics.
+v0.22.0 separates ordinary development from production bootstrap behavior. `stable` is now the default package ref and recommended user-facing bootstrap channel; `main` is explicit edge/development opt-in. Exact-commit bootstrap/package pinning remains available for immutable revision reproducibility. Bootstrap also rejects dangerous archive paths plus excessive member count, per-member expanded size, total expanded size, and encrypted members before extraction, so a small compressed archive cannot consume unbounded disk during install.
 
-v0.21.4 requires explicit remote write destinations before conditional mutation, preventing optional host API defaults from silently writing to a protected/default/production branch.
+v0.21.5 hardens multi-PR convergence: GitHub textual mergeability no longer counts as proof that active PRs are semantically independent. `understand-review` now treats repository-declared predecessor order, shared authority/configuration surfaces, and base/head relationships as merge evidence. A dependent PR built before its required predecessor is only conditionally mergeable; once the predecessor lands, the dependent delta must be rebuilt/rebased from the new base, affected validation rerun, and the new head reviewed.
 
-v0.21.3 adds a `repo-recovery` pressure guard for consumer integration freshness so stale project-local protocol/provider pins and observation SHAs cannot silently define current execution.
-
-v0.21.2 adds revisioned Journey checkpoint CAS + OS locking, including Windows coverage. v0.21.1 hardens terse cross-session continuation. v0.21 introduced the resumable idea-to-production Delivery Journey on top of the six existing Routes.
+v0.21.4 requires explicit remote write destinations before conditional mutation. v0.21.3 hardens consumer integration freshness. v0.21.2 adds revisioned Journey checkpoint CAS + OS locking, including Windows coverage. v0.21.1 hardens terse cross-session continuation. v0.21 introduced the resumable idea-to-production Delivery Journey on top of the six existing Routes.
 
 AAOP still does not ship a standalone agent runtime, third-party package manager, generic workflow engine, or repository merge-queue service — intentionally.
 

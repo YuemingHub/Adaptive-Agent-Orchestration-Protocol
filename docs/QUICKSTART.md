@@ -4,25 +4,26 @@ This guide is for a developer who wants to **use AAOP now**, not study the whole
 
 ## 1. Install AAOP into the project you want to work on
 
-Open a terminal in that project.
+Open a terminal in that project. Normal/production use follows the deliberately promoted `stable` channel, not the fast-moving `main` development branch.
 
 ### macOS / Linux
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target .
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target .
 ```
 
 ### Windows PowerShell
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target .
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target .
 ```
 
 If your Python command is `python`, use it instead of `py` / `python3`.
 
 The bootstrap:
 
-- downloads the official AAOP repository archive into a temporary directory;
+- downloads the AAOP repository archive for the selected ref into a temporary directory;
+- rejects unsafe paths, encrypted members, excessive archive member counts, excessive per-member expanded size, and excessive total expanded size before extraction;
 - validates that the archive contains a recognizable AAOP source package;
 - uses the canonical `scripts/install.py` for all target mutation;
 - preserves unrelated project rules in `AGENTS.md` / `CLAUDE.md`;
@@ -36,18 +37,34 @@ The bootstrap:
 If you do not want to pipe a remote script directly into Python:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py -o aaop-bootstrap.py
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py -o aaop-bootstrap.py
 python3 aaop-bootstrap.py --target .
 ```
 
 Review the downloaded file before executing it.
 
-### Pin a specific revision
+### Pin an exact revision
 
-The default `--ref main` means “current main branch.” For reproducibility, pin a commit or tag:
+`stable` is a deliberately promoted release channel and may move when a new candidate passes all release gates. For immutable revision reproducibility, use the same exact commit for both the bootstrap script and archive:
 
 ```bash
-python3 aaop-bootstrap.py --target . --ref <commit-or-tag>
+AAOP_REF=<validated-commit-sha>
+curl -fsSL "https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/${AAOP_REF}/scripts/bootstrap.py" | python3 - --target . --ref "${AAOP_REF}"
+```
+
+PowerShell:
+
+```powershell
+$AAOP_REF = '<validated-commit-sha>'
+curl.exe -fsSL "https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/$AAOP_REF/scripts/bootstrap.py" | py - --target . --ref $AAOP_REF
+```
+
+### Opt into development / edge
+
+`main` is not the production default. Use it explicitly only when testing unreleased AAOP changes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target . --ref main
 ```
 
 ## 2. Confirm AAOP is ready
@@ -186,7 +203,9 @@ Important consequences:
 
 ## 7. Upgrade
 
-Run the **same bootstrap command again**.
+Run the current **stable bootstrap command** again.
+
+The `stable` branch moves only after a release candidate passes the required release gates; ordinary `main` commits therefore do not silently change the production install path. A consumer pinned to an exact commit remains pinned until that exact revision is deliberately changed.
 
 The bootstrap recognizes an existing AAOP installation and delegates to safe `--upgrade` behavior.
 
@@ -202,18 +221,18 @@ Malformed/duplicated AAOP marker pairs fail before package mutation.
 
 ## 8. Remove AAOP
 
-Use the same bootstrap surface with `--uninstall`.
+Use the stable bootstrap surface with `--uninstall`.
 
 ### macOS / Linux
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target . --uninstall
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target . --uninstall
 ```
 
 ### Windows PowerShell
 
 ```powershell
-curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target . --uninstall
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target . --uninstall
 ```
 
 Safe removal:
@@ -282,7 +301,15 @@ python .aaop/tools/aaop.py ready .
 
 Source-tree readiness is valid but is different from a manifest-tracked installation.
 
-The end-to-end usability gate additionally exercises bootstrap install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
+The end-to-end usability gate additionally exercises bootstrap archive safety, install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
+
+## Release channels
+
+- `main`: development/edge.
+- `stable`: deliberately promoted production channel.
+- exact commit: immutable consumer pin when exact source identity is required.
+
+A green `main` commit does not automatically promote `stable`.
 
 ## More detail
 
