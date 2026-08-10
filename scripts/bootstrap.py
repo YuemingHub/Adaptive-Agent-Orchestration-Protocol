@@ -11,6 +11,10 @@ Windows PowerShell (with the Python launcher):
 
     curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target .
 
+AAOP production support is tested on CPython 3.11 through 3.14 across Linux,
+Windows, and macOS. The bootstrap fails before download or project mutation when
+run outside that tested minor-version window.
+
 Use ``--ref main`` only when intentionally opting into the development/edge
 channel. Use an exact commit ref when byte-for-byte source revision reproducibility
 matters.
@@ -38,6 +42,8 @@ OWNER = "YuemingHub"
 REPO = "Adaptive-Agent-Orchestration-Protocol"
 DEFAULT_REF = "stable"
 TRANSACTION_DIR_NAME = ".aaop-install-transaction"
+MIN_SUPPORTED_PYTHON = (3, 11)
+MAX_SUPPORTED_PYTHON = (3, 14)
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
 MAX_ARCHIVE_MEMBERS = 4096
 MAX_MEMBER_UNCOMPRESSED_BYTES = 32 * 1024 * 1024
@@ -47,6 +53,19 @@ LEGACY_ORCHESTRATOR_MARKERS = (
     "# AAOP Runtime Protocol",
     "Adaptive Agent Orchestration Protocol (AAOP)",
 )
+
+
+def ensure_supported_python() -> None:
+    current = sys.version_info[:2]
+    if current < MIN_SUPPORTED_PYTHON or current > MAX_SUPPORTED_PYTHON:
+        minimum = ".".join(map(str, MIN_SUPPORTED_PYTHON))
+        maximum = ".".join(map(str, MAX_SUPPORTED_PYTHON))
+        actual = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        raise SystemExit(
+            "AAOP bootstrap: unsupported Python runtime "
+            f"{actual}. Production-tested CPython range is {minimum}–{maximum}. "
+            "Use a supported Python runtime before downloading or mutating the project."
+        )
 
 
 def official_archive_url(ref: str) -> str:
@@ -238,6 +257,8 @@ def run_ready(target: Path) -> int:
 
 
 def main() -> int:
+    ensure_supported_python()
+
     parser = argparse.ArgumentParser(
         description="Install, safely upgrade, recover, or safely remove AAOP without cloning its repository"
     )
