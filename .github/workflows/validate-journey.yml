@@ -41,8 +41,10 @@ jobs:
           assert d['routing_policy']['intake_selects_current_route'] is True
           assert d['routing_policy']['greenfield_gates_are_conditional'] is True
           assert d['routing_policy']['reroute_requires_new_evidence'] is True
+          assert d['routing_policy']['completed_cycle_must_reopen_explicitly'] is True
           assert d['completion_policy']['blocked_is_complete'] is False
           assert d['completion_policy']['target_verification_required'] is True
+          assert d['completion_policy']['target_verification_is_cycle_scoped'] is True
           intake = next(g for g in d['gates'] if g['id'] == 'intake')
           first = next(g for g in d['gates'] if g['id'] == 'first-slice')
           assert intake['route_selection'] == 'developer-intake'
@@ -51,8 +53,7 @@ jobs:
           assert first['applies_when'] and first['skip_when']
           PY
 
-          # Simulate an existing partial implementation: current route is
-          # feature-change, not forcibly idea-to-build merely because the Journey began.
+          # Existing partial implementation: start from current evidence, not forced greenfield.
           python "$target/.aaop/tools/journey.py" start idea-to-production \
             --goal 'turn the existing partial app into a verified online release' \
             --route feature-change \
@@ -61,16 +62,17 @@ jobs:
           python - "$target/journey-state.json" <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
+          assert d['cycle'] == 1
           assert d['status'] == 'active'
           assert d['current_route'] == 'feature-change'
           assert d['current_gate'] == 'intake'
           assert d['target_verified'] is False
           assert d['target_evidence'] == []
+          assert d['release_history'] == []
           assert d['checkpoint_needs_reconcile'] is False
           PY
 
-          # Simulate a definition upgrade. A stale checkpoint cannot silently stamp
-          # itself current; reconciliation must cite current evidence.
+          # Stale checkpoint definition cannot silently stamp itself current.
           python - "$target/.aaop/runtime/journeys/idea-to-production.json" <<'PY'
           import json, sys
           p = sys.argv[1]
@@ -91,8 +93,7 @@ jobs:
             --evidence 'current repository still contains the trusted partial implementation' \
             --outcome 'continue the existing implementation path'
 
-          # Route changes must be evidence-backed. Lack of progress alone may not
-          # bounce the Journey to another route.
+          # Established Route changes require materially new evidence.
           if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
               --route bug-fix --reason 'a defect appeared' > "$target/route-without-evidence.out" 2>&1; then
             echo 'expected route change without evidence to fail' >&2
@@ -106,7 +107,7 @@ jobs:
             --evidence 'reproducible acceptance failure: submit returns 500' \
             --next-action 'localize and regress the submit failure'
 
-          # A blocked deployment is a correct state but can never be completion.
+          # A blocked deployment is a correct state but never completion.
           python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
             --gate release-preflight \
             --route release-operations \
@@ -123,8 +124,7 @@ jobs:
           fi
           grep -q 'Clearing Journey blockers requires --reason and at least one --evidence' "$target/clear-without-evidence.out"
 
-          # Even with evidence that the blocker cleared, completion still requires
-          # explicit target-environment evidence.
+          # Even after blocker resolution, completion requires current target evidence.
           if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
               --gate deploy-observe \
               --status complete \
@@ -139,22 +139,95 @@ jobs:
 
           python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
             --gate deploy-observe \
+            --route release-operations \
             --status complete \
             --clear-blockers \
             --reason 'authorized target path restored and deployed behavior verified' \
             --evidence 'target connection and deployment path are healthy' \
-            --target-evidence 'target revision matches the intended release and the representative acceptance path passed directly' \
-            --outcome 'intended release behavior verified on target'
+            --target-evidence 'cycle 1 target revision matches the intended release and representative acceptance path passed directly' \
+            --outcome 'cycle 1 intended release behavior verified on target'
 
-          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-complete.json"
-          python - "$target/journey-complete.json" <<'PY'
+          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-complete-1.json"
+          python - "$target/journey-complete-1.json" <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
+          assert d['cycle'] == 1
           assert d['status'] == 'complete'
           assert d['target_verified'] is True
-          assert len(d['target_evidence']) >= 1
+          assert len(d['target_evidence']) == 1
           assert d['blockers'] == []
-          assert len(d['route_history']) >= 3
+          assert d['completed_at']
+          PY
+
+          # Completed cycle is immutable. New feature work must explicitly open a new cycle.
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --gate implementation-loop --route feature-change \
+              --reason 'user requested a new behavior' \
+              --evidence 'new behavior request exists' > "$target/mutate-complete.out" 2>&1; then
+            echo 'expected completed release mutation to fail' >&2
+            exit 1
+          fi
+          grep -q 'complete and immutable' "$target/mutate-complete.out"
+
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --start-next-cycle \
+            --gate implementation-loop \
+            --route feature-change \
+            --reason 'real use produced a new desired behavior for the next release' \
+            --evidence 'users now need export from the existing verified application' \
+            --outcome 'add export without regressing the verified core flow' \
+            --next-action 'define and implement the smallest export acceptance path'
+
+          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-cycle-2.json"
+          python - "$target/journey-cycle-2.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['cycle'] == 2
+          assert d['status'] == 'active'
+          assert d['current_route'] == 'feature-change'
+          assert d['target_verified'] is False
+          assert d['target_evidence'] == []
+          assert d['completed_at'] is None
+          assert len(d['release_history']) == 1
+          old = d['release_history'][0]
+          assert old['cycle'] == 1
+          assert old['target_evidence'] == ['cycle 1 target revision matches the intended release and representative acceptance path passed directly']
+          PY
+
+          # Old release evidence cannot prove the new release.
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --gate release-preflight \
+            --route release-operations \
+            --reason 'cycle 2 implementation is now release-ready' \
+            --evidence 'cycle 2 release candidate checks passed'
+
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --gate deploy-observe \
+              --status complete \
+              --reason 'attempting to rely on old release verification' \
+              --evidence 'cycle 1 was already verified' > "$target/reuse-old-target.out" 2>&1; then
+            echo 'expected previous-cycle target evidence to be insufficient' >&2
+            exit 1
+          fi
+          grep -q 'cannot be complete without direct target verification' "$target/reuse-old-target.out"
+
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --gate deploy-observe \
+            --route release-operations \
+            --status complete \
+            --reason 'cycle 2 deployed behavior verified directly' \
+            --evidence 'cycle 2 deployment completed against the revalidated target' \
+            --target-evidence 'cycle 2 target revision and export acceptance path verified directly' \
+            --outcome 'cycle 2 export behavior verified on target'
+
+          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-complete-2.json"
+          python - "$target/journey-complete-2.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['cycle'] == 2
+          assert d['status'] == 'complete'
+          assert d['target_evidence'] == ['cycle 2 target revision and export acceptance path verified directly']
+          assert len(d['release_history']) == 1
           PY
 
       - name: Generic local agents must not impersonate agent-bundles
