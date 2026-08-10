@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "id": "consumer-integration-stale-pin",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-10",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Continue this existing project autonomously. The repository has its own AAOP adapter/profile and says to use those before deciding what to do next.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "the product repository has an explicit authority order and a project-local AAOP bootstrap/profile",
+    "the local adapter pins an older AAOP release than the currently validated upstream release that added materially relevant continuity and stale-write safeguards",
+    "the adapter prints a historical production observation SHA as if it were the current execution baseline even though the active branch has advanced",
+    "a terse continuation request must preserve the product's current authority and any legitimate Journey continuity without restarting greenfield discovery",
+    "the upstream protocol repository is relevant evidence but is not automatically authorized mutation scope for the product task"
+  ],
+  "expected_first_moves": [
+    "read the product's declared current-fact and authority entrypoints before trusting the adapter or old observation SHA",
+    "re-read the current active branch/revision and compare it with the adapter/profile observation instead of treating the stored SHA as current truth",
+    "inspect the project-local protocol/provider pin only because it materially changes execution semantics required by the project",
+    "classify the old consumer pin and baseline labeling as a local integration delta only after proving compatibility or safety behavior is missing",
+    "keep any product-runtime work separate from the adapter upgrade and preserve the project's own authorization boundary"
+  ],
+  "must_preserve": [
+    "the product repository's explicit source-authority order",
+    "current branch/runtime evidence over stale adapter observations",
+    "existing long-horizon Journey continuity when present",
+    "separate mutation scope between the active product repository and the upstream orchestration repository"
+  ],
+  "must_not": [
+    "treat a project-local adapter or cached checkpoint as product truth",
+    "treat a historical observation SHA as the current execution baseline merely because it is well-formed",
+    "silently auto-upgrade to the newest upstream protocol release without proving a local compatibility/safety delta",
+    "silently stay on an old pin when the project assumes safeguards that release does not provide",
+    "restart the product as greenfield because the new conversation says only continue",
+    "rewrite unrelated product runtime or cross-repository protocol code while repairing a consumer integration delta"
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "preserve-conflicting-evidence",
+    "cross-repository-scope-boundary",
+    "consumer-integration-freshness",
+    "prove-delta-before-mutation"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A protocol can be correct in its own repository while a real consumer silently remains on an older behavioral contract.",
+    "Project-local adapter documents and pinned revisions are execution dependencies, not sources of product truth.",
+    "A syntactically valid historical SHA is still stale evidence when current repository facts have advanced.",
+    "Consumer upgrade pressure must prove both directions: do not auto-adopt upstream changes, and do not let stale pins silently disable invariants the project now relies on."
+  ]
+}

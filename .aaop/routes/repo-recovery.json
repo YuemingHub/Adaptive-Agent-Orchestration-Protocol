@@ -1,5 +1,5 @@
 {
-  "version": "0.17.0",
+  "version": "0.18.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -9,7 +9,7 @@
       "purpose": "Preserve current state, anchor the active repository/work target, and establish the smallest trustworthy discovery surface: governing instructions, declared current/canonical entrypoints, relevant dependency/coordination records, manifests, relevant modules/tests/CI, recent history, and material source authority/freshness.",
       "required_capabilities": ["repository-inspection", "git-history-analysis", "build-test-discovery", "source-authority-analysis"],
       "optional_capabilities": ["architecture-mapping"],
-      "evidence": ["active repository/work target", "working tree and branch state", "governing instruction files", "declared first-read/current/canonical sources", "material cross-repository dependency/coordination records", "manifests", "relevant test/CI configuration", "recent commits when material", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals"],
+      "evidence": ["active repository/work target", "working tree and branch state", "governing instruction files", "declared first-read/current/canonical sources", "material cross-repository dependency/coordination records", "manifests", "relevant test/CI configuration", "recent commits when material", "declared current-fact/governance/reference/draft/historical status where available", "valid-as-of or staleness signals", "project-local orchestration adapter/provider pins when they can affect execution semantics"],
       "exit_when": "The active work target, current technical surface, authoritative entrypoints, and material source/dependency authority needed for the immediate recovery decision are known without recursively traversing unrelated reference or repository graphs."
     },
     {
@@ -17,7 +17,7 @@
       "purpose": "Separate intended product behavior from accidental/stale implementation, reconcile current/draft/historical/unknown and external-repository evidence without erasing conflicts, and determine whether a current local execution delta actually exists.",
       "required_capabilities": ["cross-evidence-synthesis", "architecture-understanding", "risk-prioritization", "conflict-preservation"],
       "optional_capabilities": ["runtime-probing", "security-risk-review"],
-      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "external repository source/revision/status when a material claim is owned there", "observable desired state versus current state", "explicit unresolved conflicts when no justified winner exists"],
+      "evidence": ["README/spec versus code comparison when material", "tests versus runtime behavior when material", "issue/roadmap/history context only when needed", "authority/freshness table for conflicting claims", "external repository source/revision/status when a material claim is owned there", "observable desired state versus current state", "explicit unresolved conflicts when no justified winner exists", "consumer integration version/revision compatibility when a project-local adapter constrains orchestration behavior"],
       "exit_when": "A concise current-state model is defensible and the next result is classified as a current authorized local delta, a reroute, a blocker, or a verified no-op/no-local-mutation-justified outcome."
     },
     {
@@ -45,6 +45,10 @@
     {
       "id": "cross-repository-scope-boundary",
       "rule": "A referenced upstream/downstream repository is evidence or dependency scope, not automatically an active work target. Cross repositories only when a material claim is owned there or a local dependency/coordination record is stale, ambiguous, or insufficient; read the smallest authoritative source/revision needed, then return to the active repository. Evidence access does not authorize mutation, and product evidence must not be silently promoted into shared protocol/governance by cross-repository edits."
+    },
+    {
+      "id": "consumer-integration-freshness",
+      "rule": "Treat project-local orchestration adapters, bootstrap scripts, pinned provider/protocol revisions, generated bridges, and cached checkpoints as execution dependencies rather than product truth. Verify that a consumer pin still supplies the safety/continuity semantics the project assumes; an old pin must not silently disable newer required invariants, while a newer upstream release must not be auto-adopted or allowed to override project authority without a proven local upgrade delta and compatibility verification. Historical observation SHAs inside adapter docs remain provenance, not the execution baseline for a new task."
     },
     {
       "id": "prove-delta-before-mutation",
@@ -79,6 +83,9 @@
     "active repository/work target remained explicit",
     "external repository reads were justified by claim ownership or stale/insufficient local dependency evidence",
     "cross-repository writes did not occur without separate scope/authorization",
+    "project-local orchestration/provider pins were checked when they materially constrained current execution semantics",
+    "stale adapter documentation or checkpoint observations were not promoted into the current execution baseline",
+    "a consumer upgrade was proposed or applied only after a concrete compatibility/safety delta was proven",
     "a mutation occurred only after a current local execution delta was proven",
     "when no current local delta existed, verified no-op/no-local-mutation evidence was accepted instead of manufacturing a change",
     "when recovery exposed a concrete bug or desired behavior, the route executed or rerouted instead of remaining in analysis mode",
