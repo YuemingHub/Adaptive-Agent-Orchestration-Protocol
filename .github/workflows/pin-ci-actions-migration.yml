@@ -1,14 +1,15 @@
 name: pin-ci-actions-migration
 
 on:
-  push:
-    branches: [agent/pin-ci-supply-chain]
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
   pin-actions:
+    if: github.head_ref == 'agent/pin-ci-supply-chain'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
