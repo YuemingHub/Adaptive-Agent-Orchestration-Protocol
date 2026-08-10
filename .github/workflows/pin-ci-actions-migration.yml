@@ -20,17 +20,13 @@ jobs:
           python-version: "3.12"
       - name: Apply deterministic reviewed pin migration
         run: python scripts/pin_ci_actions_migration.py
-      - name: Commit workflow-only migration when needed
+      - name: Validate migration diff
         shell: bash
         run: |
           set -euo pipefail
           git diff --check
-          if git diff --quiet -- .github/workflows; then
-            echo 'No workflow pin changes remain.'
-            exit 0
-          fi
-          git config user.name 'aaop-ci-migration'
-          git config user.email 'aaop-ci-migration@users.noreply.github.com'
-          git add .github/workflows
-          git commit -m 'chore(ci): pin reviewed GitHub Actions revisions'
-          git push origin HEAD:agent/pin-ci-supply-chain
+          git diff --name-only -- .github/workflows
+      - name: Prepare remote commit object without updating a ref
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python scripts/prepare_ci_pin_commit.py
