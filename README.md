@@ -203,6 +203,8 @@ AAOP aims for high autonomy without pretending all actions are equivalent.
 
 A repository API's default branch is metadata, not the default engineering write destination. When a project requires a working branch + PR, remote file/ref mutations must explicitly target that branch; a syntactically optional `branch`/`ref` field must not be omitted if omission writes to `main`, `production`, or another implicit destination. Verify after the write that the intended target changed and the protected/default target did not change unexpectedly.
 
+A PR's current `mergeable` flag is also not proof of semantic independence from other active work. If the repository declares a predecessor/order, or concurrent PRs overlap an authority-critical surface, merge approval is conditional on that sequence. After the predecessor changes the base, rebuild/rebase the remaining delta, rerun affected validation, and review the new head rather than carrying forward an approval made against the old base.
+
 For end-to-end delivery, a safely blocked release is not complete. Direct target-environment evidence is required to complete the current release cycle, and evidence from an earlier completed release cannot prove a later one.
 
 A blocked Journey resumed by a terse `continue` request first re-checks the recorded unblock condition. Unchanged credentials, authorization, network, or external-dependency blockers are not permission to retry blindly or install workaround machinery.
@@ -234,15 +236,16 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 7. Accept a verified no-op when nothing should change.
 8. Resolve the explicit destination before a consequential remote mutation; do not let an optional API field silently choose the write target.
 9. Revalidate the target baseline immediately before consequential writes.
-10. Reuse current capabilities before adding providers.
-11. Classify blockers before calling them capability gaps.
-12. Preserve project/runtime state across install, upgrade, and removal.
-13. Verify the outcome, not merely that code was written.
-14. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
-15. Scope production verification to the current release cycle.
-16. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
-17. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
-18. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
+10. Treat PR merge approval as scoped to its reviewed base/head and declared predecessor order; textual mergeability is not semantic independence.
+11. Reuse current capabilities before adding providers.
+12. Classify blockers before calling them capability gaps.
+13. Preserve project/runtime state across install, upgrade, and removal.
+14. Verify the outcome, not merely that code was written.
+15. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
+16. Scope production verification to the current release cycle.
+17. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
+18. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
+19. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
 
 ## Repository map
 
@@ -292,19 +295,17 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.4 — explicit remote write-target protection.**
+**v0.21.5 — semantic PR merge-order review.**
 
-v0.21.4 hardens a failure that conditional SHA/CAS checks alone cannot prevent: a mutation may be concurrency-safe yet still land on the wrong branch because a host API silently defaults an omitted target. Remote repository/config/deployment writes now resolve the exact destination before the baseline precondition, project-required working-branch/PR flows cannot be bypassed by optional API defaults, and post-write verification must confirm that the intended destination changed. A real-project pressure case captures an accidental direct production/default-branch write followed by a revert.
+v0.21.5 hardens multi-PR convergence: GitHub textual mergeability no longer counts as proof that active PRs are semantically independent. `understand-review` now treats repository-declared predecessor order, shared authority/configuration surfaces, and base/head relationships as merge evidence. A dependent PR built before its required predecessor is only conditionally mergeable; once the predecessor lands, the dependent delta must be rebuilt/rebased from the new base, affected validation rerun, and the new head reviewed. A real-project pressure case captures two individually plausible Draft PRs that modify the same authority profile with different required semantics.
 
-v0.21.3 adds a `repo-recovery` pressure guard for real consumer drift: project-local orchestration adapters, pinned protocol/provider revisions, generated bridges, and cached observation SHAs are execution dependencies rather than product truth. AAOP checks a consumer pin only when it materially changes current execution semantics and rejects both stale-pin assumptions and automatic upstream adoption.
+v0.21.4 requires explicit remote write destinations before conditional mutation, preventing optional host API defaults from silently writing to a protected/default/production branch.
 
-v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state, including on Windows.
+v0.21.3 adds a `repo-recovery` pressure guard for consumer integration freshness so stale project-local protocol/provider pins and observation SHAs cannot silently define current execution.
 
-v0.21.1 hardened terse cross-session continuation: `continue` or `what next?` resumes an existing Journey before a new goal is inferred, while blocked and completed states retain their correct boundaries.
+v0.21.2 adds revisioned Journey checkpoint CAS + OS locking, including Windows coverage. v0.21.1 hardens terse cross-session continuation. v0.21 introduced the resumable idea-to-production Delivery Journey on top of the six existing Routes.
 
-v0.21 introduced the resumable idea-to-production Delivery Journey on top of the existing six Routes, including evidence-backed rerouting, release-cycle target verification, dedicated Journey regression validation, and conservative specialist-provider detection.
-
-AAOP still does not ship a standalone agent runtime, third-party package manager, or generic workflow engine — intentionally.
+AAOP still does not ship a standalone agent runtime, third-party package manager, generic workflow engine, or repository merge-queue service — intentionally.
 
 ## License
 
