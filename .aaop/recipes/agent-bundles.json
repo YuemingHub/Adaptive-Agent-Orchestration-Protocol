@@ -1,0 +1,65 @@
+{
+  "id": "agent-bundles",
+  "provider_id": "agent-bundles",
+  "last_verified": "2026-08-10",
+  "source_of_truth": "https://github.com/YuemingHub/agent-bundles",
+  "selection": {
+    "use_when": [
+      "a bounded specialist-agent role is genuinely missing after checking the host's native agents, existing project agents, Skills, and local procedures",
+      "project-aware curation of specialist role prompts would materially improve specialization or context isolation"
+    ],
+    "avoid_when": [
+      "the main agent can perform the work adequately",
+      "the need is actually a technical tool or external-service capability gap rather than a role/specialization gap",
+      "installing a broad catalog would add context or coordination overhead without a concrete responsibility boundary",
+      "the task is blocked by authorization, credentials, environment, network, external dependency, or product decision"
+    ]
+  },
+  "detect": {
+    "files": [
+      ".claude/agents/*.md",
+      ".agents/agents/*.md",
+      ".cursor/agents/*.md",
+      ".qoder/agents/*.md",
+      ".zcode/agents/*.md",
+      ".workbuddy/agents/*.md"
+    ]
+  },
+  "install": {
+    "mode": "manual-choice",
+    "minimal_commands": [
+      "git clone https://github.com/YuemingHub/agent-bundles.git",
+      "cd agent-bundles && ./bootstrap.sh --project --dry-run",
+      "cd agent-bundles && ./bootstrap.sh --project"
+    ],
+    "notes": [
+      "On Windows use bootstrap.ps1 instead of bootstrap.sh.",
+      "Preview with --dry-run before installation when the target agent directory already contains project-owned agents.",
+      "Prefer explicit --division selection when AAOP has already identified the missing specialist responsibility; do not install every default division automatically.",
+      "agent-bundles does not vendor upstream agents. Its bootstrap fetches msitarzewski/agency-agents at runtime and installs a curated subset into the selected host's agent directory."
+    ]
+  },
+  "permissions": [
+    "local write access to the selected host's agent configuration directory",
+    "network access to GitHub for the agent-bundles repository and its configured upstream source"
+  ],
+  "verify": {
+    "checks": [
+      "confirm only the intended specialist divisions/agents were installed",
+      "restart or reload the host if it requires agent discovery at startup",
+      "delegate one bounded representative responsibility and verify that specialist separation materially improves the original task",
+      "remove or avoid specialists that duplicate the main agent without measurable value"
+    ]
+  },
+  "rollback": {
+    "steps": [
+      "remove only the agent files installed for this adoption from the target host agent directory",
+      "preserve project-owned or pre-existing agent files",
+      "remove the temporary agent-bundles checkout if it is no longer needed"
+    ]
+  },
+  "warnings": [
+    "Agent-role prompts do not create new external tool permissions or technical capabilities; do not misclassify a missing tool/API/runtime as something more agents can solve.",
+    "More agents can increase coordination cost and context fragmentation. Default to one agent unless the responsibility boundary is evidenced."
+  ]
+}
