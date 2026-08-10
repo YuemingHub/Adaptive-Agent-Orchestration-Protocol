@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Prepare, but do not publish, a remote commit containing reviewed workflow pins.
+"""Upload reviewed workflow-pin contents as unreferenced Git blobs.
 
-GitHub App tokens used by Actions cannot update workflow refs without the separate
-workflows permission. This one-time helper uses the Git Data API only to create the
-blobs/tree/commit object, then prints the commit SHA. A separately authorized
-repository control surface may decide whether to move the branch ref to that commit.
+GitHub Actions' App token may create blob objects but is intentionally not granted
+the separate workflow permission required to assemble/update a workflow tree/ref.
+This one-time helper therefore stops after uploading blobs and prints the exact
+base tree plus ``path -> blob SHA`` mapping. A separately authorized repository
+control surface may decide whether to assemble those immutable objects.
 
-No ref is updated here.
+No tree, commit, or branch ref is created/updated here.
 """
 
 from __future__ import annotations
@@ -15,7 +16,6 @@ import base64
 import json
 import os
 import subprocess
-import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -45,7 +45,7 @@ def api(method: str, path: str, payload: dict[str, object] | None = None) -> dic
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {TOKEN}",
             "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "AAOP-ci-pin-preparer/1",
+            "User-Agent": "AAOP-ci-pin-blob-preparer/1",
         },
     )
     try:
@@ -77,7 +77,9 @@ def main() -> int:
         raise SystemExit("Parent commit did not expose a tree SHA")
     base_tree = tree_obj["sha"]
 
-    entries: list[dict[str, object]] = []
+    print(f"prepared_parent={parent}")
+    print(f"prepared_base_tree={base_tree}")
+
     for relative in sorted(changed):
         path = ROOT / relative
         blob = api(
@@ -91,37 +93,10 @@ def main() -> int:
         sha = blob.get("sha")
         if not isinstance(sha, str):
             raise SystemExit(f"Blob creation returned no SHA for {relative}")
-        entries.append({"path": relative, "mode": "100644", "type": "blob", "sha": sha})
+        print(f"prepared_blob={relative}\t{sha}")
 
-    tree = api(
-        "POST",
-        f"/repos/{REPOSITORY}/git/trees",
-        {"base_tree": base_tree, "tree": entries},
-    )
-    tree_sha = tree.get("sha")
-    if not isinstance(tree_sha, str):
-        raise SystemExit("Tree creation returned no SHA")
-
-    commit = api(
-        "POST",
-        f"/repos/{REPOSITORY}/git/commits",
-        {
-            "message": "chore(ci): pin reviewed GitHub Actions revisions",
-            "tree": tree_sha,
-            "parents": [parent],
-        },
-    )
-    commit_sha = commit.get("sha")
-    if not isinstance(commit_sha, str):
-        raise SystemExit("Commit creation returned no SHA")
-
-    print(f"prepared_parent={parent}")
-    print(f"prepared_tree={tree_sha}")
-    print(f"prepared_commit={commit_sha}")
     print(f"prepared_workflow_count={len(changed)}")
-    for relative in sorted(changed):
-        print(f"prepared_path={relative}")
-    print("No branch ref was updated by this helper.")
+    print("No tree, commit, or branch ref was created/updated by this helper.")
     return 0
 
 
