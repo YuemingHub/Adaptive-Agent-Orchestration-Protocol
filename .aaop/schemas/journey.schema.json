@@ -28,26 +28,23 @@
       "type": "string",
       "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
     },
-    "status": {
-      "type": "string"
-    },
-    "objective": {
-      "type": "string",
-      "minLength": 1
-    },
+    "status": {"type": "string"},
+    "objective": {"type": "string", "minLength": 1},
     "routing_policy": {
       "type": "object",
       "required": [
         "intake_selects_current_route",
         "greenfield_gates_are_conditional",
         "reroute_requires_new_evidence",
-        "stale_checkpoint_never_overrides_current_evidence"
+        "stale_checkpoint_never_overrides_current_evidence",
+        "completed_cycle_must_reopen_explicitly"
       ],
       "properties": {
         "intake_selects_current_route": {"const": true},
         "greenfield_gates_are_conditional": {"const": true},
         "reroute_requires_new_evidence": {"const": true},
-        "stale_checkpoint_never_overrides_current_evidence": {"const": true}
+        "stale_checkpoint_never_overrides_current_evidence": {"const": true},
+        "completed_cycle_must_reopen_explicitly": {"const": true}
       },
       "additionalProperties": true
     },
@@ -56,11 +53,13 @@
       "required": [
         "blocked_is_complete",
         "target_verification_required",
+        "target_verification_is_cycle_scoped",
         "local_or_ci_evidence_cannot_substitute_for_target_evidence"
       ],
       "properties": {
         "blocked_is_complete": {"const": false},
         "target_verification_required": {"const": true},
+        "target_verification_is_cycle_scoped": {"const": true},
         "local_or_ci_evidence_cannot_substitute_for_target_evidence": {"const": true}
       },
       "additionalProperties": true
@@ -103,9 +102,7 @@
             "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
           },
           "primary_route": {"type": "string"},
-          "route_selection": {
-            "enum": ["developer-intake", "current-route"]
-          },
+          "route_selection": {"enum": ["developer-intake", "current-route"]},
           "applies_when": {"type": "string", "minLength": 1},
           "skip_when": {"type": "string", "minLength": 1},
           "possible_reroutes": {
@@ -136,12 +133,8 @@
       "minItems": 1,
       "items": {"type": "string", "minLength": 1}
     },
-    "capability_policy": {
-      "type": "object"
-    },
-    "historical_sources": {
-      "type": "object"
-    },
+    "capability_policy": {"type": "object"},
+    "historical_sources": {"type": "object"},
     "completion": {
       "type": "array",
       "minItems": 1,
