@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aaop.dev/schemas/journey-state.schema.json",
+  "title": "AAOP Journey Checkpoint State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "journey_id",
+    "journey_version",
+    "goal",
+    "status",
+    "current_gate",
+    "current_route",
+    "target_verified",
+    "evidence",
+    "blockers",
+    "route_history",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "journey_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "journey_version": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": ["active", "blocked", "complete"]
+    },
+    "current_gate": {
+      "type": "string",
+      "minLength": 1
+    },
+    "current_route": {
+      "type": ["string", "null"]
+    },
+    "current_outcome": {
+      "type": ["string", "null"]
+    },
+    "next_action": {
+      "type": ["string", "null"]
+    },
+    "target_verified": {
+      "type": "boolean"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "route_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "reason", "at"],
+        "properties": {
+          "from": {"type": ["string", "null"]},
+          "to": {"type": "string"},
+          "reason": {"type": "string", "minLength": 1},
+          "at": {"type": "string", "format": "date-time"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "last_checkpoint_reason": {
+      "type": ["string", "null"]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": true
+}
