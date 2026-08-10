@@ -24,7 +24,7 @@ ROUTES = {
     "release-operations",
 }
 STATUSES = {"active", "blocked", "complete"}
-STATE_SCHEMA_VERSION = "0.3.0"
+STATE_SCHEMA_VERSION = "0.3.1"
 
 
 def package_root() -> Path:
@@ -79,18 +79,34 @@ def save_state(journey_id: str, payload: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
-def gate_ids(definition: dict[str, Any]) -> set[str]:
-    result: set[str] = set()
+def gate_map(definition: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
     for gate in definition.get("gates", []):
         if isinstance(gate, dict) and isinstance(gate.get("id"), str):
-            result.add(gate["id"])
+            result[gate["id"]] = gate
     return result
 
 
 def ensure_gate(definition: dict[str, Any], gate: str) -> None:
-    if gate not in gate_ids(definition):
-        available = ", ".join(sorted(gate_ids(definition)))
+    gates = gate_map(definition)
+    if gate not in gates:
+        available = ", ".join(sorted(gates))
         raise SystemExit(f"Unknown Journey gate {gate!r}. Available: {available}")
+
+
+def ensure_gate_route_compatible(definition: dict[str, Any], gate_id: str, route: str | None) -> None:
+    gate = gate_map(definition).get(gate_id)
+    if not gate:
+        raise SystemExit(f"Unknown Journey gate {gate_id!r}")
+    required_route = gate.get("primary_route")
+    if isinstance(required_route, str):
+        if route is None:
+            raise SystemExit(f"Journey gate {gate_id!r} requires route {required_route!r}; no current route is set.")
+        if route != required_route:
+            raise SystemExit(
+                f"Journey gate {gate_id!r} requires route {required_route!r}, but the proposed/current route is {route!r}. "
+                "Reclassify from evidence instead of pairing an incompatible Gate and Route."
+            )
 
 
 def append_unique(values: list[str], additions: list[str]) -> list[str]:
@@ -146,6 +162,7 @@ def command_show(journey_id: str, as_json: bool) -> int:
 def command_start(journey_id: str, goal: str, gate: str, route: str | None, reason: str) -> int:
     definition = load_definition(journey_id)
     ensure_gate(definition, gate)
+    ensure_gate_route_compatible(definition, gate, route)
     path = state_path(journey_id)
     if path.exists():
         raise SystemExit(
@@ -214,6 +231,7 @@ def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state
     if args.target_evidence:
         raise SystemExit("A new release cycle cannot begin with inherited target verification evidence.")
     ensure_gate(definition, args.gate)
+    ensure_gate_route_compatible(definition, args.gate, args.route)
 
     old_cycle = int(state.get("cycle", 1))
     completed_at = state.get("completed_at")
@@ -279,11 +297,13 @@ def command_checkpoint(args: argparse.Namespace) -> int:
             "Journey definition changed since this checkpoint. Reconciliation requires --reason and at least one --evidence item from the current project/runtime state."
         )
 
+    intended_gate = args.gate or str(state.get("current_gate") or "")
     if args.gate:
         ensure_gate(definition, args.gate)
-        state["current_gate"] = args.gate
-
     previous_route = state.get("current_route")
+    intended_route = args.route or previous_route
+    ensure_gate_route_compatible(definition, intended_gate, intended_route)
+
     if args.route and args.route != previous_route:
         if previous_route is not None and not args.reason.strip():
             raise SystemExit("Changing Journey route requires --reason with the evidence-backed reclassification.")
@@ -301,6 +321,8 @@ def command_checkpoint(args: argparse.Namespace) -> int:
         )
         state["current_route"] = args.route
 
+    if args.gate:
+        state["current_gate"] = args.gate
     if args.outcome is not None:
         state["current_outcome"] = args.outcome.strip() or None
     if args.next_action is not None:
