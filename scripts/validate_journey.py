@@ -71,6 +71,7 @@ def validate_state_schema(root: Path, errors: list[str]) -> None:
     required = payload.get("required")
     required_set = set(required) if isinstance(required, list) else set()
     expected = {
+        "revision",
         "cycle",
         "target_verified",
         "target_evidence",
@@ -80,12 +81,18 @@ def validate_state_schema(root: Path, errors: list[str]) -> None:
     }
     missing = expected - required_set
     if missing:
-        fail(errors, f"{path}: release-cycle checkpoint schema missing required fields: {', '.join(sorted(missing))}")
+        fail(errors, f"{path}: checkpoint schema missing required fields: {', '.join(sorted(missing))}")
 
     properties = payload.get("properties")
     if not isinstance(properties, dict):
         fail(errors, f"{path}: properties must be an object")
         return
+
+    revision = properties.get("revision")
+    if not isinstance(revision, dict) or revision.get("type") != "integer" or revision.get("minimum") != 1:
+        fail(errors, f"{path}: revision must be a positive integer CAS token")
+    elif "compare-and-swap" not in str(revision.get("description", "")).lower():
+        fail(errors, f"{path}: revision description must preserve compare-and-swap semantics")
 
     route_history = properties.get("route_history")
     if not isinstance(route_history, dict):
@@ -258,8 +265,11 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
         "existing",
         "current evidence wins",
         "release cycle",
+        "--expected-revision",
+        "compare-and-swap",
+        "stale revision",
     ):
-        if required not in end_text:
+        if required not in end_text.lower() if required in {"compare-and-swap", "stale revision"} else required not in end_text:
             fail(errors, f"{end_to_end}: missing hardened Journey contract phrase {required!r}")
     if "--start-next-cycle" not in end_text:
         fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
@@ -279,6 +289,9 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
 
     for required in (
         "--start-next-cycle",
+        "--expected-revision",
+        "checkpoint_lock",
+        "Stale Journey checkpoint revision",
         "release_history",
         "target_evidence",
         "complete and immutable",
@@ -322,7 +335,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print("AAOP Journey validation passed (routing, continuation, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
+    print("AAOP Journey validation passed (routing, continuation, stale-write CAS, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
     return 0
 
 

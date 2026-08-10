@@ -175,6 +175,8 @@ Upgrade preserves:
 - locally modified managed files as backups before canonical replacement;
 - malformed bootstrap markers fail before package mutation.
 
+Legacy Journey checkpoints created by v0.21.0/v0.21.1 are preserved. Their first v0.21.2 mutation treats the missing revision as revision `0` and requires an explicit latest-state write precondition before migrating the checkpoint.
+
 ## Remove AAOP
 
 Use the same bootstrap surface with `--uninstall`.
@@ -207,6 +209,8 @@ For end-to-end delivery, a safely blocked release is not complete. Direct target
 
 A blocked Journey resumed by a terse `continue` request first re-checks the recorded unblock condition. Unchanged credentials, authorization, network, or external-dependency blockers are not permission to retry blindly or install workaround machinery.
 
+Journey checkpoint writes follow the same stale-write principle as consequential project writes: the coordinator reads the latest checkpoint revision, reconciles current evidence, and writes only against that revision. `journey.py` serializes local mutation and rejects a stale revision instead of allowing last-writer-wins state loss.
+
 ## What AAOP deliberately does not build
 
 AAOP reuses mature upstream layers instead of recreating them. It does not try to become:
@@ -238,6 +242,7 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 13. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
 14. Scope production verification to the current release cycle.
 15. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
+16. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
 
 ## Repository map
 
@@ -258,7 +263,7 @@ AGENTS.md / CLAUDE.md              host-native bootstrap
     ├── health.py
     ├── doctor.py
     ├── instructions.py
-    ├── journey.py                 lightweight Journey checkpoint continuity
+    ├── journey.py                 revisioned Journey checkpoint continuity
     ├── route.py
     └── recipe.py
 
@@ -287,9 +292,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.1 — cross-session Journey continuation hardening.**
+**v0.21.2 — Journey stale-write protection.**
 
-v0.21.1 makes terse continuation requests such as `continue` or `what next?` resume an existing Journey checkpoint before a new goal is inferred. Active checkpoints retain the long-horizon outcome while current evidence chooses the Route; blocked checkpoints re-check the recorded unblock condition instead of blindly retrying or widening access; completed checkpoints remain immutable unless fresh evidence creates an explicit next release cycle.
+v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state. The regression suite now proves that a stale writer cannot erase a newer checkpoint update.
+
+v0.21.1 hardened terse cross-session continuation: `continue` or `what next?` resumes an existing Journey before a new goal is inferred, while blocked and completed states retain their correct boundaries.
 
 v0.21 introduced the resumable idea-to-production Delivery Journey on top of the existing six Routes, including evidence-backed rerouting, release-cycle target verification, dedicated Journey regression validation, and conservative specialist-provider detection.
 

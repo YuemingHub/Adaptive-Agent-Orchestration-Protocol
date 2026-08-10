@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "status": "experimental-canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -20,6 +20,7 @@
     "runtime_file": ".aaop/runtime/journeys/idea-to-production.json",
     "schema": ".aaop/schemas/journey-state.schema.json",
     "checkpoint_tool": ".aaop/tools/journey.py",
+    "write_precondition": "Every checkpoint mutation must use the revision returned by the latest reconciled status read; stale revisions are rejected while mutation is serialized by a local OS file lock.",
     "authority": "Journey state is a resumability checkpoint only. Current repository, runtime, target-environment, and user evidence wins when it conflicts with a saved checkpoint. Completed release evidence is historical and must not satisfy a later release cycle."
   },
   "entry_conditions": [
@@ -38,7 +39,7 @@
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
-    "journey checkpoint maintenance and resume reconciliation",
+    "journey checkpoint maintenance, resume reconciliation, and stale-write prevention",
     "release-cycle boundaries so old target verification cannot prove a later release",
     "capability/provider selection only after a proven gap",
     "release preflight preparation and rollback planning"
@@ -71,9 +72,7 @@
     {
       "id": "project-readiness",
       "route_selection": "current-route",
-      "possible_reroutes": [
-        "repo-recovery"
-      ],
+      "possible_reroutes": ["repo-recovery"],
       "goal": "Establish only the minimum trustworthy project/environment baseline required to continue from the current project state.",
       "exit_evidence": [
         "trusted project baseline",
@@ -86,12 +85,7 @@
       "id": "implementation-loop",
       "route_selection": "current-route",
       "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
-      "possible_reroutes": [
-        "bug-fix",
-        "feature-change",
-        "repo-recovery",
-        "understand-review"
-      ],
+      "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery", "understand-review"],
       "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route until the intended release behavior is present.",
       "exit_evidence": [
         "acceptance behavior",
@@ -103,11 +97,7 @@
     {
       "id": "release-candidate",
       "route_selection": "current-route",
-      "possible_reroutes": [
-        "bug-fix",
-        "feature-change",
-        "repo-recovery"
-      ],
+      "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery"],
       "goal": "Prove that the application is a release candidate, not merely locally complete.",
       "exit_evidence": [
         "relevant tests/build checks",
@@ -134,11 +124,7 @@
     {
       "id": "deploy-observe",
       "primary_route": "release-operations",
-      "possible_reroutes": [
-        "bug-fix",
-        "feature-change",
-        "repo-recovery"
-      ],
+      "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery"],
       "goal": "Revalidate the target immediately before the write, deploy only within authorization, and directly verify the actual target behavior before completion.",
       "exit_evidence": [
         "pre-write target revalidation",
@@ -168,7 +154,8 @@
     "deployment/release is the immediate blocker -> release-operations",
     "a route transition must be justified by materially new evidence or a changed blocker classification; lack of progress alone is not a reroute signal",
     "if routes begin to oscillate without new evidence, stop and reclassify the blocker instead of continuing to bounce",
-    "after a completed release, new build/fix work starts an explicit next release cycle; previous target verification is archived and cannot satisfy the new cycle"
+    "after a completed release, new build/fix work starts an explicit next release cycle; previous target verification is archived and cannot satisfy the new cycle",
+    "before mutating Journey continuity state, re-read and reconcile the current checkpoint revision; a stale revision must fail rather than overwrite concurrent evidence"
   ],
   "capability_policy": {
     "default": "one capable host-native agent with existing project tools",

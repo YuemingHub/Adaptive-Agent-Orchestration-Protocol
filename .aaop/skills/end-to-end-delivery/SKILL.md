@@ -22,6 +22,7 @@ AAOP owns the engineering process:
 - verify before claiming completion;
 - reroute only when evidence changes the problem;
 - preserve resumable Journey checkpoints without treating them as current truth;
+- revalidate the checkpoint revision immediately before mutating continuity state;
 - scope production verification to the current release cycle;
 - do not make a novice choose frameworks, databases, Agent topology, MCP servers, or deployment machinery unless a real user-owned constraint requires it.
 
@@ -40,27 +41,39 @@ For a long-running Journey, maintain a lightweight continuity checkpoint with:
 ```bash
 python .aaop/tools/journey.py status idea-to-production --json
 python .aaop/tools/journey.py start idea-to-production --goal "<long-horizon product outcome>" --route <current-route>
-python .aaop/tools/journey.py checkpoint idea-to-production ...
+python .aaop/tools/journey.py checkpoint idea-to-production --expected-revision <revision-from-latest-status> ...
 ```
 
-The checkpoint lives under `.aaop/runtime/journeys/` and is preserved across AAOP upgrades. It records the original goal, current release cycle, current gate/route, evidence, blockers, route history, completed release history, and next action.
+The checkpoint lives under `.aaop/runtime/journeys/` and is preserved across AAOP upgrades. It records the original goal, current release cycle, current gate/route, evidence, blockers, route history, completed release history, next action, and a monotonic `revision` used as a compare-and-swap token.
 
 **It is not a workflow engine or source of truth.** At the start of a new session, reconcile the saved checkpoint against current repository/runtime/target evidence and project instructions. If they disagree, current evidence wins and the checkpoint must be updated rather than forcing the old plan.
 
 Do not overwrite an existing Journey checkpoint merely because a new conversation started. Do not silently stamp a stale Journey definition current: reconciliation requires current evidence.
 
-### Checkpoint ownership is single-writer
+### Checkpoint ownership and stale-write protection
 
 The Journey checkpoint has one logical writer: the primary orchestration/coordinator context that owns the current Route decision.
+
+Before every checkpoint mutation:
+
+1. read `python .aaop/tools/journey.py status idea-to-production --json`;
+2. reconcile that state with current project/runtime/target evidence;
+3. take the returned `revision` as the write precondition;
+4. call `checkpoint ... --expected-revision <revision>`;
+5. if the tool reports a stale revision, do **not** retry the same command blindly — re-read the newer checkpoint, preserve the concurrent change, recompute the intended update, and only then write from the new revision.
+
+`journey.py` serializes mutations with an OS file lock and compares the caller's expected revision while holding that lock. Every successful mutation increments the revision. This prevents a stale coordinator/session from overwriting evidence, blockers, Route changes, or release state written by another coordinator.
 
 When specialist agents or parallel workers are used:
 
 - they may inspect the checkpoint and project evidence;
 - they return bounded findings, test results, diffs, or review evidence to the coordinator;
 - they do **not** independently mutate the Journey checkpoint in parallel;
-- the coordinator re-reads current evidence and serializes the checkpoint update after integrating the relevant findings.
+- the coordinator re-reads current evidence and the latest revision, then serializes the checkpoint update after integrating the relevant findings.
 
-This prevents last-writer-wins state loss from turning parallel work into false Route changes, erased blockers, or lost evidence. The checkpoint is coordination state, so adding a distributed workflow/locking system merely to permit many writers would violate AAOP's minimum-machinery principle.
+This avoids last-writer-wins state loss without introducing a database, queue, distributed lock service, or second workflow runtime. The file lock protects the local mutation critical section; the revision token protects the engineering decision from being written against stale continuity state.
+
+Legacy checkpoints from v0.21.0/v0.21.1 have no stored revision. `status --json` exposes them as revision `0`; their first mutation under the new contract must explicitly use `--expected-revision 0`, which migrates the checkpoint to a positive revision instead of silently pretending the old state was current.
 
 ## Journey shape
 
@@ -145,7 +158,7 @@ For each coherent change:
 5. classify failures before retrying;
 6. stop repeated blind retries and re-diagnose when evidence is not changing;
 7. inspect the diff for unrelated changes and sensitive data;
-8. checkpoint meaningful new evidence and the next decision.
+8. re-read the Journey status/revision and checkpoint meaningful new evidence and the next decision.
 
 Prefer project-declared validation commands. Where applicable, use the familiar sequence:
 
@@ -169,7 +182,7 @@ Use evidence to choose the next route:
 - decision-only request -> `understand-review`;
 - deployment/release becomes the immediate blocker -> `release-operations`.
 
-A route change must correspond to materially new evidence or a changed blocker classification. The checkpoint tool requires a reason and evidence when changing from one established route to another.
+A route change must correspond to materially new evidence or a changed blocker classification. The checkpoint tool requires a reason, evidence, and the latest expected revision when changing from one established route to another.
 
 **Do not use rerouting as a substitute for diagnosis.** If the Journey begins bouncing between routes while the underlying evidence is unchanged, stop, classify the blocker, record it, and identify the smallest legitimate unblock condition.
 
@@ -193,7 +206,7 @@ Before adding a specialist:
 
 `agent-bundles` is an optional curated specialist-agent source. It is **not** part of the default stack and must not be installed because “more agents sounds better.” Load its Integration Recipe only when a bounded specialist role is genuinely missing.
 
-Agent-role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities. Specialist workers also do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context.
+Agent-role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities. Specialist workers also do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context and protected by the current revision precondition.
 
 ## Gate 6 — Release-candidate proof
 
@@ -259,10 +272,12 @@ The Journey checkpoint may be marked `complete` only after direct current-cycle 
 
 A completed release cycle becomes immutable historical evidence. If real use or a new product decision creates more build/fix work, **do not mutate the completed cycle and do not reuse its target verification**.
 
-Open the next release cycle only from fresh evidence:
+Re-read the current checkpoint and use its latest revision when opening the next release cycle:
 
 ```bash
+python .aaop/tools/journey.py status idea-to-production --json
 python .aaop/tools/journey.py checkpoint idea-to-production \
+  --expected-revision <revision-from-latest-status> \
   --start-next-cycle \
   --gate <current-gate> \
   --route <current-route> \
@@ -276,7 +291,8 @@ Starting the next cycle:
 - increments the cycle number;
 - resets current-cycle `target_verified` and `target_evidence`;
 - keeps the long-horizon product goal and route history;
-- requires the new current gate/route to be selected from present evidence.
+- requires the new current gate/route to be selected from present evidence;
+- fails instead of overwriting concurrent Journey changes when the expected revision is stale.
 
 After a real use, release, failure, or near-miss:
 
@@ -300,7 +316,7 @@ The user should usually see:
 The user should **not** be asked to operate:
 
 - route names;
-- Journey checkpoint or release-cycle mechanics;
+- Journey checkpoint, revision, or release-cycle mechanics;
 - Agent counts;
 - Skill selection;
 - MCP/provider selection;

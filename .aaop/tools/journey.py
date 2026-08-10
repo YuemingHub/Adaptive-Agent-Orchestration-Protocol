@@ -11,9 +11,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 ROUTES = {
     "idea-to-build",
@@ -24,7 +26,7 @@ ROUTES = {
     "release-operations",
 }
 STATUSES = {"active", "blocked", "complete"}
-STATE_SCHEMA_VERSION = "0.3.1"
+STATE_SCHEMA_VERSION = "0.3.2"
 
 
 def package_root() -> Path:
@@ -67,16 +69,75 @@ def state_path(journey_id: str) -> Path:
     return state_root() / f"{journey_id}.json"
 
 
+def lock_path(journey_id: str) -> Path:
+    return state_root() / f".{journey_id}.lock"
+
+
 def load_state(journey_id: str) -> dict[str, Any]:
     return load_json(state_path(journey_id))
 
 
-def save_state(journey_id: str, payload: dict[str, Any]) -> None:
+def current_revision(state: dict[str, Any]) -> int:
+    """Return the checkpoint CAS revision.
+
+    v0.21.0/v0.21.1 checkpoints predate this field. Treat them as revision 0 so
+    the first v0.21.2 mutation can migrate them explicitly with
+    ``--expected-revision 0`` instead of silently claiming a newer baseline.
+    """
+    value = state.get("revision", 0)
+    if not isinstance(value, int) or value < 0:
+        raise SystemExit(f"AAOP Journey checkpoint has invalid revision: {value!r}")
+    return value
+
+
+def save_state_unlocked(journey_id: str, payload: dict[str, Any]) -> None:
     path = state_path(journey_id)
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(".json.tmp")
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     temporary.replace(path)
+
+
+@contextmanager
+def checkpoint_lock(journey_id: str) -> Iterator[None]:
+    """Serialize checkpoint mutation with a process-owned OS file lock.
+
+    The lock file may remain on disk, but the kernel lock is released when the
+    process exits, so a crashed writer does not leave the Journey permanently
+    locked. The revision check inside the lock provides compare-and-swap
+    semantics for callers that read state before deciding what to write.
+    """
+    path = lock_path(journey_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = path.open("a+b")
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            handle.seek(0, os.SEEK_END)
+            if handle.tell() == 0:
+                handle.write(b"0")
+                handle.flush()
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        yield
+    finally:
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            handle.close()
 
 
 def gate_map(definition: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -109,6 +170,17 @@ def ensure_gate_route_compatible(definition: dict[str, Any], gate_id: str, route
             )
 
 
+def ensure_expected_revision(state: dict[str, Any], expected_revision: int) -> int:
+    actual = current_revision(state)
+    if actual != expected_revision:
+        raise SystemExit(
+            "Stale Journey checkpoint revision: "
+            f"expected {expected_revision}, current {actual}. "
+            "Re-read `journey.py status ... --json`, reconcile the newer evidence, and retry from that revision."
+        )
+    return actual
+
+
 def append_unique(values: list[str], additions: list[str]) -> list[str]:
     result = list(values)
     seen = set(result)
@@ -122,6 +194,7 @@ def append_unique(values: list[str], additions: list[str]) -> list[str]:
 
 def render_state(state: dict[str, Any], definition: dict[str, Any]) -> None:
     print(f"journey: {state['journey_id']}")
+    print(f"revision: {current_revision(state)}")
     print(f"cycle: {state.get('cycle', 1)}")
     print(f"goal: {state['goal']}")
     print(f"status: {state['status']}")
@@ -163,47 +236,49 @@ def command_start(journey_id: str, goal: str, gate: str, route: str | None, reas
     definition = load_definition(journey_id)
     ensure_gate(definition, gate)
     ensure_gate_route_compatible(definition, gate, route)
-    path = state_path(journey_id)
-    if path.exists():
-        raise SystemExit(
-            f"Journey checkpoint already exists at {path}. Read status and reconcile it; do not overwrite continuity state."
-        )
-    timestamp = now_utc()
-    history: list[dict[str, Any]] = []
-    if route:
-        history.append(
-            {
-                "cycle": 1,
-                "from": None,
-                "to": route,
-                "reason": reason.strip() or "initial intake",
-                "at": timestamp,
-            }
-        )
-    state: dict[str, Any] = {
-        "schema_version": STATE_SCHEMA_VERSION,
-        "journey_id": journey_id,
-        "journey_version": definition["version"],
-        "cycle": 1,
-        "goal": goal.strip(),
-        "status": "active",
-        "current_gate": gate,
-        "current_route": route,
-        "current_outcome": None,
-        "next_action": None,
-        "target_verified": False,
-        "target_evidence": [],
-        "evidence": [],
-        "blockers": [],
-        "route_history": history,
-        "release_history": [],
-        "completed_at": None,
-        "last_checkpoint_reason": reason.strip() or "initial intake",
-        "updated_at": timestamp,
-    }
-    if not state["goal"]:
-        raise SystemExit("Journey goal must not be empty")
-    save_state(journey_id, state)
+    with checkpoint_lock(journey_id):
+        path = state_path(journey_id)
+        if path.exists():
+            raise SystemExit(
+                f"Journey checkpoint already exists at {path}. Read status and reconcile it; do not overwrite continuity state."
+            )
+        timestamp = now_utc()
+        history: list[dict[str, Any]] = []
+        if route:
+            history.append(
+                {
+                    "cycle": 1,
+                    "from": None,
+                    "to": route,
+                    "reason": reason.strip() or "initial intake",
+                    "at": timestamp,
+                }
+            )
+        state: dict[str, Any] = {
+            "schema_version": STATE_SCHEMA_VERSION,
+            "journey_id": journey_id,
+            "journey_version": definition["version"],
+            "revision": 1,
+            "cycle": 1,
+            "goal": goal.strip(),
+            "status": "active",
+            "current_gate": gate,
+            "current_route": route,
+            "current_outcome": None,
+            "next_action": None,
+            "target_verified": False,
+            "target_evidence": [],
+            "evidence": [],
+            "blockers": [],
+            "route_history": history,
+            "release_history": [],
+            "completed_at": None,
+            "last_checkpoint_reason": reason.strip() or "initial intake",
+            "updated_at": timestamp,
+        }
+        if not state["goal"]:
+            raise SystemExit("Journey goal must not be empty")
+        save_state_unlocked(journey_id, state)
     render_state(state, definition)
     return 0
 
@@ -213,6 +288,7 @@ def command_status(journey_id: str, as_json: bool) -> int:
     state = load_state(journey_id)
     if as_json:
         payload = dict(state)
+        payload["revision"] = current_revision(state)
         payload["definition_version_current"] = definition.get("version")
         payload["checkpoint_needs_reconcile"] = state.get("journey_version") != definition.get("version")
         print(json.dumps(payload, ensure_ascii=False, indent=2))
@@ -221,7 +297,7 @@ def command_status(journey_id: str, as_json: bool) -> int:
     return 0
 
 
-def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state: dict[str, Any]) -> int:
+def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state: dict[str, Any]) -> None:
     if state.get("status") != "complete":
         raise SystemExit("--start-next-cycle is valid only from a completed release cycle.")
     if not args.route or not args.gate:
@@ -274,104 +350,109 @@ def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state
     state["completed_at"] = None
     state["last_checkpoint_reason"] = args.reason.strip()
     state["updated_at"] = timestamp
-    save_state(args.journey_id, state)
-    render_state(state, definition)
-    return 0
 
 
 def command_checkpoint(args: argparse.Namespace) -> int:
     definition = load_definition(args.journey_id)
-    state = load_state(args.journey_id)
+    with checkpoint_lock(args.journey_id):
+        state = load_state(args.journey_id)
+        revision = ensure_expected_revision(state, args.expected_revision)
 
-    if args.start_next_cycle:
-        return start_next_cycle(args, definition, state)
+        if args.start_next_cycle:
+            start_next_cycle(args, definition, state)
+        else:
+            if state.get("status") == "complete":
+                raise SystemExit(
+                    "The current release cycle is complete and immutable. Use --start-next-cycle with fresh evidence before new build/fix work."
+                )
 
-    if state.get("status") == "complete":
-        raise SystemExit(
-            "The current release cycle is complete and immutable. Use --start-next-cycle with fresh evidence before new build/fix work."
-        )
+            version_changed = state.get("journey_version") != definition.get("version")
+            if version_changed and (not args.reason.strip() or not args.evidence):
+                raise SystemExit(
+                    "Journey definition changed since this checkpoint. Reconciliation requires --reason and at least one --evidence item from the current project/runtime state."
+                )
 
-    version_changed = state.get("journey_version") != definition.get("version")
-    if version_changed and (not args.reason.strip() or not args.evidence):
-        raise SystemExit(
-            "Journey definition changed since this checkpoint. Reconciliation requires --reason and at least one --evidence item from the current project/runtime state."
-        )
+            intended_gate = args.gate or str(state.get("current_gate") or "")
+            if args.gate:
+                ensure_gate(definition, args.gate)
+            previous_route = state.get("current_route")
+            intended_route = args.route or previous_route
+            ensure_gate_route_compatible(definition, intended_gate, intended_route)
 
-    intended_gate = args.gate or str(state.get("current_gate") or "")
-    if args.gate:
-        ensure_gate(definition, args.gate)
-    previous_route = state.get("current_route")
-    intended_route = args.route or previous_route
-    ensure_gate_route_compatible(definition, intended_gate, intended_route)
+            if args.route and args.route != previous_route:
+                if previous_route is not None and not args.reason.strip():
+                    raise SystemExit("Changing Journey route requires --reason with the evidence-backed reclassification.")
+                if previous_route is not None and not args.evidence:
+                    raise SystemExit("Changing Journey route requires at least one --evidence item; lack of progress alone is not a reroute signal.")
+                timestamp = now_utc()
+                state.setdefault("route_history", []).append(
+                    {
+                        "cycle": int(state.get("cycle", 1)),
+                        "from": previous_route,
+                        "to": args.route,
+                        "reason": args.reason.strip() or "initial route selection",
+                        "at": timestamp,
+                    }
+                )
+                state["current_route"] = args.route
 
-    if args.route and args.route != previous_route:
-        if previous_route is not None and not args.reason.strip():
-            raise SystemExit("Changing Journey route requires --reason with the evidence-backed reclassification.")
-        if previous_route is not None and not args.evidence:
-            raise SystemExit("Changing Journey route requires at least one --evidence item; lack of progress alone is not a reroute signal.")
-        timestamp = now_utc()
-        state.setdefault("route_history", []).append(
-            {
-                "cycle": int(state.get("cycle", 1)),
-                "from": previous_route,
-                "to": args.route,
-                "reason": args.reason.strip() or "initial route selection",
-                "at": timestamp,
-            }
-        )
-        state["current_route"] = args.route
+            if args.gate:
+                state["current_gate"] = args.gate
+            if args.outcome is not None:
+                state["current_outcome"] = args.outcome.strip() or None
+            if args.next_action is not None:
+                state["next_action"] = args.next_action.strip() or None
 
-    if args.gate:
-        state["current_gate"] = args.gate
-    if args.outcome is not None:
-        state["current_outcome"] = args.outcome.strip() or None
-    if args.next_action is not None:
-        state["next_action"] = args.next_action.strip() or None
+            state["evidence"] = append_unique(list(state.get("evidence", [])), args.evidence)
 
-    state["evidence"] = append_unique(list(state.get("evidence", [])), args.evidence)
+            existing_blockers = list(state.get("blockers", []))
+            if args.clear_blockers and existing_blockers:
+                if not args.reason.strip() or not args.evidence:
+                    raise SystemExit(
+                        "Clearing Journey blockers requires --reason and at least one --evidence item proving the blocker changed or was resolved."
+                    )
+                state["blockers"] = []
+            state["blockers"] = append_unique(list(state.get("blockers", [])), args.blocker)
 
-    existing_blockers = list(state.get("blockers", []))
-    if args.clear_blockers and existing_blockers:
-        if not args.reason.strip() or not args.evidence:
-            raise SystemExit(
-                "Clearing Journey blockers requires --reason and at least one --evidence item proving the blocker changed or was resolved."
-            )
-        state["blockers"] = []
-    state["blockers"] = append_unique(list(state.get("blockers", [])), args.blocker)
+            state["target_evidence"] = append_unique(list(state.get("target_evidence", [])), args.target_evidence)
+            if args.target_evidence:
+                state["target_verified"] = True
 
-    state["target_evidence"] = append_unique(list(state.get("target_evidence", [])), args.target_evidence)
-    if args.target_evidence:
-        state["target_verified"] = True
+            requested_status = args.status or state.get("status", "active")
+            if requested_status not in STATUSES:
+                raise SystemExit(f"Invalid Journey status: {requested_status}")
 
-    requested_status = args.status or state.get("status", "active")
-    if requested_status not in STATUSES:
-        raise SystemExit(f"Invalid Journey status: {requested_status}")
+            if requested_status == "blocked" and not state.get("blockers"):
+                raise SystemExit("A blocked Journey checkpoint requires at least one blocker.")
 
-    if requested_status == "blocked" and not state.get("blockers"):
-        raise SystemExit("A blocked Journey checkpoint requires at least one blocker.")
+            if requested_status == "complete":
+                completion_policy = definition.get("completion_policy", {})
+                if completion_policy.get("blocked_is_complete") is not False:
+                    raise SystemExit("Journey definition does not prove that blocked state is non-complete.")
+                if state.get("blockers"):
+                    raise SystemExit("Journey cannot be complete while blockers remain; clear only blockers that current evidence proves resolved.")
+                if completion_policy.get("target_verification_required") and not state.get("target_verified"):
+                    raise SystemExit("Journey cannot be complete without direct target verification. Keep it active/blocked and record the exact unblock.")
+                if completion_policy.get("target_verification_required") and not state.get("target_evidence"):
+                    raise SystemExit("Journey completion requires explicit target-environment evidence, not only a completion flag.")
+                if state.get("current_gate") != "deploy-observe":
+                    raise SystemExit("Journey release completion is valid only at deploy-observe.")
+                if state.get("current_route") != "release-operations":
+                    raise SystemExit("Journey release completion requires the current route to be release-operations.")
+                state["completed_at"] = now_utc()
 
-    if requested_status == "complete":
-        completion_policy = definition.get("completion_policy", {})
-        if completion_policy.get("blocked_is_complete") is not False:
-            raise SystemExit("Journey definition does not prove that blocked state is non-complete.")
-        if state.get("blockers"):
-            raise SystemExit("Journey cannot be complete while blockers remain; clear only blockers that current evidence proves resolved.")
-        if completion_policy.get("target_verification_required") and not state.get("target_verified"):
-            raise SystemExit("Journey cannot be complete without direct target verification. Keep it active/blocked and record the exact unblock.")
-        if completion_policy.get("target_verification_required") and not state.get("target_evidence"):
-            raise SystemExit("Journey completion requires explicit target-environment evidence, not only a completion flag.")
-        if state.get("current_gate") != "deploy-observe":
-            raise SystemExit("Journey release completion is valid only at deploy-observe.")
-        if state.get("current_route") != "release-operations":
-            raise SystemExit("Journey release completion requires the current route to be release-operations.")
-        state["completed_at"] = now_utc()
+            state["status"] = requested_status
+            state["schema_version"] = STATE_SCHEMA_VERSION
+            state["journey_version"] = definition["version"]
+            state["last_checkpoint_reason"] = args.reason.strip() or state.get("last_checkpoint_reason")
+            state["updated_at"] = now_utc()
 
-    state["status"] = requested_status
-    state["schema_version"] = STATE_SCHEMA_VERSION
-    state["journey_version"] = definition["version"]
-    state["last_checkpoint_reason"] = args.reason.strip() or state.get("last_checkpoint_reason")
-    state["updated_at"] = now_utc()
-    save_state(args.journey_id, state)
+        state["schema_version"] = STATE_SCHEMA_VERSION
+        state["journey_version"] = definition["version"]
+        state["revision"] = revision + 1
+        state["updated_at"] = now_utc()
+        save_state_unlocked(args.journey_id, state)
+
     render_state(state, definition)
     return 0
 
@@ -397,6 +478,12 @@ def main() -> int:
 
     checkpoint = sub.add_parser("checkpoint", help="Update continuity state after meaningful evidence")
     checkpoint.add_argument("journey_id")
+    checkpoint.add_argument(
+        "--expected-revision",
+        type=int,
+        required=True,
+        help="CAS token from the most recent `journey.py status ... --json`; stale revisions are rejected",
+    )
     checkpoint.add_argument("--gate")
     checkpoint.add_argument("--route", choices=sorted(ROUTES))
     checkpoint.add_argument("--status", choices=sorted(STATUSES))
