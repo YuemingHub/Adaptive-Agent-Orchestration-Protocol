@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "status": "experimental-canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -84,14 +84,15 @@
     },
     {
       "id": "implementation-loop",
-      "primary_route": "feature-change",
-      "applies_when": "A verified behavior delta remains after intake/project discovery.",
+      "route_selection": "current-route",
+      "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
       "possible_reroutes": [
         "bug-fix",
+        "feature-change",
         "repo-recovery",
         "understand-review"
       ],
-      "goal": "Iterate through the smallest coherent evidence-backed changes until the intended release behavior is present.",
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route until the intended release behavior is present.",
       "exit_evidence": [
         "acceptance behavior",
         "regression evidence",
