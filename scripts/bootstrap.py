@@ -2,18 +2,23 @@
 """Install, upgrade, or safely remove AAOP from the official GitHub repository.
 
 This script is intentionally standard-library only so it can be executed directly
-from stdin, for example:
+from stdin. Production/default usage follows the deliberately promoted ``stable``
+branch rather than the fast-moving ``main`` development branch:
 
-    curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | python3 - --target .
+    curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target .
 
 Windows PowerShell (with the Python launcher):
 
-    curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/main/scripts/bootstrap.py | py - --target .
+    curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target .
 
-Re-running the same install command upgrades a recognizable AAOP installation
-through the canonical state-preserving installer. Add --uninstall for manifest-
-scoped removal. The bootstrap installs no third-party provider and requests no
-secret.
+Use ``--ref main`` only when intentionally opting into the development/edge
+channel. Use an exact commit ref when byte-for-byte source revision reproducibility
+matters.
+
+Re-running the same stable install command upgrades a recognizable AAOP installation
+only when the stable channel itself has been deliberately promoted. Add --uninstall
+for manifest-scoped removal. The bootstrap installs no third-party provider and
+requests no secret.
 """
 
 from __future__ import annotations
@@ -30,9 +35,12 @@ from pathlib import Path
 
 OWNER = "YuemingHub"
 REPO = "Adaptive-Agent-Orchestration-Protocol"
-DEFAULT_REF = "main"
+DEFAULT_REF = "stable"
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
-USER_AGENT = "AAOP-bootstrap/1"
+MAX_ARCHIVE_MEMBERS = 4096
+MAX_MEMBER_UNCOMPRESSED_BYTES = 32 * 1024 * 1024
+MAX_TOTAL_UNCOMPRESSED_BYTES = 128 * 1024 * 1024
+USER_AGENT = "AAOP-bootstrap/2"
 LEGACY_ORCHESTRATOR_MARKERS = (
     "# AAOP Runtime Protocol",
     "Adaptive Agent Orchestration Protocol (AAOP)",
@@ -57,7 +65,7 @@ def read_limited(response: object, limit: int = MAX_ARCHIVE_BYTES) -> bytes:
         total += len(chunk)
         if total > limit:
             raise SystemExit(
-                f"AAOP bootstrap: official archive exceeded safety limit of {limit} bytes"
+                f"AAOP bootstrap: official archive exceeded compressed safety limit of {limit} bytes"
             )
         chunks.append(chunk)
     return b"".join(chunks)
@@ -80,7 +88,7 @@ def load_archive(path: Path) -> bytes:
         raise SystemExit(f"AAOP bootstrap: cannot read archive {path}: {exc}") from exc
     if len(data) > MAX_ARCHIVE_BYTES:
         raise SystemExit(
-            f"AAOP bootstrap: archive exceeded safety limit of {MAX_ARCHIVE_BYTES} bytes"
+            f"AAOP bootstrap: archive exceeded compressed safety limit of {MAX_ARCHIVE_BYTES} bytes"
         )
     return data
 
@@ -88,18 +96,51 @@ def load_archive(path: Path) -> bytes:
 def validate_zip_member(name: str) -> None:
     normalized = name.replace("\\", "/")
     parts = [part for part in normalized.split("/") if part not in ("", ".")]
-    if normalized.startswith("/") or any(part == ".." for part in parts):
+    has_windows_drive = bool(parts and len(parts[0]) == 2 and parts[0][1] == ":")
+    if (
+        normalized.startswith("/")
+        or normalized.startswith("//")
+        or has_windows_drive
+        or any(part == ".." for part in parts)
+    ):
         raise SystemExit(f"AAOP bootstrap: unsafe archive path {name!r}")
+
+
+def validate_archive_resources(archive: zipfile.ZipFile) -> list[zipfile.ZipInfo]:
+    infos = archive.infolist()
+    if not infos:
+        raise SystemExit("AAOP bootstrap: downloaded archive is empty")
+    if len(infos) > MAX_ARCHIVE_MEMBERS:
+        raise SystemExit(
+            "AAOP bootstrap: archive exceeded member-count safety limit "
+            f"of {MAX_ARCHIVE_MEMBERS}"
+        )
+
+    expanded_total = 0
+    for info in infos:
+        validate_zip_member(info.filename)
+        if info.flag_bits & 0x1:
+            raise SystemExit(
+                f"AAOP bootstrap: encrypted archive member is not allowed: {info.filename!r}"
+            )
+        if info.file_size > MAX_MEMBER_UNCOMPRESSED_BYTES:
+            raise SystemExit(
+                "AAOP bootstrap: archive member exceeded uncompressed safety limit "
+                f"of {MAX_MEMBER_UNCOMPRESSED_BYTES} bytes: {info.filename!r}"
+            )
+        expanded_total += info.file_size
+        if expanded_total > MAX_TOTAL_UNCOMPRESSED_BYTES:
+            raise SystemExit(
+                "AAOP bootstrap: archive exceeded total uncompressed safety limit "
+                f"of {MAX_TOTAL_UNCOMPRESSED_BYTES} bytes"
+            )
+    return infos
 
 
 def extract_source(data: bytes, destination: Path) -> Path:
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
-            names = archive.namelist()
-            if not names:
-                raise SystemExit("AAOP bootstrap: downloaded archive is empty")
-            for name in names:
-                validate_zip_member(name)
+            validate_archive_resources(archive)
             archive.extractall(destination)
     except zipfile.BadZipFile as exc:
         raise SystemExit("AAOP bootstrap: downloaded content is not a valid zip archive") from exc
@@ -204,7 +245,7 @@ def main() -> int:
     parser.add_argument(
         "--ref",
         default=DEFAULT_REF,
-        help="Official GitHub ref to use (default: main; use a commit/tag for pinning)",
+        help="Official GitHub ref to use (default: stable; use main only for edge development or a commit for exact pinning)",
     )
     parser.add_argument(
         "--uninstall",
