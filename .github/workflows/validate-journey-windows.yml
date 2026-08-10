@@ -1,0 +1,101 @@
+name: validate-journey-windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  journey-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Smoke-test Windows Journey lock and stale-write CAS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $target = Join-Path $env:RUNNER_TEMP ("aaop-journey-win-" + $env:GITHUB_RUN_ID + "-" + $env:GITHUB_RUN_ATTEMPT)
+          if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+
+          python scripts/install.py $target
+          if ($LASTEXITCODE -ne 0) { throw "AAOP install failed" }
+
+          $journey = Join-Path $target '.aaop\tools\journey.py'
+          python $journey start idea-to-production `
+            --goal 'turn the existing partial app into a verified online release' `
+            --route feature-change `
+            --reason 'Windows checkpoint lock smoke test'
+          if ($LASTEXITCODE -ne 0) { throw "Journey start failed on Windows" }
+
+          $state1 = (python $journey status idea-to-production --json | Out-String | ConvertFrom-Json)
+          if ($state1.revision -ne 1) { throw "Expected initial revision 1, got $($state1.revision)" }
+          $staleRevision = [int]$state1.revision
+
+          python $journey checkpoint idea-to-production `
+            --expected-revision $staleRevision `
+            --reason 'coordinator A writes through Windows file lock' `
+            --evidence 'Windows coordinator A evidence' `
+            --next-action 'preserve this state against stale writer B'
+          if ($LASTEXITCODE -ne 0) { throw "Valid Windows checkpoint mutation failed" }
+
+          $staleOutput = & python $journey checkpoint idea-to-production `
+            --expected-revision $staleRevision `
+            --reason 'stale coordinator B tries to overwrite continuity' `
+            --evidence 'Windows stale coordinator B evidence' `
+            --next-action 'stale overwrite' 2>&1
+          $staleExit = $LASTEXITCODE
+          if ($staleExit -eq 0) { throw "Expected stale Windows checkpoint write to fail" }
+          if (($staleOutput | Out-String) -notmatch 'Stale Journey checkpoint revision') {
+            throw "Stale write failed for the wrong reason: $($staleOutput | Out-String)"
+          }
+
+          $state2 = (python $journey status idea-to-production --json | Out-String | ConvertFrom-Json)
+          if ($state2.revision -ne 2) { throw "Expected revision 2 after one valid write, got $($state2.revision)" }
+          if ($state2.evidence -notcontains 'Windows coordinator A evidence') { throw "Coordinator A evidence was lost" }
+          if ($state2.evidence -contains 'Windows stale coordinator B evidence') { throw "Stale coordinator evidence leaked into state" }
+          if ($state2.next_action -ne 'preserve this state against stale writer B') { throw "Stale writer changed next_action" }
+
+          $lockPath = Join-Path $target '.aaop\runtime\journeys\.idea-to-production.lock'
+          if (-not (Test-Path $lockPath)) { throw "Windows lock file was not created; msvcrt lock path was not exercised" }
+
+      - name: Legacy checkpoint revision zero migrates explicitly on Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $target = Join-Path $env:RUNNER_TEMP ("aaop-journey-win-legacy-" + $env:GITHUB_RUN_ID + "-" + $env:GITHUB_RUN_ATTEMPT)
+          if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+          python scripts/install.py $target
+          if ($LASTEXITCODE -ne 0) { throw "AAOP install failed" }
+
+          $journey = Join-Path $target '.aaop\tools\journey.py'
+          python $journey start idea-to-production `
+            --goal 'legacy migration smoke test' `
+            --route feature-change `
+            --reason 'create checkpoint before simulating old format'
+          if ($LASTEXITCODE -ne 0) { throw "Journey start failed" }
+
+          $statePath = Join-Path $target '.aaop\runtime\journeys\idea-to-production.json'
+          $legacy = Get-Content -Raw -Encoding UTF8 $statePath | ConvertFrom-Json
+          $legacy.PSObject.Properties.Remove('revision')
+          $legacy.schema_version = '0.3.1'
+          $legacy | ConvertTo-Json -Depth 20 | Set-Content -Encoding UTF8 $statePath
+
+          $status = (python $journey status idea-to-production --json | Out-String | ConvertFrom-Json)
+          if ($status.revision -ne 0) { throw "Legacy checkpoint must surface as revision 0" }
+
+          python $journey checkpoint idea-to-production `
+            --expected-revision 0 `
+            --reason 'explicitly reconcile preserved legacy checkpoint' `
+            --evidence 'legacy checkpoint reconciled on Windows'
+          if ($LASTEXITCODE -ne 0) { throw "Legacy Windows checkpoint migration failed" }
+
+          $migrated = (python $journey status idea-to-production --json | Out-String | ConvertFrom-Json)
+          if ($migrated.revision -ne 1) { throw "Expected migrated revision 1, got $($migrated.revision)" }
+          if ($migrated.evidence -notcontains 'legacy checkpoint reconciled on Windows') { throw "Migration evidence missing" }
