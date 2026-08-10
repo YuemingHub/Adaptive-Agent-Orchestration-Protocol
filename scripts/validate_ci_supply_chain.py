@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if GitHub workflows execute unreviewed or mutable third-party Actions."""
+"""Fail if GitHub workflows execute unreviewed/mutable Actions or retain write authority."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / ".github" / "workflows"
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 USES_RE = re.compile(r"^\s*-?\s*uses:\s*([^\s#]+)(?:\s*#.*)?$")
+CONTENTS_WRITE_RE = re.compile(r"^\s*contents\s*:\s*write\s*(?:#.*)?$", re.IGNORECASE)
 
 # These are the exact Action revisions observed in the AAOP production gate set
 # immediately before pinning. Updating either pin is a deliberate review event:
@@ -31,7 +32,13 @@ def validate() -> None:
         errors.append("no GitHub workflows found")
 
     for path in workflow_files:
-        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for line_number, line in enumerate(lines, 1):
+            if CONTENTS_WRITE_RE.match(line):
+                errors.append(
+                    f"{path.relative_to(ROOT)}:{line_number}: long-lived contents: write permission is forbidden"
+                )
+
             match = USES_RE.match(line)
             if not match:
                 continue
@@ -70,7 +77,7 @@ def validate() -> None:
 
     print(
         "PASS GitHub Actions supply-chain pinning: "
-        f"{len(workflow_files)} workflows, {len(observed)} reviewed external Actions"
+        f"{len(workflow_files)} workflows, {len(observed)} reviewed external Actions, read-only contents permissions"
     )
 
 
