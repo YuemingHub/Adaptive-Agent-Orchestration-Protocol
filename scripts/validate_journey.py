@@ -263,8 +263,20 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
             fail(errors, f"{end_to_end}: missing hardened Journey contract phrase {required!r}")
     if "--start-next-cycle" not in end_text:
         fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
-    if "end-to-end-delivery" not in intake_text:
-        fail(errors, f"{intake}: broad goals are not wired to end-to-end-delivery")
+
+    intake_requirements = (
+        "end-to-end-delivery",
+        ".aaop/runtime/journeys/idea-to-production.json",
+        "python .aaop/tools/journey.py status idea-to-production --json",
+        "continue",
+        "blocked",
+        "complete",
+        "What were we doing?",
+    )
+    for required in intake_requirements:
+        if required not in intake_text:
+            fail(errors, f"{intake}: missing cross-session continuation contract {required!r}")
+
     for required in (
         "--start-next-cycle",
         "release_history",
@@ -310,7 +322,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print("AAOP Journey validation passed (routing, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
+    print("AAOP Journey validation passed (routing, continuation, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
     return 0
 
 
