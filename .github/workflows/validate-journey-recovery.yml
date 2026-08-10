@@ -20,5 +20,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Validate Journey recovery contract wiring
+        run: python scripts/validate_journey_recovery_contract.py
       - name: Validate Journey checkpoint schema and explicit recovery
         run: python scripts/validate_journey_recovery.py
