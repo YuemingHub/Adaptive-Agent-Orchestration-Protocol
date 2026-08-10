@@ -34,6 +34,67 @@ jobs:
           PY
           test ! -d .aaop/tools/__pycache__
 
+      - name: Validate production bootstrap defaults and hostile archive bounds
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path('scripts/bootstrap.py')
+          spec = importlib.util.spec_from_file_location('aaop_bootstrap', path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec and spec.loader
+          spec.loader.exec_module(module)
+          assert module.DEFAULT_REF == 'stable', module.DEFAULT_REF
+          assert module.MAX_ARCHIVE_MEMBERS > 0
+          assert module.MAX_MEMBER_UNCOMPRESSED_BYTES > 0
+          assert module.MAX_TOTAL_UNCOMPRESSED_BYTES >= module.MAX_MEMBER_UNCOMPRESSED_BYTES
+          PY
+
+          python - <<'PY'
+          from pathlib import Path
+          import zipfile
+          import scripts.bootstrap as b
+
+          def write_zip(path, members):
+              with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as z:
+                  for name, content in members:
+                      z.writestr(name, content)
+
+          write_zip('/tmp/aaop-traversal.zip', [('../escape.txt', b'x')])
+          write_zip('/tmp/aaop-drive.zip', [('C:/escape.txt', b'x')])
+          write_zip(
+              '/tmp/aaop-member-bomb.zip',
+              [('aaop-source/oversized.bin', b'A' * (b.MAX_MEMBER_UNCOMPRESSED_BYTES + 1))],
+          )
+
+          with zipfile.ZipFile('/tmp/aaop-count-bomb.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              for i in range(b.MAX_ARCHIVE_MEMBERS + 1):
+                  z.writestr(f'aaop-source/members/{i}.txt', b'')
+
+          per_member = min(
+              b.MAX_MEMBER_UNCOMPRESSED_BYTES - 1,
+              (b.MAX_TOTAL_UNCOMPRESSED_BYTES // 5) + 1,
+          )
+          with zipfile.ZipFile('/tmp/aaop-total-bomb.zip', 'w', zipfile.ZIP_DEFLATED) as z:
+              payload = b'B' * per_member
+              count = (b.MAX_TOTAL_UNCOMPRESSED_BYTES // per_member) + 1
+              for i in range(count):
+                  z.writestr(f'aaop-source/expanded/{i}.bin', payload)
+          PY
+
+          for archive in /tmp/aaop-traversal.zip /tmp/aaop-drive.zip /tmp/aaop-member-bomb.zip /tmp/aaop-count-bomb.zip /tmp/aaop-total-bomb.zip; do
+            target="$(mktemp -d)"
+            if python scripts/bootstrap.py --archive "$archive" --target "$target" --skip-ready > /tmp/bootstrap-hostile.out 2>&1; then
+              echo "expected hostile archive to fail: $archive" >&2
+              exit 1
+            fi
+            test ! -e "$target/.aaop"
+          done
+          grep -Eq 'unsafe archive path|safety limit' /tmp/bootstrap-hostile.out
+
       - name: Build polluted local source archive for bootstrap replay
         shell: bash
         run: |
