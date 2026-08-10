@@ -24,7 +24,7 @@ ROUTES = {
     "release-operations",
 }
 STATUSES = {"active", "blocked", "complete"}
-STATE_SCHEMA_VERSION = "0.1.0"
+STATE_SCHEMA_VERSION = "0.2.0"
 
 
 def package_root() -> Path:
@@ -111,6 +111,7 @@ def render_state(state: dict[str, Any], definition: dict[str, Any]) -> None:
     print(f"gate: {state['current_gate']}")
     print(f"route: {state.get('current_route') or '-'}")
     print(f"target verified: {'yes' if state.get('target_verified') else 'no'}")
+    print(f"target evidence: {len(state.get('target_evidence', []))}")
     print(f"next: {state.get('next_action') or '-'}")
     print(f"updated: {state['updated_at']}")
     if state.get("journey_version") != definition.get("version"):
@@ -163,6 +164,7 @@ def command_start(journey_id: str, goal: str, gate: str, route: str | None, reas
         "current_outcome": None,
         "next_action": None,
         "target_verified": False,
+        "target_evidence": [],
         "evidence": [],
         "blockers": [],
         "route_history": history,
@@ -193,6 +195,12 @@ def command_checkpoint(args: argparse.Namespace) -> int:
     definition = load_definition(args.journey_id)
     state = load_state(args.journey_id)
 
+    version_changed = state.get("journey_version") != definition.get("version")
+    if version_changed and (not args.reason.strip() or not args.evidence):
+        raise SystemExit(
+            "Journey definition changed since this checkpoint. Reconciliation requires --reason and at least one --evidence item from the current project/runtime state."
+        )
+
     if args.gate:
         ensure_gate(definition, args.gate)
         state["current_gate"] = args.gate
@@ -220,11 +228,18 @@ def command_checkpoint(args: argparse.Namespace) -> int:
         state["next_action"] = args.next_action.strip() or None
 
     state["evidence"] = append_unique(list(state.get("evidence", [])), args.evidence)
-    if args.clear_blockers:
+
+    existing_blockers = list(state.get("blockers", []))
+    if args.clear_blockers and existing_blockers:
+        if not args.reason.strip() or not args.evidence:
+            raise SystemExit(
+                "Clearing Journey blockers requires --reason and at least one --evidence item proving the blocker changed or was resolved."
+            )
         state["blockers"] = []
     state["blockers"] = append_unique(list(state.get("blockers", [])), args.blocker)
 
-    if args.target_verified:
+    state["target_evidence"] = append_unique(list(state.get("target_evidence", [])), args.target_evidence)
+    if args.target_evidence:
         state["target_verified"] = True
 
     requested_status = args.status or state.get("status", "active")
@@ -242,10 +257,13 @@ def command_checkpoint(args: argparse.Namespace) -> int:
             raise SystemExit("Journey cannot be complete while blockers remain; clear only blockers that current evidence proves resolved.")
         if completion_policy.get("target_verification_required") and not state.get("target_verified"):
             raise SystemExit("Journey cannot be complete without direct target verification. Keep it active/blocked and record the exact unblock.")
+        if completion_policy.get("target_verification_required") and not state.get("target_evidence"):
+            raise SystemExit("Journey completion requires explicit target-environment evidence, not only a completion flag.")
         if state.get("current_gate") not in {"deploy-observe", "learning-loop"}:
             raise SystemExit("Journey completion is only valid after deploy-observe (or the post-deploy learning gate).")
 
     state["status"] = requested_status
+    state["schema_version"] = STATE_SCHEMA_VERSION
     state["journey_version"] = definition["version"]
     state["last_checkpoint_reason"] = args.reason.strip() or state.get("last_checkpoint_reason")
     state["updated_at"] = now_utc()
@@ -281,10 +299,10 @@ def main() -> int:
     checkpoint.add_argument("--outcome")
     checkpoint.add_argument("--next-action")
     checkpoint.add_argument("--evidence", action="append", default=[])
+    checkpoint.add_argument("--target-evidence", action="append", default=[])
     checkpoint.add_argument("--blocker", action="append", default=[])
     checkpoint.add_argument("--clear-blockers", action="store_true")
     checkpoint.add_argument("--reason", default="")
-    checkpoint.add_argument("--target-verified", action="store_true")
 
     args = parser.parse_args()
     if args.command == "show":
