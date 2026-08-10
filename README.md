@@ -175,7 +175,9 @@ Upgrade preserves:
 - locally modified managed files as backups before canonical replacement;
 - malformed bootstrap markers fail before package mutation.
 
-Legacy Journey checkpoints created by v0.21.0/v0.21.1 are preserved. Their first v0.21.2 mutation treats the missing revision as revision `0` and requires an explicit latest-state write precondition before migrating the checkpoint.
+Legacy Journey checkpoints created by v0.21.0/v0.21.1 are preserved. Their first v0.21.2+ mutation treats the missing revision as revision `0` and requires an explicit latest-state write precondition before migrating the checkpoint.
+
+A project-local AAOP/provider pin is not automatically wrong merely because upstream moved. It becomes a recovery concern only when the consumer relies on behavior that the pinned revision does not provide, or when stale adapter/profile evidence is being promoted into current execution truth. Upgrade only after proving that local compatibility/safety delta; then verify the consumer repository rather than assuming an upstream green build proves downstream compatibility.
 
 ## Remove AAOP
 
@@ -243,6 +245,7 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 14. Scope production verification to the current release cycle.
 15. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
 16. Reject stale Journey checkpoint writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
+17. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
 
 ## Repository map
 
@@ -292,9 +295,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.2 — Journey stale-write protection.**
+**v0.21.3 — consumer integration freshness hardening.**
 
-v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state. The regression suite now proves that a stale writer cannot erase a newer checkpoint update.
+v0.21.3 adds a `repo-recovery` pressure guard for real consumer drift: project-local orchestration adapters, pinned protocol/provider revisions, generated bridges, and cached observation SHAs are execution dependencies rather than product truth. AAOP now explicitly requires checking a consumer pin when it materially changes current execution semantics, rejects stale observation SHAs as new-task baselines, and also rejects the opposite failure of auto-upgrading upstream merely because a newer release exists. A new anonymized real-project pressure case captures the failure mode where AAOP itself is green while a downstream repository silently remains on an older behavioral contract.
+
+v0.21.2 adds a monotonic checkpoint revision and local OS file lock to the idea-to-production Journey. Every checkpoint mutation must use the revision from the latest reconciled status read; stale coordinator/session writes are rejected instead of overwriting newer evidence, blockers, Route transitions, or release state. The regression suite proves that a stale writer cannot erase a newer checkpoint update, including on Windows.
 
 v0.21.1 hardened terse cross-session continuation: `continue` or `what next?` resumes an existing Journey before a new goal is inferred, while blocked and completed states retain their correct boundaries.
 
