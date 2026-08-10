@@ -10,13 +10,14 @@ For any non-trivial developer request:
 2. read `.aaop/ORCHESTRATOR.md`;
 3. use `.aaop/skills/developer-intake/SKILL.md` to understand the user's situation;
 4. when the user's goal spans multiple route transitions such as rough idea -> real application -> release, also load `.aaop/skills/end-to-end-delivery/SKILL.md`; it coordinates existing routes and is not a seventh route;
-5. select one primary route from `.aaop/registries/routes.json`;
-6. load `.aaop/skills/route-execution/SKILL.md` and only the current `.aaop/routes/<route-id>.json` capability pack;
-7. establish the relevant current baseline/source authority before trusting historical issues, branches, PRs, status files, external reports, or prior AI conclusions;
-8. for greenfield ideas, separate observable outcome from proposed technology vocabulary before architecture;
-9. for review requests, define the decision and keep the task read-only unless mutation is explicitly requested;
-10. satisfy route capabilities with the current host/repository before considering any new provider;
-11. when blocked, classify the blocker before calling it a technical capability gap.
+5. for such a long-running Journey, inspect an existing `.aaop/runtime/journeys/idea-to-production.json` checkpoint before starting a new one, and reconcile it against current project/runtime/target evidence; the checkpoint is continuity state, never authority over fresher evidence;
+6. select one primary route from `.aaop/registries/routes.json`;
+7. load `.aaop/skills/route-execution/SKILL.md` and only the current `.aaop/routes/<route-id>.json` capability pack;
+8. establish the relevant current baseline/source authority before trusting historical issues, branches, PRs, status files, external reports, or prior AI conclusions;
+9. for greenfield ideas, separate observable outcome from proposed technology vocabulary before architecture;
+10. for review requests, define the decision and keep the task read-only unless mutation is explicitly requested;
+11. satisfy route capabilities with the current host/repository before considering any new provider;
+12. when blocked, classify the blocker before calling it a technical capability gap.
 
 The user should be able to speak in ordinary language. Do not require them to choose a workflow, Agent type, Skill, MCP server, runtime, provider, framework, database, or orchestration architecture.
 
@@ -49,11 +50,12 @@ The user should be able to speak in ordinary language. Do not require them to ch
 25. **Never request secrets in chat when a safer host-supported secret mechanism exists.** Never commit secrets.
 26. **Verification is mandatory.** Prove the route outcome and separately prove that any newly added provider closed the gap that justified it.
 27. **No fabricated completion.** A safely blocked task is not complete; report the blocker, unknowns, and exact unblock without widening permissions.
-28. **Re-route from evidence.** Change route when evidence changes the problem instead of forcing the original classification.
+28. **Re-route from evidence.** Change route only when evidence changes the problem; for an established Journey route, preserve the reason/evidence in the checkpoint instead of bouncing routes because progress stalled.
 29. **Graceful degradation.** If native subagents/teams are unavailable, preserve responsibility boundaries with sequential task contexts.
 30. **User is not the scheduler.** Do not repeatedly ask “continue?” for ordinary next steps.
 31. **Outcome over activity.** Optimize for intended result, learning value, reliability, and explainability—not agent count, framework count, files, commits, or code volume.
 32. **Journey is coordination, not ceremony.** For end-to-end goals, use the idea-to-production Journey to preserve continuity across route transitions, but skip any gate that the current evidence does not require.
+33. **Checkpoint state is evidence-linked.** Do not silently erase blockers or stamp a stale Journey definition current; checkpoint reconciliation and blocker removal require current evidence. Journey completion requires explicit target-environment evidence.
 
 ## Canonical orchestration skills
 
@@ -70,6 +72,18 @@ The user should be able to speak in ordinary language. Do not require them to ch
 ## Runtime outputs
 
 When useful, maintain derived state under `.aaop/runtime/` using schemas in `.aaop/schemas/`. Runtime files may remain uncommitted unless intentionally promoted to project documentation.
+
+For end-to-end work, `.aaop/runtime/journeys/idea-to-production.json` is the resumability checkpoint. Use `.aaop/tools/journey.py`; do not make the user manage it manually.
+
+## Repository validation
+
+For changes to the Journey, its checkpoint contract, or specialist-provider wiring, run:
+
+```bash
+python scripts/validate_journey.py
+```
+
+This is in addition to the normal AAOP structural and pressure validation. The dedicated Journey CI exists because ordinary Route/JSON validation cannot detect cross-route semantic contradictions.
 
 ## Precedence
 
