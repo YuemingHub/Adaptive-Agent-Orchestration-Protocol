@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "id": "semantic-pr-merge-order",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-10",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Review these current Draft PRs and decide which are actually safe to merge and in what order. Keep the repository's declared merge gate authoritative.",
+  "expected_route": "understand-review",
+  "known_facts": [
+    "the repository has an explicit merge-gate issue that declares one contract PR must land before dependent runtime/integration PRs",
+    "a later consumer/integration PR was created from the current base before the contract-first PR had merged",
+    "both PRs modify the same authority/profile document but carry different required semantics",
+    "the contract-first PR adds new authority/evidence rules while the later PR adds orchestration continuity/version-pin safeguards that do not exist in the older profile base",
+    "either PR may be textually mergeable against the current base while still being semantically unsafe to merge out of order",
+    "executable CI is currently blocked, so no merge can be authorized from static review alone"
+  ],
+  "expected_first_moves": [
+    "read the repository-declared merge gate and treat its predecessor order as decision evidence",
+    "compare the two PR heads, bases, and changed-file overlap instead of relying only on the mergeable flag",
+    "identify the authority/profile semantics unique to each candidate that must survive convergence",
+    "keep the later PR conditional while the required predecessor remains unmerged",
+    "after the predecessor eventually lands, re-read the new base and rebuild/rebase only the remaining later delta",
+    "rerun affected executable validation and re-review the new later-PR head before merge approval"
+  ],
+  "must_preserve": [
+    "the repository's explicit contract-first merge order",
+    "the contract PR's new authority/evidence semantics",
+    "the later PR's independent continuity/integration safeguards after rebasing",
+    "current base/head evidence and required validation gates"
+  ],
+  "must_not": [
+    "treat GitHub textual mergeability as proof that the PRs are semantically independent",
+    "merge the later dependent PR before its declared predecessor",
+    "approve the later PR against a base that will be materially changed by the predecessor and then reuse that stale approval after the base moves",
+    "resolve the shared authority/profile file by choosing one whole-file version and silently discarding the other PR's required semantics",
+    "treat static review as executable validation while CI cannot start"
+  ],
+  "required_guard_ids": [
+    "decision-frame-before-review",
+    "current-source-before-conclusion",
+    "semantic-merge-order",
+    "review-is-read-only-by-default"
+  ],
+  "expected_blocker_class": "external-dependency",
+  "lessons": [
+    "A PR can be textually mergeable and still be semantically unsafe because another unmerged predecessor is supposed to redefine the shared authority surface first.",
+    "Merge approval is scoped to a particular base/head relationship; after a required predecessor lands, the dependent PR must be rebuilt and re-reviewed rather than carrying forward stale approval.",
+    "Changed-file overlap is a risk signal, but the real decision is which semantics must survive and whether repository-declared merge order makes the candidate conditional.",
+    "A merge gate is part of repository authority evidence, not optional project-management decoration."
+  ]
+}
