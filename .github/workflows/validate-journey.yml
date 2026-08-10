@@ -1,0 +1,132 @@
+name: validate-journey
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-journey:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate Journey semantic invariants
+        run: python scripts/validate_journey.py
+
+      - name: Smoke-test installed Journey resume and completion safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+
+          test -f "$target/.aaop/journeys/idea-to-production.json"
+          test -f "$target/.aaop/schemas/journey.schema.json"
+          test -f "$target/.aaop/schemas/journey-state.schema.json"
+          test -f "$target/.aaop/skills/end-to-end-delivery/SKILL.md"
+          test -f "$target/.aaop/tools/journey.py"
+          grep -q 'end-to-end-delivery' "$target/.aaop/skills/developer-intake/SKILL.md"
+
+          python "$target/.aaop/tools/journey.py" show idea-to-production --json > "$target/journey-definition.json"
+          python - "$target/journey-definition.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['routing_policy']['intake_selects_current_route'] is True
+          assert d['routing_policy']['greenfield_gates_are_conditional'] is True
+          assert d['completion_policy']['blocked_is_complete'] is False
+          assert d['completion_policy']['target_verification_required'] is True
+          intake = next(g for g in d['gates'] if g['id'] == 'intake')
+          first = next(g for g in d['gates'] if g['id'] == 'first-slice')
+          assert intake['route_selection'] == 'developer-intake'
+          assert 'primary_route' not in intake
+          assert first['primary_route'] == 'idea-to-build'
+          assert first['applies_when'] and first['skip_when']
+          PY
+
+          # Simulate resuming an existing partial implementation: current route is
+          # feature-change, not forcibly idea-to-build merely because the Journey began.
+          python "$target/.aaop/tools/journey.py" start idea-to-production \
+            --goal 'turn the existing partial app into a verified online release' \
+            --route feature-change \
+            --reason 'existing implementation already has a trustworthy user-visible slice'
+          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-state.json"
+          python - "$target/journey-state.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['status'] == 'active'
+          assert d['current_route'] == 'feature-change'
+          assert d['current_gate'] == 'intake'
+          assert d['target_verified'] is False
+          assert d['checkpoint_needs_reconcile'] is False
+          PY
+
+          # Route changes must be evidence-backed. Lack of progress alone may not
+          # bounce the Journey to another route.
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --route bug-fix --reason 'a defect appeared' > "$target/route-without-evidence.out" 2>&1; then
+            echo 'expected route change without evidence to fail' >&2
+            exit 1
+          fi
+          grep -q 'requires at least one --evidence' "$target/route-without-evidence.out"
+
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --route bug-fix \
+            --reason 'acceptance run exposed a reproducible defect' \
+            --evidence 'reproducible acceptance failure: submit returns 500' \
+            --next-action 'localize and regress the submit failure'
+
+          # A blocked deployment is a correct state but can never be completion.
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --gate release-preflight \
+            --route release-operations \
+            --reason 'implementation is release-ready; deployment is now the immediate problem' \
+            --evidence 'release candidate checks passed' \
+            --status blocked \
+            --blocker 'target environment is not reachable from the authorized execution path'
+
+          if python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+              --gate deploy-observe --status complete --clear-blockers > "$target/complete-without-target.out" 2>&1; then
+            echo 'expected completion without target verification to fail' >&2
+            exit 1
+          fi
+          grep -q 'cannot be complete without direct target verification' "$target/complete-without-target.out"
+
+          python "$target/.aaop/tools/journey.py" checkpoint idea-to-production \
+            --gate deploy-observe \
+            --status complete \
+            --clear-blockers \
+            --target-verified \
+            --evidence 'target revision and representative acceptance path verified directly' \
+            --outcome 'intended release behavior verified on target'
+
+          python "$target/.aaop/tools/journey.py" status idea-to-production --json > "$target/journey-complete.json"
+          python - "$target/journey-complete.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['status'] == 'complete'
+          assert d['target_verified'] is True
+          assert d['blockers'] == []
+          assert len(d['route_history']) >= 3
+          PY
+
+      - name: Generic local agents must not impersonate agent-bundles
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="$(mktemp -d)"
+          python scripts/install.py "$target"
+          mkdir -p "$target/.claude/agents"
+          printf '%s\n' '# project-owned local agent' > "$target/.claude/agents/custom.md"
+          python "$target/.aaop/tools/doctor.py" "$target" --json > "$target/doctor.json"
+          python - "$target/doctor.json" <<'PY'
+          import json, sys
+          d = json.load(open(sys.argv[1]))
+          assert d['provider_detection']['agent-bundles']['detected'] is False, d['provider_detection']['agent-bundles']
+          PY
