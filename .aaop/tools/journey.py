@@ -24,7 +24,7 @@ ROUTES = {
     "release-operations",
 }
 STATUSES = {"active", "blocked", "complete"}
-STATE_SCHEMA_VERSION = "0.2.0"
+STATE_SCHEMA_VERSION = "0.3.0"
 
 
 def package_root() -> Path:
@@ -106,12 +106,14 @@ def append_unique(values: list[str], additions: list[str]) -> list[str]:
 
 def render_state(state: dict[str, Any], definition: dict[str, Any]) -> None:
     print(f"journey: {state['journey_id']}")
+    print(f"cycle: {state.get('cycle', 1)}")
     print(f"goal: {state['goal']}")
     print(f"status: {state['status']}")
     print(f"gate: {state['current_gate']}")
     print(f"route: {state.get('current_route') or '-'}")
     print(f"target verified: {'yes' if state.get('target_verified') else 'no'}")
     print(f"target evidence: {len(state.get('target_evidence', []))}")
+    print(f"completed releases: {len(state.get('release_history', []))}")
     print(f"next: {state.get('next_action') or '-'}")
     print(f"updated: {state['updated_at']}")
     if state.get("journey_version") != definition.get("version"):
@@ -152,11 +154,20 @@ def command_start(journey_id: str, goal: str, gate: str, route: str | None, reas
     timestamp = now_utc()
     history: list[dict[str, Any]] = []
     if route:
-        history.append({"from": None, "to": route, "reason": reason.strip() or "initial intake", "at": timestamp})
+        history.append(
+            {
+                "cycle": 1,
+                "from": None,
+                "to": route,
+                "reason": reason.strip() or "initial intake",
+                "at": timestamp,
+            }
+        )
     state: dict[str, Any] = {
         "schema_version": STATE_SCHEMA_VERSION,
         "journey_id": journey_id,
         "journey_version": definition["version"],
+        "cycle": 1,
         "goal": goal.strip(),
         "status": "active",
         "current_gate": gate,
@@ -168,6 +179,8 @@ def command_start(journey_id: str, goal: str, gate: str, route: str | None, reas
         "evidence": [],
         "blockers": [],
         "route_history": history,
+        "release_history": [],
+        "completed_at": None,
         "last_checkpoint_reason": reason.strip() or "initial intake",
         "updated_at": timestamp,
     }
@@ -191,9 +204,74 @@ def command_status(journey_id: str, as_json: bool) -> int:
     return 0
 
 
+def start_next_cycle(args: argparse.Namespace, definition: dict[str, Any], state: dict[str, Any]) -> int:
+    if state.get("status") != "complete":
+        raise SystemExit("--start-next-cycle is valid only from a completed release cycle.")
+    if not args.route or not args.gate:
+        raise SystemExit("Starting the next release cycle requires both --route and --gate from current evidence.")
+    if not args.reason.strip() or not args.evidence:
+        raise SystemExit("Starting the next release cycle requires --reason and at least one --evidence item.")
+    if args.target_evidence:
+        raise SystemExit("A new release cycle cannot begin with inherited target verification evidence.")
+    ensure_gate(definition, args.gate)
+
+    old_cycle = int(state.get("cycle", 1))
+    completed_at = state.get("completed_at")
+    if not isinstance(completed_at, str) or not completed_at:
+        raise SystemExit("Completed Journey state is missing completed_at; reconcile before starting another release cycle.")
+
+    archive = {
+        "cycle": old_cycle,
+        "completed_at": completed_at,
+        "outcome": state.get("current_outcome"),
+        "target_evidence": list(state.get("target_evidence", [])),
+    }
+    state.setdefault("release_history", []).append(archive)
+
+    new_cycle = old_cycle + 1
+    timestamp = now_utc()
+    previous_route = state.get("current_route")
+    state.setdefault("route_history", []).append(
+        {
+            "cycle": new_cycle,
+            "from": previous_route,
+            "to": args.route,
+            "reason": args.reason.strip(),
+            "at": timestamp,
+        }
+    )
+
+    state["schema_version"] = STATE_SCHEMA_VERSION
+    state["journey_version"] = definition["version"]
+    state["cycle"] = new_cycle
+    state["status"] = "active"
+    state["current_gate"] = args.gate
+    state["current_route"] = args.route
+    state["current_outcome"] = args.outcome.strip() if args.outcome else None
+    state["next_action"] = args.next_action.strip() if args.next_action else None
+    state["target_verified"] = False
+    state["target_evidence"] = []
+    state["evidence"] = append_unique([], args.evidence)
+    state["blockers"] = append_unique([], args.blocker)
+    state["completed_at"] = None
+    state["last_checkpoint_reason"] = args.reason.strip()
+    state["updated_at"] = timestamp
+    save_state(args.journey_id, state)
+    render_state(state, definition)
+    return 0
+
+
 def command_checkpoint(args: argparse.Namespace) -> int:
     definition = load_definition(args.journey_id)
     state = load_state(args.journey_id)
+
+    if args.start_next_cycle:
+        return start_next_cycle(args, definition, state)
+
+    if state.get("status") == "complete":
+        raise SystemExit(
+            "The current release cycle is complete and immutable. Use --start-next-cycle with fresh evidence before new build/fix work."
+        )
 
     version_changed = state.get("journey_version") != definition.get("version")
     if version_changed and (not args.reason.strip() or not args.evidence):
@@ -214,6 +292,7 @@ def command_checkpoint(args: argparse.Namespace) -> int:
         timestamp = now_utc()
         state.setdefault("route_history", []).append(
             {
+                "cycle": int(state.get("cycle", 1)),
                 "from": previous_route,
                 "to": args.route,
                 "reason": args.reason.strip() or "initial route selection",
@@ -259,8 +338,11 @@ def command_checkpoint(args: argparse.Namespace) -> int:
             raise SystemExit("Journey cannot be complete without direct target verification. Keep it active/blocked and record the exact unblock.")
         if completion_policy.get("target_verification_required") and not state.get("target_evidence"):
             raise SystemExit("Journey completion requires explicit target-environment evidence, not only a completion flag.")
-        if state.get("current_gate") not in {"deploy-observe", "learning-loop"}:
-            raise SystemExit("Journey completion is only valid after deploy-observe (or the post-deploy learning gate).")
+        if state.get("current_gate") != "deploy-observe":
+            raise SystemExit("Journey release completion is valid only at deploy-observe.")
+        if state.get("current_route") != "release-operations":
+            raise SystemExit("Journey release completion requires the current route to be release-operations.")
+        state["completed_at"] = now_utc()
 
     state["status"] = requested_status
     state["schema_version"] = STATE_SCHEMA_VERSION
@@ -302,6 +384,7 @@ def main() -> int:
     checkpoint.add_argument("--target-evidence", action="append", default=[])
     checkpoint.add_argument("--blocker", action="append", default=[])
     checkpoint.add_argument("--clear-blockers", action="store_true")
+    checkpoint.add_argument("--start-next-cycle", action="store_true")
     checkpoint.add_argument("--reason", default="")
 
     args = parser.parse_args()
