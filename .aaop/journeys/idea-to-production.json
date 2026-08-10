@@ -1,0 +1,105 @@
+{
+  "journey_id": "idea-to-production",
+  "version": "0.1.0",
+  "status": "experimental-canonical",
+  "objective": "Take a novice developer from a rough idea to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
+  "entry_conditions": [
+    "the user has a product/app idea or an existing partial implementation",
+    "the desired outcome spans more than one route transition",
+    "the user wants the system to continue through implementation and release rather than only provide advice"
+  ],
+  "user_owns": [
+    "product intent and domain truth",
+    "material product decisions that cannot be inferred from evidence",
+    "credentials and external-account authorization when required",
+    "production-write approval unless an existing explicit policy already grants it"
+  ],
+  "system_owns": [
+    "route selection and rerouting",
+    "technical discovery and stack decisions derived from constraints",
+    "task decomposition and sequencing",
+    "implementation and verification",
+    "capability/provider selection only after a proven gap",
+    "release preflight preparation and rollback planning"
+  ],
+  "gates": [
+    {
+      "id": "intake",
+      "primary_route": "idea-to-build",
+      "goal": "Resolve one actor, one situation, one observable improvement, hard constraints, and the riskiest assumption worth testing first.",
+      "exit_evidence": ["provisional observable outcome", "solution vocabulary classification", "first material uncertainty"]
+    },
+    {
+      "id": "first-slice",
+      "primary_route": "idea-to-build",
+      "goal": "Define and build the smallest real slice that buys useful learning.",
+      "exit_evidence": ["acceptance path", "explicit non-goals", "working artifact", "evidence that at least one material uncertainty was reduced"]
+    },
+    {
+      "id": "project-readiness",
+      "primary_route": "idea-to-build",
+      "possible_reroutes": ["repo-recovery"],
+      "goal": "Establish only the minimum trustworthy project/environment baseline required to continue.",
+      "exit_evidence": ["trusted project baseline", "known validation commands or equivalent evidence", "known blockers"]
+    },
+    {
+      "id": "implementation-loop",
+      "primary_route": "feature-change",
+      "possible_reroutes": ["bug-fix", "repo-recovery", "understand-review"],
+      "goal": "Iterate through the smallest coherent evidence-backed changes until the intended release behavior is present.",
+      "exit_evidence": ["acceptance behavior", "regression evidence", "reviewed diff", "current next-decision evidence"]
+    },
+    {
+      "id": "release-candidate",
+      "primary_route": "feature-change",
+      "possible_reroutes": ["bug-fix", "repo-recovery"],
+      "goal": "Prove that the application is a release candidate, not merely locally complete.",
+      "exit_evidence": ["relevant tests/build checks", "known CI state", "configuration requirements", "secret/sensitive-data review", "migration impact when applicable", "rollback prerequisites"]
+    },
+    {
+      "id": "release-preflight",
+      "primary_route": "release-operations",
+      "goal": "Resolve target-environment truth, authorization, current target revision/precondition, blast radius, and rollback before consequential writes.",
+      "exit_evidence": ["target identity", "current target state or explicit unknown", "authorized access path", "preflight result", "rollback/restore path", "required production authorization"]
+    },
+    {
+      "id": "deploy-observe",
+      "primary_route": "release-operations",
+      "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery"],
+      "goal": "Revalidate the target immediately before the write, deploy only within authorization, and verify the actual target behavior.",
+      "exit_evidence": ["pre-write target revalidation", "deployment result", "target revision/state", "health/smoke/acceptance evidence", "rollback result if needed"]
+    },
+    {
+      "id": "learning-loop",
+      "primary_route": "understand-review",
+      "goal": "Convert real use/release evidence into the next product or engineering decision without automatically expanding scope.",
+      "exit_evidence": ["new evidence classified", "next highest-value outcome", "repeatable failure pattern promoted only when justified"]
+    }
+  ],
+  "route_transition_rules": [
+    "observed defect -> bug-fix",
+    "desired behavior change -> feature-change",
+    "contradictory or untrustworthy repository state -> repo-recovery",
+    "decision-only assessment before mutation -> understand-review",
+    "deployment/release is the immediate blocker -> release-operations"
+  ],
+  "capability_policy": {
+    "default": "one capable host-native agent with existing project tools",
+    "specialist_condition": "specialization, context isolation, safe parallel independence, adversarial review, or a permission boundary materially improves execution",
+    "provider_condition": "a genuine capability gap remains after native agent, project scripts/tests, Skills, host tools, connected tools, and existing specialists are checked",
+    "agent_bundles": "optional curated specialist source; never default-install"
+  },
+  "historical_sources": {
+    "creating-forward": "requirements baseline, task/evidence discipline, authorization boundaries, interruption recovery; archived lineage, not a parallel runtime",
+    "solo-dev-autopilot": "novice UX, environment/bootstrap, dev loop, verification, review, commit/release preflight, deployment gate; concepts absorbed into AAOP gates rather than copied as a fixed 21-Skill topology",
+    "agent-bundles": "curated specialist-agent source used only after AAOP justifies specialist composition"
+  },
+  "completion": [
+    "a real user-visible application slice is deployed to the intended target",
+    "target state is directly verified or intentionally marked unknown when evidence is blocked",
+    "the intended target acceptance path is proven where practical",
+    "rollback/recovery status is known",
+    "material residual risks are visible",
+    "the next decision can be based on real evidence rather than speculative architecture"
+  ]
+}
