@@ -1,8 +1,27 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.1.0",
+  "version": "0.3.1",
   "status": "experimental-canonical",
-  "objective": "Take a novice developer from a rough idea to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
+  "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
+  "routing_policy": {
+    "intake_selects_current_route": true,
+    "greenfield_gates_are_conditional": true,
+    "reroute_requires_new_evidence": true,
+    "stale_checkpoint_never_overrides_current_evidence": true,
+    "completed_cycle_must_reopen_explicitly": true
+  },
+  "completion_policy": {
+    "blocked_is_complete": false,
+    "target_verification_required": true,
+    "target_verification_is_cycle_scoped": true,
+    "local_or_ci_evidence_cannot_substitute_for_target_evidence": true
+  },
+  "state_contract": {
+    "runtime_file": ".aaop/runtime/journeys/idea-to-production.json",
+    "schema": ".aaop/schemas/journey-state.schema.json",
+    "checkpoint_tool": ".aaop/tools/journey.py",
+    "authority": "Journey state is a resumability checkpoint only. Current repository, runtime, target-environment, and user evidence wins when it conflicts with a saved checkpoint. Completed release evidence is historical and must not satisfy a later release cycle."
+  },
   "entry_conditions": [
     "the user has a product/app idea or an existing partial implementation",
     "the desired outcome spans more than one route transition",
@@ -19,69 +38,137 @@
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
+    "journey checkpoint maintenance and resume reconciliation",
+    "release-cycle boundaries so old target verification cannot prove a later release",
     "capability/provider selection only after a proven gap",
     "release preflight preparation and rollback planning"
   ],
   "gates": [
     {
       "id": "intake",
-      "primary_route": "idea-to-build",
-      "goal": "Resolve one actor, one situation, one observable improvement, hard constraints, and the riskiest assumption worth testing first.",
-      "exit_evidence": ["provisional observable outcome", "solution vocabulary classification", "first material uncertainty"]
+      "route_selection": "developer-intake",
+      "goal": "Resolve the current situation, the long-horizon observable outcome, hard constraints, and the next evidence-bearing step without assuming the project is greenfield.",
+      "exit_evidence": [
+        "provisional observable outcome",
+        "current primary route selected from present evidence",
+        "solution vocabulary classification when relevant",
+        "first material uncertainty or immediate blocker"
+      ]
     },
     {
       "id": "first-slice",
       "primary_route": "idea-to-build",
+      "applies_when": "No trustworthy existing user-visible slice already provides enough evidence to continue from the current implementation.",
+      "skip_when": "A trustworthy existing implementation already has a usable slice and the immediate problem belongs to another route.",
       "goal": "Define and build the smallest real slice that buys useful learning.",
-      "exit_evidence": ["acceptance path", "explicit non-goals", "working artifact", "evidence that at least one material uncertainty was reduced"]
+      "exit_evidence": [
+        "acceptance path",
+        "explicit non-goals",
+        "working artifact",
+        "evidence that at least one material uncertainty was reduced"
+      ]
     },
     {
       "id": "project-readiness",
-      "primary_route": "idea-to-build",
-      "possible_reroutes": ["repo-recovery"],
-      "goal": "Establish only the minimum trustworthy project/environment baseline required to continue.",
-      "exit_evidence": ["trusted project baseline", "known validation commands or equivalent evidence", "known blockers"]
+      "route_selection": "current-route",
+      "possible_reroutes": [
+        "repo-recovery"
+      ],
+      "goal": "Establish only the minimum trustworthy project/environment baseline required to continue from the current project state.",
+      "exit_evidence": [
+        "trusted project baseline",
+        "known validation commands or equivalent evidence",
+        "known blockers",
+        "saved Journey checkpoint reconciled with current evidence"
+      ]
     },
     {
       "id": "implementation-loop",
-      "primary_route": "feature-change",
-      "possible_reroutes": ["bug-fix", "repo-recovery", "understand-review"],
-      "goal": "Iterate through the smallest coherent evidence-backed changes until the intended release behavior is present.",
-      "exit_evidence": ["acceptance behavior", "regression evidence", "reviewed diff", "current next-decision evidence"]
+      "route_selection": "current-route",
+      "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
+      "possible_reroutes": [
+        "bug-fix",
+        "feature-change",
+        "repo-recovery",
+        "understand-review"
+      ],
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route until the intended release behavior is present.",
+      "exit_evidence": [
+        "acceptance behavior",
+        "regression evidence",
+        "reviewed diff",
+        "current next-decision evidence"
+      ]
     },
     {
       "id": "release-candidate",
-      "primary_route": "feature-change",
-      "possible_reroutes": ["bug-fix", "repo-recovery"],
+      "route_selection": "current-route",
+      "possible_reroutes": [
+        "bug-fix",
+        "feature-change",
+        "repo-recovery"
+      ],
       "goal": "Prove that the application is a release candidate, not merely locally complete.",
-      "exit_evidence": ["relevant tests/build checks", "known CI state", "configuration requirements", "secret/sensitive-data review", "migration impact when applicable", "rollback prerequisites"]
+      "exit_evidence": [
+        "relevant tests/build checks",
+        "known CI state",
+        "configuration requirements",
+        "secret/sensitive-data review",
+        "migration impact when applicable",
+        "rollback prerequisites"
+      ]
     },
     {
       "id": "release-preflight",
       "primary_route": "release-operations",
       "goal": "Resolve target-environment truth, authorization, current target revision/precondition, blast radius, and rollback before consequential writes.",
-      "exit_evidence": ["target identity", "current target state or explicit unknown", "authorized access path", "preflight result", "rollback/restore path", "required production authorization"]
+      "exit_evidence": [
+        "target identity",
+        "current target state or explicit unknown",
+        "authorized access path",
+        "preflight result",
+        "rollback/restore path",
+        "required production authorization"
+      ]
     },
     {
       "id": "deploy-observe",
       "primary_route": "release-operations",
-      "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery"],
-      "goal": "Revalidate the target immediately before the write, deploy only within authorization, and verify the actual target behavior.",
-      "exit_evidence": ["pre-write target revalidation", "deployment result", "target revision/state", "health/smoke/acceptance evidence", "rollback result if needed"]
+      "possible_reroutes": [
+        "bug-fix",
+        "feature-change",
+        "repo-recovery"
+      ],
+      "goal": "Revalidate the target immediately before the write, deploy only within authorization, and directly verify the actual target behavior before completion.",
+      "exit_evidence": [
+        "pre-write target revalidation",
+        "deployment result",
+        "direct target revision/state evidence for the current release cycle",
+        "health/smoke/acceptance evidence for the current release cycle",
+        "rollback result if needed"
+      ]
     },
     {
       "id": "learning-loop",
       "primary_route": "understand-review",
-      "goal": "Convert real use/release evidence into the next product or engineering decision without automatically expanding scope.",
-      "exit_evidence": ["new evidence classified", "next highest-value outcome", "repeatable failure pattern promoted only when justified"]
+      "goal": "Convert real use/release evidence into the next product or engineering decision without automatically expanding scope. Starting a new implementation cycle explicitly archives the completed release and invalidates its target verification for the new cycle.",
+      "exit_evidence": [
+        "new evidence classified",
+        "next highest-value outcome",
+        "repeatable failure pattern promoted only when justified"
+      ]
     }
   ],
   "route_transition_rules": [
+    "initial current route is selected by developer-intake from present evidence, not by Journey position",
     "observed defect -> bug-fix",
     "desired behavior change -> feature-change",
     "contradictory or untrustworthy repository state -> repo-recovery",
     "decision-only assessment before mutation -> understand-review",
-    "deployment/release is the immediate blocker -> release-operations"
+    "deployment/release is the immediate blocker -> release-operations",
+    "a route transition must be justified by materially new evidence or a changed blocker classification; lack of progress alone is not a reroute signal",
+    "if routes begin to oscillate without new evidence, stop and reclassify the blocker instead of continuing to bounce",
+    "after a completed release, new build/fix work starts an explicit next release cycle; previous target verification is archived and cannot satisfy the new cycle"
   ],
   "capability_policy": {
     "default": "one capable host-native agent with existing project tools",
@@ -95,11 +182,12 @@
     "agent-bundles": "curated specialist-agent source used only after AAOP justifies specialist composition"
   },
   "completion": [
-    "a real user-visible application slice is deployed to the intended target",
-    "target state is directly verified or intentionally marked unknown when evidence is blocked",
+    "a real user-visible application slice for the current release cycle is deployed to the intended target",
+    "the deployed target revision/state for the current release cycle is directly verified with target-environment evidence",
     "the intended target acceptance path is proven where practical",
     "rollback/recovery status is known",
     "material residual risks are visible",
-    "the next decision can be based on real evidence rather than speculative architecture"
+    "the next product decision can be based on real evidence rather than speculative architecture",
+    "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition"
   ]
 }

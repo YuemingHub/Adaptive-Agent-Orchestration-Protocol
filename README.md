@@ -83,6 +83,14 @@ Review this PR and tell me whether it is safe to merge. Do not change code unles
 Add family invitations while preserving the existing product rules and tests.
 ```
 
+For a broad novice goal, ordinary language is enough too:
+
+```text
+I have an idea for an app. Help me turn it into a real verified release and keep going across the necessary development stages.
+```
+
+AAOP keeps one current Route at a time. A broad idea-to-production goal uses the end-to-end Delivery Journey only to preserve continuity across Route transitions; it does not create a seventh Route or a second workflow engine.
+
 ## What happens internally
 
 ```text
@@ -120,6 +128,8 @@ Current primary routes:
 
 You do **not** choose the route, Agent count, Skill, MCP server, runtime, or workflow mode yourself.
 
+For a multi-route product goal, `.aaop/skills/end-to-end-delivery/SKILL.md` coordinates these existing Routes. A lightweight checkpoint under `.aaop/runtime/journeys/` preserves continuity across sessions while current repository/runtime/target evidence remains authoritative.
+
 ## One user command surface
 
 After installation, the main human-facing command is:
@@ -147,7 +157,7 @@ python .aaop/tools/aaop.py prompt
 python .aaop/tools/aaop.py version
 ```
 
-Lower-level tools such as `health.py`, `doctor.py`, `route.py`, `recipe.py`, and `instructions.py` remain available for orchestration and debugging, but a normal user should not need to memorize them.
+Lower-level tools such as `health.py`, `doctor.py`, `route.py`, `recipe.py`, `journey.py`, and `instructions.py` remain available for orchestration and debugging, but a normal user should not need to memorize them.
 
 ## Upgrade
 
@@ -157,7 +167,7 @@ A recognizable AAOP installation is upgraded through the existing state-preservi
 
 Upgrade preserves:
 
-- `.aaop/runtime/`;
+- `.aaop/runtime/`, including Journey checkpoints;
 - project-owned files under `.aaop/`;
 - non-AAOP text in `AGENTS.md` / `CLAUDE.md`;
 - locally modified managed files as backups before canonical replacement;
@@ -191,6 +201,8 @@ AAOP aims for high autonomy without pretending all actions are equivalent.
 - stale write/merge preconditions: re-read and reconcile instead of forcing over concurrent work;
 - no proven current delta: do not manufacture a diff merely to look productive.
 
+For end-to-end delivery, a safely blocked release is not complete. Direct target-environment evidence is required to complete the current release cycle, and evidence from an earlier completed release cannot prove a later one.
+
 ## What AAOP deliberately does not build
 
 AAOP reuses mature upstream layers instead of recreating them. It does not try to become:
@@ -203,7 +215,7 @@ AAOP reuses mature upstream layers instead of recreating them. It does not try t
 - an organizational control plane;
 - a system that installs more tooling whenever work is blocked.
 
-Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, and AgentSpace, but only a proven capability gap should justify adoption.
+Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, and optional specialist sources such as agent-bundles, but only a proven capability or responsibility gap should justify adoption.
 
 ## Project principles that matter in practice
 
@@ -219,6 +231,8 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 10. Classify blockers before calling them capability gaps.
 11. Preserve project/runtime state across install, upgrade, and removal.
 12. Verify the outcome, not merely that code was written.
+13. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
+14. Scope production verification to the current release cycle.
 
 ## Repository map
 
@@ -228,6 +242,7 @@ AGENTS.md / CLAUDE.md              host-native bootstrap
 ├── VERSION                        package release identity
 ├── VERSIONING.md                  package vs component revision contract
 ├── ORCHESTRATOR.md                canonical orchestration protocol
+├── journeys/                      multi-route continuity definitions
 ├── policies/                      autonomy / tool / integration boundaries
 ├── routes/                        Route Capability Packs
 ├── recipes/                       lazy provider integration knowledge
@@ -238,6 +253,7 @@ AGENTS.md / CLAUDE.md              host-native bootstrap
     ├── health.py
     ├── doctor.py
     ├── instructions.py
+    ├── journey.py                 lightweight Journey checkpoint continuity
     ├── route.py
     └── recipe.py
 
@@ -245,6 +261,7 @@ scripts/
 ├── bootstrap.py                   zero-clone install / upgrade / removal
 ├── install.py                     canonical state-preserving package lifecycle
 ├── validate.py
+├── validate_journey.py            cross-route Journey semantic regressions
 └── validate_pressure.py
 
 tests/pressure/                    real-project orchestration regressions
@@ -255,6 +272,7 @@ docs/                              detailed design and research
 
 - [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — practical use and lifecycle details
 - [`docs/DEVELOPER_ENTRYPOINT.md`](docs/DEVELOPER_ENTRYPOINT.md) — natural-language intake and routing
+- [`docs/UNIFIED_IDEA_TO_PRODUCTION_PIPELINE.md`](docs/UNIFIED_IDEA_TO_PRODUCTION_PIPELINE.md) — end-to-end Journey consolidation and failure invariants
 - [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md) — route execution model
 - [`docs/REAL_PROJECT_PRESSURE_TESTS.md`](docs/REAL_PROJECT_PRESSURE_TESTS.md) — real-project regression discipline
 - [`docs/PROGRESSIVE_ADOPTION.md`](docs/PROGRESSIVE_ADOPTION.md) — capability/provider escalation
@@ -264,11 +282,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.20.1 — usable baseline with ownership-safe bootstrap.**
+**v0.21.0 — hardened end-to-end delivery baseline.**
 
-v0.20 closes the human entry loop: zero-clone bootstrap, safe repeat-upgrade/removal through the same surface, one installed user CLI, readiness feedback, and a copyable natural-language starting point. v0.20.1 tightens bootstrap ownership proof so an existing unrelated `.aaop/` directory cannot be auto-claimed merely because it contains a generic version-like file.
+v0.21 adds the resumable idea-to-production Delivery Journey on top of the existing six Routes. It keeps current evidence authoritative, makes greenfield gates conditional, requires evidence-backed rerouting, prevents blocker/target-state laundering, separates completed releases into explicit cycles, and adds dedicated Journey regression validation. It also removes false-positive `agent-bundles` detection until provider-specific ownership evidence exists.
 
-AAOP still does not ship a standalone agent runtime or third-party package manager — intentionally.
+AAOP still does not ship a standalone agent runtime, third-party package manager, or generic workflow engine — intentionally.
 
 ## License
 

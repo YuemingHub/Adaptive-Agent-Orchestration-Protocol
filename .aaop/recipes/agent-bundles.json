@@ -15,27 +15,21 @@
       "the task is blocked by authorization, credentials, environment, network, external dependency, or product decision"
     ]
   },
-  "detect": {
-    "files": [
-      ".claude/agents/*.md",
-      ".agents/agents/*.md",
-      ".cursor/agents/*.md",
-      ".qoder/agents/*.md",
-      ".zcode/agents/*.md",
-      ".workbuddy/agents/*.md"
-    ]
-  },
+  "detect": {},
   "install": {
     "mode": "manual-choice",
     "minimal_commands": [
       "git clone https://github.com/YuemingHub/agent-bundles.git",
-      "cd agent-bundles && ./bootstrap.sh --project --dry-run",
-      "cd agent-bundles && ./bootstrap.sh --project"
+      "cd agent-bundles && ./bootstrap.sh --list",
+      "cd agent-bundles && ./bootstrap.sh --division <one-or-few-justified-divisions> --dry-run",
+      "cd agent-bundles && ./bootstrap.sh --division <one-or-few-justified-divisions>"
     ],
     "notes": [
       "On Windows use bootstrap.ps1 instead of bootstrap.sh.",
-      "Preview with --dry-run before installation when the target agent directory already contains project-owned agents.",
-      "Prefer explicit --division selection when AAOP has already identified the missing specialist responsibility; do not install every default division automatically.",
+      "Provider detection is intentionally empty because the current installer does not create a provider-specific ownership marker. Generic files under .claude/agents, .cursor/agents, or similar directories are not proof that agent-bundles was installed.",
+      "Preview with --dry-run before installation and prefer one or a few explicit divisions that match the evidenced responsibility gap; do not use the broad project/default bundle merely for convenience.",
+      "Record the agent-bundles revision and the resolved upstream agency-agents revision when the specialist prompts become material to a project, because the upstream is fetched at runtime and can change independently.",
+      "Review the selected role files as procedural input before relying on them in a sensitive project; upstream role prompts are installed as-is rather than vendored or independently certified by AAOP.",
       "agent-bundles does not vendor upstream agents. Its bootstrap fetches msitarzewski/agency-agents at runtime and installs a curated subset into the selected host's agent directory."
     ]
   },
@@ -46,6 +40,8 @@
   "verify": {
     "checks": [
       "confirm only the intended specialist divisions/agents were installed",
+      "confirm generic pre-existing agent files were not mistaken for agent-bundles ownership",
+      "record or inspect the concrete provider/upstream revisions used for material adoption",
       "restart or reload the host if it requires agent discovery at startup",
       "delegate one bounded representative responsibility and verify that specialist separation materially improves the original task",
       "remove or avoid specialists that duplicate the main agent without measurable value"
@@ -53,13 +49,15 @@
   },
   "rollback": {
     "steps": [
-      "remove only the agent files installed for this adoption from the target host agent directory",
+      "remove only the agent files proven to have been installed for this adoption from the target host agent directory",
       "preserve project-owned or pre-existing agent files",
       "remove the temporary agent-bundles checkout if it is no longer needed"
     ]
   },
   "warnings": [
     "Agent-role prompts do not create new external tool permissions or technical capabilities; do not misclassify a missing tool/API/runtime as something more agents can solve.",
-    "More agents can increase coordination cost and context fragmentation. Default to one agent unless the responsibility boundary is evidenced."
+    "More agents can increase coordination cost and context fragmentation. Default to one agent unless the responsibility boundary is evidenced.",
+    "The current agent-bundles installer has no provider-specific ownership marker, so AAOP must not infer installation merely from the presence of generic host agent files.",
+    "Runtime-fetched upstream role prompts can change; consequential reuse should capture the actual revisions and review the selected files rather than assuming a prior catalog review still applies."
   ]
 }
