@@ -68,6 +68,50 @@ def validate_schema_file(path: Path, errors: list[str]) -> None:
         fail(errors, f"{path}: schema missing $schema")
 
 
+def validate_state_schema(root: Path, errors: list[str]) -> None:
+    path = root / ".aaop/schemas/journey-state.schema.json"
+    payload = load(path, errors)
+    if payload is None:
+        return
+    required = payload.get("required")
+    required_set = set(required) if isinstance(required, list) else set()
+    expected = {
+        "cycle",
+        "target_verified",
+        "target_evidence",
+        "route_history",
+        "release_history",
+        "completed_at",
+    }
+    missing = expected - required_set
+    if missing:
+        fail(errors, f"{path}: release-cycle checkpoint schema missing required fields: {', '.join(sorted(missing))}")
+
+    properties = payload.get("properties")
+    if not isinstance(properties, dict):
+        fail(errors, f"{path}: properties must be an object")
+        return
+
+    route_history = properties.get("route_history")
+    if not isinstance(route_history, dict):
+        fail(errors, f"{path}: route_history schema missing")
+    else:
+        items = route_history.get("items")
+        route_required = set(items.get("required", [])) if isinstance(items, dict) else set()
+        if "cycle" not in route_required:
+            fail(errors, f"{path}: route_history entries must identify their release cycle")
+
+    release_history = properties.get("release_history")
+    if not isinstance(release_history, dict):
+        fail(errors, f"{path}: release_history schema missing")
+    else:
+        items = release_history.get("items")
+        release_required = set(items.get("required", [])) if isinstance(items, dict) else set()
+        expected_release = {"cycle", "completed_at", "outcome", "target_evidence"}
+        if not expected_release <= release_required:
+            fail(errors, f"{path}: release_history entries must preserve completed cycle target evidence")
+
+
 def validate_journey(root: Path, errors: list[str]) -> None:
     path = root / ".aaop/journeys/idea-to-production.json"
     payload = load(path, errors)
@@ -95,6 +139,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         "greenfield_gates_are_conditional": True,
         "reroute_requires_new_evidence": True,
         "stale_checkpoint_never_overrides_current_evidence": True,
+        "completed_cycle_must_reopen_explicitly": True,
     }
     if not isinstance(routing, dict):
         fail(errors, f"{path}: routing_policy must be an object")
@@ -107,6 +152,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
     required_completion = {
         "blocked_is_complete": False,
         "target_verification_required": True,
+        "target_verification_is_cycle_scoped": True,
         "local_or_ci_evidence_cannot_substitute_for_target_evidence": True,
     }
     if not isinstance(completion_policy, dict):
@@ -131,6 +177,8 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         authority = state.get("authority")
         if not isinstance(authority, str) or not authority.strip():
             fail(errors, f"{path}: state_contract.authority must be explicit")
+        elif "historical" not in authority.lower():
+            fail(errors, f"{path}: state_contract.authority must state that completed release evidence becomes historical")
 
     for field in ("entry_conditions", "user_owns", "system_owns", "route_transition_rules", "completion"):
         nonempty_string_list(path, field, payload.get(field), errors)
@@ -193,24 +241,34 @@ def validate_journey(root: Path, errors: list[str]) -> None:
     deploy = gate_map.get("deploy-observe")
     if not deploy or deploy.get("primary_route") != "release-operations":
         fail(errors, f"{path}: deploy-observe must run under release-operations")
+    elif not any("current release cycle" in str(item).lower() for item in deploy.get("exit_evidence", [])):
+        fail(errors, f"{path}: deploy-observe target evidence must be scoped to the current release cycle")
 
 
 def validate_skill_wiring(root: Path, errors: list[str]) -> None:
     end_to_end = root / ".aaop/skills/end-to-end-delivery/SKILL.md"
     intake = root / ".aaop/skills/developer-intake/SKILL.md"
+    journey_tool = root / ".aaop/tools/journey.py"
     end_text = end_to_end.read_text(encoding="utf-8") if end_to_end.exists() else ""
     intake_text = intake.read_text(encoding="utf-8") if intake.exists() else ""
+    tool_text = journey_tool.read_text(encoding="utf-8") if journey_tool.exists() else ""
 
     for required in (
         ".aaop/tools/journey.py",
         "blocked/not-complete",
         "existing",
         "current evidence wins",
+        "release cycle",
     ):
         if required not in end_text:
             fail(errors, f"{end_to_end}: missing hardened Journey contract phrase {required!r}")
+    if "--start-next-cycle" not in end_text:
+        fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
     if "end-to-end-delivery" not in intake_text:
         fail(errors, f"{intake}: broad goals are not wired to end-to-end-delivery")
+    for required in ("--start-next-cycle", "release_history", "target_evidence", "complete and immutable"):
+        if required not in tool_text:
+            fail(errors, f"{journey_tool}: missing release-cycle safeguard {required!r}")
 
 
 def validate_agent_bundles_detection(root: Path, errors: list[str]) -> None:
@@ -236,6 +294,7 @@ def main() -> int:
 
     validate_schema_file(root / ".aaop/schemas/journey.schema.json", errors)
     validate_schema_file(root / ".aaop/schemas/journey-state.schema.json", errors)
+    validate_state_schema(root, errors)
     validate_journey(root, errors)
     validate_skill_wiring(root, errors)
     validate_agent_bundles_detection(root, errors)
@@ -246,7 +305,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print("AAOP Journey validation passed (routing, completion, resumability, specialist detection)")
+    print("AAOP Journey validation passed (routing, completion, resumability, release-cycle isolation, specialist detection)")
     return 0
 
 
