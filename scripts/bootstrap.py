@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install, upgrade, or safely remove AAOP from the official GitHub repository.
+"""Install, upgrade, recover, or safely remove AAOP from the official GitHub repository.
 
 This script is intentionally standard-library only so it can be executed directly
 from stdin. Production/default usage follows the deliberately promoted ``stable``
@@ -17,8 +17,9 @@ matters.
 
 Re-running the same stable install command upgrades a recognizable AAOP installation
 only when the stable channel itself has been deliberately promoted. Add --uninstall
-for manifest-scoped removal. The bootstrap installs no third-party provider and
-requests no secret.
+for manifest-scoped removal. If a journaled lifecycle operation was interrupted,
+use --recover-interrupted from a trusted AAOP source before retrying. The bootstrap
+installs no third-party provider and requests no secret.
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ from pathlib import Path
 OWNER = "YuemingHub"
 REPO = "Adaptive-Agent-Orchestration-Protocol"
 DEFAULT_REF = "stable"
+TRANSACTION_DIR_NAME = ".aaop-install-transaction"
 MAX_ARCHIVE_BYTES = 50 * 1024 * 1024
 MAX_ARCHIVE_MEMBERS = 4096
 MAX_MEMBER_UNCOMPRESSED_BYTES = 32 * 1024 * 1024
@@ -175,12 +177,6 @@ def source_version(source: Path) -> str:
 
 
 def legacy_aaop_identity(package: Path) -> bool:
-    """Return whether an unmanifested package proves it is a legacy AAOP install.
-
-    A generic VERSION file is never ownership evidence. For pre-manifest installs,
-    require a recognizable AAOP Orchestrator marker before allowing bootstrap to
-    refresh the directory as legacy AAOP state.
-    """
     orchestrator = package / "ORCHESTRATOR.md"
     if not orchestrator.is_file():
         return False
@@ -193,6 +189,13 @@ def legacy_aaop_identity(package: Path) -> bool:
 
 
 def target_mode(target: Path) -> str:
+    interrupted = target / TRANSACTION_DIR_NAME
+    if interrupted.exists():
+        raise SystemExit(
+            f"AAOP bootstrap: interrupted lifecycle transaction exists at {interrupted}. "
+            "Run this trusted bootstrap with --recover-interrupted before install/upgrade/uninstall."
+        )
+
     package = target / ".aaop"
     if not package.exists():
         return "install"
@@ -216,6 +219,8 @@ def run_installer(source: Path, target: Path, mode: str) -> None:
         command.append("--upgrade")
     elif mode == "uninstall":
         command.append("--uninstall")
+    elif mode == "recover":
+        command.append("--recover-interrupted")
     completed = subprocess.run(command, check=False)
     if completed.returncode != 0:
         raise SystemExit(completed.returncode)
@@ -234,7 +239,7 @@ def run_ready(target: Path) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Install, safely upgrade, or safely remove AAOP without cloning its repository"
+        description="Install, safely upgrade, recover, or safely remove AAOP without cloning its repository"
     )
     parser.add_argument(
         "--target",
@@ -253,6 +258,11 @@ def main() -> int:
         help="Safely remove only manifest-owned AAOP files and marked bootstrap blocks",
     )
     parser.add_argument(
+        "--recover-interrupted",
+        action="store_true",
+        help="Explicitly roll back a journaled AAOP lifecycle operation that was interrupted",
+    )
+    parser.add_argument(
         "--archive",
         type=Path,
         help=argparse.SUPPRESS,
@@ -264,8 +274,15 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.uninstall and args.recover_interrupted:
+        parser.error("--uninstall and --recover-interrupted are mutually exclusive")
+
     target = args.target.expanduser().resolve()
-    if args.uninstall:
+    if args.recover_interrupted:
+        if not target.exists():
+            raise SystemExit(f"AAOP bootstrap: target project does not exist: {target}")
+        mode = "recover"
+    elif args.uninstall:
         if not target.exists():
             raise SystemExit(f"AAOP bootstrap: target project does not exist: {target}")
         mode = "uninstall"
@@ -290,16 +307,26 @@ def main() -> int:
         print("AAOP bootstrap removal complete")
         return 0
 
+    if mode == "recover":
+        print("AAOP bootstrap recovery complete")
+
     if args.skip_ready:
         print("AAOP bootstrap complete")
         print(f"  target: {target}")
         print(f"  ready check: {sys.executable} .aaop/tools/aaop.py ready .")
         return 0
 
+    if not (target / ".aaop" / "tools" / "aaop.py").is_file():
+        print(
+            "AAOP bootstrap: lifecycle action completed, but no installed AAOP package remains to run readiness against.",
+            file=sys.stderr,
+        )
+        return 0
+
     ready_code = run_ready(target)
     if ready_code != 0:
         print(
-            "AAOP bootstrap: installation completed, but readiness check found something to review.",
+            "AAOP bootstrap: lifecycle action completed, but readiness check found something to review.",
             file=sys.stderr,
         )
         return ready_code
