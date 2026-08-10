@@ -90,7 +90,7 @@ jobs:
             echo 'expected legacy uninstall to fail' >&2
             exit 1
           fi
-          grep -q 'Upgrade first to establish ownership' "$target/uninstall.out"
+          grep -qi 'upgrade first to establish ownership' "$target/uninstall.out"
           grep -q 'LEGACY-SENTINEL' "$target/.aaop/ORCHESTRATOR.md"
           grep -q '<!-- AAOP:BEGIN -->' "$target/AGENTS.md"
 
