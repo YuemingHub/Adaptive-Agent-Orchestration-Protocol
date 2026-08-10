@@ -91,6 +91,8 @@ I have an idea for an app. Help me turn it into a real verified release and keep
 
 AAOP keeps one current Route at a time. A broad idea-to-production goal uses the end-to-end Delivery Journey only to preserve continuity across Route transitions; it does not create a seventh Route or a second workflow engine.
 
+On a later session, the user may simply say `continue`, `keep going`, or `what next?`. If an existing Journey checkpoint is present, developer intake treats it as continuity evidence, reconciles it against current project/runtime/target facts, and resumes the long-horizon goal rather than restarting discovery from the short new message.
+
 ## What happens internally
 
 ```text
@@ -203,6 +205,8 @@ AAOP aims for high autonomy without pretending all actions are equivalent.
 
 For end-to-end delivery, a safely blocked release is not complete. Direct target-environment evidence is required to complete the current release cycle, and evidence from an earlier completed release cannot prove a later one.
 
+A blocked Journey resumed by a terse `continue` request first re-checks the recorded unblock condition. Unchanged credentials, authorization, network, or external-dependency blockers are not permission to retry blindly or install workaround machinery.
+
 ## What AAOP deliberately does not build
 
 AAOP reuses mature upstream layers instead of recreating them. It does not try to become:
@@ -233,6 +237,7 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 12. Verify the outcome, not merely that code was written.
 13. Preserve long-horizon Journey continuity without letting stale checkpoints override current evidence.
 14. Scope production verification to the current release cycle.
+15. Resume an existing Journey from checkpoint + current evidence before inferring a new goal from a terse continuation message.
 
 ## Repository map
 
@@ -282,9 +287,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v0.21.0 — hardened end-to-end delivery baseline.**
+**v0.21.1 — cross-session Journey continuation hardening.**
 
-v0.21 adds the resumable idea-to-production Delivery Journey on top of the existing six Routes. It keeps current evidence authoritative, makes greenfield gates conditional, requires evidence-backed rerouting, prevents blocker/target-state laundering, separates completed releases into explicit cycles, and adds dedicated Journey regression validation. It also removes false-positive `agent-bundles` detection until provider-specific ownership evidence exists.
+v0.21.1 makes terse continuation requests such as `continue` or `what next?` resume an existing Journey checkpoint before a new goal is inferred. Active checkpoints retain the long-horizon outcome while current evidence chooses the Route; blocked checkpoints re-check the recorded unblock condition instead of blindly retrying or widening access; completed checkpoints remain immutable unless fresh evidence creates an explicit next release cycle.
+
+v0.21 introduced the resumable idea-to-production Delivery Journey on top of the existing six Routes, including evidence-backed rerouting, release-cycle target verification, dedicated Journey regression validation, and conservative specialist-provider detection.
 
 AAOP still does not ship a standalone agent runtime, third-party package manager, or generic workflow engine — intentionally.
 
