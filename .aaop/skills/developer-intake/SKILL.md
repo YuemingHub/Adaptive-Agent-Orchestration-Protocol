@@ -1,6 +1,6 @@
 ---
 name: developer-intake
-description: Convert a developer's minimal natural-language request into the correct AAOP development route before capability/provider selection. Use for vague ideas, messy repositories, bug reports, feature requests, code understanding/review, or release/operations work. Ask only when one missing fact would materially change the route or outcome.
+description: Convert a developer's minimal natural-language request into the correct AAOP development route before capability/provider selection. Use for vague ideas, continuation requests, messy repositories, bug reports, feature requests, code understanding/review, or release/operations work. Ask only when one missing fact would materially change the route or outcome.
 ---
 
 # Developer Intake
@@ -10,6 +10,7 @@ This is the front door of AAOP.
 The user should not need to know the route names, Agent types, Skills, MCP servers, runtimes, or orchestration model. Accept ordinary developer language such as:
 
 - “I have an idea but I don't know how to build it.”
+- “Continue.” / “Keep going.” / “What should we do next?”
 - “This repo is a mess; understand it and keep going.”
 - “Login returns 500. Fix it.”
 - “Add family invitations.”
@@ -25,7 +26,7 @@ Routing is not keyword matching. Consider together:
 1. **Asset state** — idea only, current workspace, repository reference, snippets/files, or deployed system.
 2. **Situation** — greenfield, recovery, bug, feature, understanding/review, or release/operations.
 3. **Desired outcome** — what should be true when the work is done.
-4. **Evidence** — repository, tests, failures, logs, issues/specs, runtime/deployment context.
+4. **Evidence** — repository, tests, failures, logs, issues/specs, runtime/deployment context, and an existing Journey checkpoint when present.
 5. **Risk** — whether the first meaningful action is local/reversible or externally consequential.
 6. **Solution vocabulary status** — whether named technologies are hard constraints, preferences, or merely hypotheses the user is exploring.
 
@@ -38,6 +39,41 @@ If a workspace, repo URL, issue, file, logs, or other accessible evidence is alr
 Do not ask “What stack is this?” when manifests can answer.
 Do not ask “What error do you see?” when the supplied logs show it.
 Do not ask the user to summarize a repository you can inspect.
+
+### Existing Journey checkpoint is continuity evidence
+
+Before treating a terse continuation request as a brand-new intake, check whether this project already has:
+
+```text
+.aaop/runtime/journeys/idea-to-production.json
+```
+
+When it exists, inspect it through:
+
+```bash
+python .aaop/tools/journey.py status idea-to-production --json
+```
+
+Then load `../end-to-end-delivery/SKILL.md` and reconcile the checkpoint against current repository/runtime/target evidence **before** choosing the next action.
+
+This is especially important when the user says only:
+
+- “continue”;
+- “keep going”;
+- “resume”;
+- “what next?”;
+- “continue this project”;
+- or another underspecified continuation phrase.
+
+The checkpoint proves that a prior long-horizon Journey exists. It does **not** prove that its saved route, blocker, or next action is still current truth.
+
+Handle checkpoint status explicitly:
+
+- `active` — preserve the long-horizon goal, reconcile current evidence, then choose the current Route. Do not restart product discovery merely because the new conversation is short.
+- `blocked` — first re-check the recorded unblock condition against current evidence. If it is unchanged, do not blindly retry the same failed action, widen permissions, or install a provider to bypass the blocker. Keep it blocked unless independent authorized work can genuinely advance the same outcome.
+- `complete` — the completed release cycle is immutable historical evidence. A vague “continue” does not authorize invented features or a new release cycle. Start the next cycle only when fresh user/product/runtime evidence creates a real new delta, using the explicit next-cycle contract from `end-to-end-delivery`.
+
+If the checkpoint is malformed, stale relative to the installed Journey definition, or contradicted by current project evidence, preserve the conflict and reconcile it; do not silently overwrite or ignore it.
 
 ## Step 2 — Infer the primary route
 
@@ -62,12 +98,15 @@ Examples:
 - “Understand this old repo and then continue development” → `repo-recovery`.
 - “Review this repo and if the architecture is sound add X” → `understand-review` first if the review gates the feature decision; otherwise `feature-change` with an inspection phase.
 - “Add X and deploy it” → `feature-change` first; queue `release-operations` unless deployment is already the blocking task.
+- “Continue” with an active Journey checkpoint → reconcile the saved goal and current evidence first; choose the current Route from that evidence instead of inventing a new goal.
 
 Do not create parallel routes merely because the sentence contains multiple verbs.
 
 ### Broad end-to-end goals use the Journey, not a new route
 
 If the user's desired outcome explicitly spans multiple route transitions — for example “I have an idea; take it all the way to a real app and get it online” — load `../end-to-end-delivery/SKILL.md` in addition to this intake Skill.
+
+Also load the Journey when an existing checkpoint proves that the current project is already inside that long-horizon goal, even if the user's new message is only a terse continuation request.
 
 The Journey preserves continuity across the existing routes; it does not replace route selection. Still choose exactly one **current** primary route from the list above, then reroute only when evidence changes the immediate problem.
 
@@ -82,7 +121,7 @@ Examples:
 - “Make it better” → identify which current pain/decision defines better.
 - “Fix login” → user can complete the login path that currently fails; the observed failure no longer reproduces and regression evidence passes.
 - “Add invitation” → identify who can invite whom, the visible workflow, and the smallest acceptance path.
-- “Continue this project” → understand current state, find the highest-leverage next blocker, improve it with evidence.
+- “Continue this project” → reconcile any active Journey/current project state, find the highest-leverage next blocker or delta, and improve it with evidence.
 
 ### Early technical vocabulary is not automatically a requirement
 
@@ -120,6 +159,7 @@ Avoid process questions:
 - “Do you want me to inspect the repo?”
 - “Which agent team should I use?”
 - “Which database/framework should I choose?” when the system can derive it later.
+- “What were we doing?” when an existing Journey checkpoint and project evidence can recover the answer.
 
 If a reversible experiment can resolve the ambiguity, prefer the experiment over asking.
 
@@ -150,7 +190,7 @@ After routing:
 - `understand-review` → decision-oriented inspection; current evidence; no mutation by default.
 - `release-operations` → environment/runtime evidence + blocker classification + rollback + autonomy policy before consequential action.
 
-For a broad end-to-end goal, the loaded `end-to-end-delivery` Skill keeps the user's original product outcome active while the current route changes. Do not ask the user to re-specify the full journey at every transition.
+For a broad end-to-end goal or an existing Journey checkpoint, the loaded `end-to-end-delivery` Skill keeps the user's original product outcome active while the current route changes. Do not ask the user to re-specify the full journey at every transition.
 
 Only after the route exposes a real capability gap should AAOP run provider selection.
 
@@ -173,6 +213,7 @@ The route is an internal coordination mechanism, not a form the user must operat
 Developer intake is complete when:
 
 - the current situation is sufficiently understood;
+- any relevant existing Journey checkpoint has been reconciled rather than ignored;
 - one primary route is selected;
 - a provisional observable outcome is defined;
 - proposed solution vocabulary is not being mistaken for requirements without evidence;
