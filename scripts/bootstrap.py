@@ -245,6 +245,25 @@ def run_installer(source: Path, target: Path, mode: str) -> None:
         raise SystemExit(completed.returncode)
 
 
+def run_provenance(target: Path, source_kind: str, source_ref: str | None) -> None:
+    command = [
+        sys.executable,
+        str(target / ".aaop" / "tools" / "provenance.py"),
+        "record",
+        "--source-kind",
+        source_kind,
+    ]
+    if source_ref:
+        command.extend(["--source-ref", source_ref])
+    completed = subprocess.run(command, check=False, text=True, capture_output=True)
+    if completed.returncode != 0:
+        details = (completed.stderr or completed.stdout or "unknown provenance error").strip()
+        raise SystemExit(
+            "AAOP bootstrap: package lifecycle completed, but install provenance could not be recorded. "
+            f"The ownership manifest was not expanded or rewritten by provenance. Details: {details}"
+        )
+
+
 def run_ready(target: Path) -> int:
     command = [
         sys.executable,
@@ -313,10 +332,14 @@ def main() -> int:
 
     if args.archive:
         data = load_archive(args.archive.expanduser().resolve())
-        source_label = str(args.archive)
+        source_label = "local archive"
+        provenance_kind = "local-archive"
+        provenance_ref = None
     else:
         data = download_archive(args.ref)
         source_label = f"official {OWNER}/{REPO}@{args.ref}"
+        provenance_kind = "official-ref"
+        provenance_ref = args.ref
 
     with tempfile.TemporaryDirectory(prefix="aaop-bootstrap-") as tmp:
         source = extract_source(data, Path(tmp))
@@ -330,6 +353,9 @@ def main() -> int:
 
     if mode == "recover":
         print("AAOP bootstrap recovery complete")
+    else:
+        run_provenance(target, provenance_kind, provenance_ref)
+        print("AAOP bootstrap: install provenance recorded and fingerprinted")
 
     if args.skip_ready:
         print("AAOP bootstrap complete")
