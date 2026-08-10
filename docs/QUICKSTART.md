@@ -217,7 +217,46 @@ Upgrade preserves:
 - local managed-file edits as backups before canonical replacement;
 - third-party providers and project dependencies.
 
-Malformed/duplicated AAOP marker pairs fail before package mutation.
+Install, upgrade, and uninstall are journaled lifecycle mutations. AAOP snapshots the package ownership surface and project bootstrap files before promotion, uses atomic per-file replacement, and rolls back caught failures. Malformed/duplicated AAOP marker pairs and unsupported ownership metadata fail before destructive mutation.
+
+### If install / upgrade / uninstall was interrupted
+
+A process or machine can stop without giving AAOP a chance to roll back. To avoid treating a mixed package as healthy, AAOP leaves the project-root journal:
+
+```text
+.aaop-install-transaction/
+```
+
+While that journal exists:
+
+- health reports `interrupted-install`;
+- normal install / upgrade / uninstall refuses to continue;
+- do **not** manually delete the journal or blindly reinstall over the package.
+
+Recover with the same trusted release source you intend to use.
+
+Stable channel, macOS / Linux:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | python3 - --target . --recover-interrupted
+```
+
+Stable channel, Windows PowerShell:
+
+```powershell
+curl.exe -fsSL https://raw.githubusercontent.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/stable/scripts/bootstrap.py | py - --target . --recover-interrupted
+```
+
+For an exact-revision consumer, use that matching/newer trusted exact revision for both the bootstrap URL and `--ref`.
+
+Recovery first preserves the interrupted current files, then restores the pre-transaction package / manifest / `AGENTS.md` / `CLAUDE.md` state. After recovery, run:
+
+```bash
+python .aaop/tools/aaop.py status .
+python .aaop/tools/aaop.py ready .
+```
+
+Only retry the original lifecycle operation after health/readiness reflects the restored current state.
 
 ## 8. Remove AAOP
 
@@ -244,7 +283,8 @@ Safe removal:
 - preserves project-owned files under `.aaop/`;
 - backs up modified managed files before removal;
 - leaves Playwright, MCP servers, OpenHands, AutoAgent, Deep Agents, and other providers untouched;
-- refuses automatic uninstall when ownership cannot be established safely.
+- refuses automatic uninstall when ownership cannot be established safely;
+- rejects future manifest schemas or unsafe managed paths instead of downgrade-managing unknown ownership metadata.
 
 ## 9. Health semantics
 
@@ -260,10 +300,13 @@ upgrade-recommended
 legacy-install
 drifted
 incomplete
+interrupted-install
 invalid-manifest
 unsupported-manifest
 source-tree
 ```
+
+`interrupted-install` takes precedence over ordinary package health. Recover the journaled lifecycle mutation before relying on the package or attempting another mutation.
 
 Health is best-effort accidental-drift detection. It is **not**:
 
@@ -296,12 +339,13 @@ Inside the AAOP source repository:
 ```bash
 python scripts/validate.py
 python scripts/validate_pressure.py
+python scripts/validate_install_transaction.py
 python .aaop/tools/aaop.py ready .
 ```
 
 Source-tree readiness is valid but is different from a manifest-tracked installation.
 
-The end-to-end usability gate additionally exercises bootstrap archive safety, install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
+The end-to-end usability gate additionally exercises bootstrap archive safety, injected lifecycle failures + rollback/recovery, install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
 
 ## Release channels
 
