@@ -1,0 +1,33 @@
+name: validate-platform-support
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  platform-support:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Show runtime
+        run: python --version
+      - name: Validate AAOP source contracts
+        run: python scripts/validate.py
+      - name: Validate transactional lifecycle
+        run: python scripts/validate_install_transaction.py
+      - name: Validate Journey state recovery
+        run: python scripts/validate_journey_recovery.py
+      - name: Validate bootstrap install-upgrade-uninstall lifecycle
+        run: python scripts/validate_platform_support.py
