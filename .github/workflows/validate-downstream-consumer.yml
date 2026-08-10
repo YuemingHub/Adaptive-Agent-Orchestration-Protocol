@@ -1,0 +1,32 @@
+name: validate-downstream-consumer
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  mingos-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Resolve and checkout one exact real MingOS consumer commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo='https://github.com/YuemingHub/MingOS.git'
+          consumer_sha="$(git ls-remote "$repo" HEAD | awk '{print $1}')"
+          test "${#consumer_sha}" -eq 40
+          git clone --filter=blob:none --no-checkout "$repo" /tmp/mingos-aaop-consumer
+          git -C /tmp/mingos-aaop-consumer checkout --detach "$consumer_sha"
+          echo "AAOP_DOWNSTREAM_CONSUMER=/tmp/mingos-aaop-consumer" >> "$GITHUB_ENV"
+          echo "AAOP_CANDIDATE_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"
+          echo "Resolved MingOS consumer commit: $consumer_sha"
+      - name: Validate real stable-to-v1 consumer compatibility
+        run: python scripts/validate_downstream_consumer.py
