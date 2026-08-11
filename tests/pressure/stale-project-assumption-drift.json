@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "id": "stale-project-assumption-drift",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-11",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Continue development autonomously from the current project state and fix the highest-priority blocker.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The repository has an accepted current-state source and multiple passing state/privacy checks.",
+    "A project-local orchestration readiness adapter still hard-codes an old pre-release assumption as current fact.",
+    "A release-status regression fails because it repeats the same historical assumption.",
+    "A separate interaction regression asserts a retired public label while current accepted project evidence uses a newer label.",
+    "The contradictions affect route/delta interpretation before feature work but do not by themselves prove that current product behavior should be changed."
+  ],
+  "expected_first_moves": [
+    "Anchor the active work target and inspect the project-declared current/canonical state sources before editing.",
+    "Classify the readiness adapter, failing regressions, accepted current-state sources, implementation, and any runtime evidence by claim authority and freshness.",
+    "Treat the failing derived assertions as possible stale evidence rather than automatically treating them as current product defects.",
+    "Preserve any fact that remains unknown instead of converting it into a negative assertion.",
+    "If current authority is sufficient, repair only stale derived adapters/tests and re-establish affected evidence; if authority remains materially conflicted, keep recovery active until the baseline is trustworthy."
+  ],
+  "must_preserve": [
+    "Historical evidence remains available as history/provenance.",
+    "Current project authority remains project-defined rather than replaced by an AAOP-specific product schema.",
+    "Unrelated passing product behavior and tests are not restarted or rewritten without evidence."
+  ],
+  "must_not": [
+    "Do not change current product behavior merely to make an old assertion pass.",
+    "Do not hard-code a consumer-specific product name, domain actor, deployment status, or status filename into AAOP Core.",
+    "Do not treat unknown external/runtime facts as false.",
+    "Do not add a new workflow/runtime/state database to solve a source-reconciliation problem."
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "preserve-conflicting-evidence",
+    "reconcile-current-baseline-before-mutation",
+    "prove-delta-before-mutation"
+  ],
+  "expected_blocker_class": "missing-evidence",
+  "lessons": [
+    "Existing-project autonomy requires a trustworthy current mutation baseline, not merely a roadmap or a set of failing tests.",
+    "Tests and adapters can become stale derived evidence when project identity, deployment state, contracts, or other assumptions evolve.",
+    "The reusable AAOP fix is a project-independent pre-mutation reconciliation invariant; the consumer project remains only a pressure source."
+  ]
+}
