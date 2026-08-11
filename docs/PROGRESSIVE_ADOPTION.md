@@ -32,7 +32,7 @@ Use the AI IDE or coding agent's own primitives first:
 - native approvals and sandbox;
 - native task/background execution.
 
-**Upgrade trigger:** the host lacks a repeatable procedure, an external capability, discovery, durable orchestration, or governance needed by the project.
+**Upgrade trigger:** the host lacks a repeatable procedure, an external capability, discovery, durable execution continuity, specialized runtime property, or governance needed by the project.
 
 ### Level 2 — Standard capability extensions
 
@@ -44,7 +44,7 @@ Add only the missing capability using open interfaces:
 
 Do not add a runtime merely because a Skill or MCP is needed.
 
-**Upgrade trigger:** the system repeatedly does not know which resource to use, or the task needs agent-to-agent interoperability or a more durable runtime.
+**Upgrade trigger:** the system repeatedly does not know which resource to use, or the task needs agent-to-agent interoperability or a more durable runtime/control surface.
 
 ### Level 3 — Discovery and interoperability
 
@@ -56,22 +56,46 @@ Use standards instead of private registries where possible:
 
 Discovery does not imply installation. Discovery returns candidates; AAOP still applies provenance, permission, cost, and least-privilege policy before selection.
 
-**Upgrade trigger:** the current host cannot reliably execute the needed long-running/multi-agent pattern, or the user needs organizational governance.
+**Upgrade trigger:** the current host cannot reliably execute or continue the needed long-running/multi-agent pattern, or the user needs organizational governance.
 
-### Level 4 — Specialized runtime
+### Level 4 — Specialized runtime or execution control
 
-Select a mature runtime only for a concrete reason.
+Select one specialized runtime/control surface only for a concrete, proven capability gap.
 
 Examples:
 
-- **Deep Agents** when long-horizon execution, context isolation, Skills, subagents, persistence, or MCP-heavy work benefits from a dedicated harness;
+- **LoopX** when the current agent can perform the engineering work but durable cross-turn/session execution control is missing: todo/evidence/gates, `should-run`, wait/quiet behavior, scheduler/monitor hints, restart and handoff;
+- **Deep Agents** when the agent runtime itself needs stronger long-horizon execution, context isolation, persistence, filesystem, Skills, subagents, or MCP-heavy mechanics;
+- **agency-orchestrator** when a justified AAOP Task Pod specifically needs bounded multi-role DAG/resume execution beyond the current host;
 - **Microsoft Agent Framework** when typed production workflows, sessions, hosting, and explicit orchestration patterns are a better fit;
 - **CAMEL Workforce** when dynamic worker composition is useful;
 - **AutoAgent** when the task specifically benefits from natural-language generation/testing of new tools, agents, or workflows.
 
-AAOP does not reimplement these runtimes. It selects and constrains them.
+AAOP does not reimplement these runtimes/control planes. It selects and constrains them.
 
-**Upgrade trigger:** multiple people/agents/runtimes must share persistent work, approvals, permissions, audit history, and ownership.
+Do not treat the words “long-running” or “multi-agent” as sufficient selection evidence. First classify the missing mechanism:
+
+```text
+Agent can do the work, but continuation/control is unreliable
+→ execution-continuity gap
+→ LoopX-style provider
+
+Agent runtime itself cannot reliably do the long-horizon work
+→ runtime gap
+→ Deep Agents-style provider
+
+A justified Task Pod needs explicit multi-role DAG/resume execution
+→ team-execution gap
+→ agency-orchestrator-style delegated runtime
+
+Multiple humans/runtimes need shared audit/approval/permissions/ownership
+→ organizational-governance gap
+→ Level 5 workspace/control plane
+```
+
+Do not install multiple Level-4 providers merely because their feature lists overlap. Pick the smallest primary mechanism that closes the proven gap and verify that gap before adding anything else.
+
+**Upgrade trigger:** multiple people/agents/runtimes must share persistent work, approvals, permissions, audit history, and ownership beyond a bounded project-local execution loop.
 
 ### Level 5 — Governed workspace
 
@@ -97,19 +121,28 @@ Move upward only when all three are true:
 
 If any condition is false, stay at the current layer.
 
+For control-plane/runtime escalation, add a fourth question:
+
+4. **Primary mechanism match** — does the selected provider primarily solve the proven gap, or are we installing a neighboring orchestration product because its marketing vocabulary sounds similar?
+
+If the mechanism does not match, do not install it.
+
 ## Downgrade rule
 
 AAOP must also remove unnecessary machinery.
 
 Downgrade when:
 
-- a temporary MCP/runtime is no longer needed;
+- a temporary MCP/runtime/control-plane provider is no longer needed;
 - a workflow can be replaced by a simpler native host path;
 - an experiment becomes a stable local Skill or script;
 - organizational governance is not required for a local project;
-- duplicate providers exist for the same capability.
+- duplicate providers exist for the same capability;
+- a provider was adopted for a gap that current host capabilities now satisfy natively.
 
 The target state is not maximum capability. It is the **minimum sufficient integration surface**.
+
+For LoopX specifically, disabling/removing it must not destroy AAOP Working Contract/Journey authority. AAOP continuity remains recoverable from AAOP/project state plus accepted evidence references; LoopX owns only the selected bounded execution-control state.
 
 ## Typical developer experience
 
@@ -124,7 +157,7 @@ A developer should be able to begin with:
 6. If a capability gap appears, receive one recommended next integration with the reason and permission/cost implications.
 ```
 
-The developer should not have to understand the entire agent ecosystem before doing useful work.
+For a long-running task, the user should not be asked to choose between LoopX, Deep Agents, or another runtime by brand. AAOP should identify the missing capability class first and recommend the smallest matching surface.
 
 ## Anti-patterns
 
@@ -136,7 +169,10 @@ AAOP should reject these patterns by default:
 - replace a working host-native feature with an AAOP implementation;
 - maintain a private copy of a standard registry;
 - turn optional integrations into hard dependencies;
-- introduce Docker/databases/control planes for tasks that need only repository-local execution.
+- introduce Docker/databases/control planes for tasks that need only repository-local execution;
+- install LoopX merely because the task is long even though host-native continuation is already sufficient;
+- stack LoopX and another long-horizon runtime before proving which missing mechanism each one closes;
+- allow an external execution-control provider to become a second source of truth for AAOP Working Contract, Route/Journey, authorization, or release completion.
 
 ## Principle
 
