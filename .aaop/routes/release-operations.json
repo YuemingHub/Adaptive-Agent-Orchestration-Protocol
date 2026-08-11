@@ -1,5 +1,5 @@
 {
-  "version": "0.18.0",
+  "version": "0.19.0",
   "route_id": "release-operations",
   "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, authorization-aware execution, and write-time target revalidation.",
   "default_execution": "host-native",
@@ -30,6 +30,10 @@
     }
   ],
   "pressure_guards": [
+    {
+      "id": "reconcile-current-baseline-before-mutation",
+      "rule": "Before the first material mutation in an existing project or target environment, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product or operational behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
+    },
     {
       "id": "blocker-not-capability-gap",
       "rule": "A network policy, missing authorization, absent credential, inaccessible external system, required product decision, or stale/moved target precondition is a blocker/revalidation condition—not automatically a missing technical capability. Do not search for/install providers to bypass it unless an authorized capability gap genuinely exists."
