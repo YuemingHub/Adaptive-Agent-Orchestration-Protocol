@@ -101,13 +101,19 @@ def validate_runtime_detection() -> None:
         require(isinstance(detected_loopx, dict), "doctor must expose LoopX provider detection row")
         require(detected_loopx.get("detected") is True, "provider detection must recognize a LoopX executable on PATH")
         evidence = detected_loopx.get("evidence")
-        require(isinstance(evidence, dict) and "command" in evidence, "LoopX detection must report command evidence")
+        require(isinstance(evidence, dict), "LoopX detection must expose structured evidence")
+        commands = evidence.get("commands")
+        require(isinstance(commands, dict) and "loopx" in commands, "LoopX detection must report executable command evidence")
         require(doctor.get("observed_surface_level", 0) >= 4, "detected LoopX must project its Level 4 observed surface")
 
         # Presence is evidence of availability only. Selection remains a policy decision.
         require(
             "recommended" not in json.dumps(detected_loopx, ensure_ascii=False).lower(),
             "doctor detection must not silently turn LoopX presence into an adoption recommendation",
+        )
+        require(
+            "Presence is not a recommendation" in str(doctor.get("policy", "")),
+            "doctor must preserve presence-versus-selection policy when LoopX is detected",
         )
 
 
