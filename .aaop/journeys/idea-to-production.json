@@ -8,7 +8,8 @@
     "greenfield_gates_are_conditional": true,
     "reroute_requires_new_evidence": true,
     "stale_checkpoint_never_overrides_current_evidence": true,
-    "completed_cycle_must_reopen_explicitly": true
+    "completed_cycle_must_reopen_explicitly": true,
+    "autonomous_takeover_reconstructs_intent_and_selects_current_goal": true
   },
   "completion_policy": {
     "blocked_is_complete": false,
@@ -36,6 +37,7 @@
   ],
   "system_owns": [
     "route selection and rerouting",
+    "intent reconstruction and current-goal selection from current project evidence",
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
@@ -48,7 +50,7 @@
     {
       "id": "intake",
       "route_selection": "developer-intake",
-      "goal": "Resolve the current situation, the long-horizon observable outcome, hard constraints, and the next evidence-bearing step without assuming the project is greenfield.",
+      "goal": "Resolve the current situation, reconstruct the long-horizon observable outcome when a novice delegates takeover, choose the current highest-value evidence-backed goal, and identify the next evidence-bearing step without assuming the project is greenfield.",
       "exit_evidence": [
         "provisional observable outcome",
         "current primary route selected from present evidence",
@@ -86,7 +88,7 @@
       "route_selection": "current-route",
       "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
       "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery", "understand-review"],
-      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route until the intended release behavior is present.",
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, reselecting the next highest-value safe delta after each verified result, until the intended release behavior is present or a genuine human boundary blocks it.",
       "exit_evidence": [
         "acceptance behavior",
         "regression evidence",

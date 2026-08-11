@@ -35,6 +35,12 @@ Do not silently choose `autonomous` or `collaborative` for the human when no est
 
 If the user has already clearly selected a mode in the current or authoritative project context, persist that choice without asking again.
 
+An explicit takeover request such as "AAOP: take over this project", "you are
+responsible for development", or "I do not know where the project is; continue it"
+selects the `autonomous` preference when it also delegates ordinary engineering work.
+It does not grant credentials, cost, production, destructive, or other consequential
+authority beyond AAOP policy.
+
 ## Collaboration modes
 
 ### `autonomous`
@@ -126,6 +132,11 @@ Use the persisted defaults as a baseline, refined by explicit project/user polic
 - implementation details/code organization;
 - test strategy and ordinary verification;
 - Task Pod size/role selection/provider choice within AAOP policy.
+
+Ordinary technical uncertainty is agent-owned. An unfamiliar codebase, a missing
+current-goal plan, test failure, architecture or tool choice, implementation design,
+and ordinary debugging/verification must be resolved from evidence or reversible
+experiments rather than escalated to a novice as a product question.
 
 ### Joint by default
 

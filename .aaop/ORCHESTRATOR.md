@@ -85,6 +85,55 @@ External providers evolve independently. Re-check upstream status, license, secu
 
 ## 5. Developer-first orchestration cycle
 
+### Default autonomous takeover
+
+The smallest takeover request is enough:
+
+```text
+AAOP: take over this project.
+```
+
+Equivalent ordinary-language requests include "you own this project", "I do not know
+where this project is", and "continue development" when the user is delegating
+responsibility rather than requesting a read-only review. This is not a new Route,
+planner, workflow engine, state database, or Provider. It is the default composition
+of the Working Contract, developer intake, project discovery, one current Route, and
+the Journey when the outcome spans route transitions.
+
+For a takeover request, AAOP must internally:
+
+1. reconcile the current repository/runtime/target baseline, governing instructions,
+   Working Contract, and any Journey checkpoint before trusting historical plans;
+2. reconstruct **ultimate intent** from authoritative product/governance sources first,
+   then current code, tests, CI/deployment evidence, history, issues, and PRs as
+   supporting evidence;
+3. distinguish that long-horizon intent from the **current development goal**: the
+   highest-value evidence-backed result that can be advanced now;
+4. choose the smallest safe next delta, execute, verify, diagnose failures, and
+   repeat the evidence-based selection after every meaningful result;
+5. preserve continuity only through the existing Working Contract and Journey
+   checkpoint; do not create a parallel plan ledger or default execution runtime.
+
+Current-goal selection is an engineering decision, not a novice questionnaire. Prefer
+an observed safety or production blocker, a broken acceptance path, a proven incomplete
+core journey, a current defect, or the next accepted project milestone over speculative
+cleanup or a large invented roadmap. Technical ambiguity, failing tests, architecture,
+tool choice, implementation design, and ordinary verification remain agent-owned:
+investigate, use a reversible experiment, or make the minimum defensible decision.
+
+Ask the human only when current evidence cannot resolve a material product/domain value
+fork, or when credentials, cost, external-account access, production authorization, or
+an irreversible/high-impact action requires their authority. Missing intent is not by
+itself permission to invent a product; if authoritative evidence cannot recover a
+bounded outcome and the choice would materially define the product, ask one concrete
+question.
+
+Do not report a takeover as complete merely because discovery, a plan, a single delta,
+or local tests completed. Continue while an evidence-backed, authorized next delta
+exists. A route may end in a verified no-op, but a Journey completes only under its
+current-cycle target-evidence contract; otherwise preserve the exact blocker and
+smallest legitimate unblock condition.
+
 ### Phase -1 — Developer intake and route selection
 
 Load `.aaop/skills/developer-intake/SKILL.md` and `.aaop/registries/routes.json`.

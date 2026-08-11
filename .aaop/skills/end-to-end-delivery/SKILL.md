@@ -117,6 +117,15 @@ Do not ask the user what stack to use.
 
 After selecting the current route, create the Journey checkpoint if one does not already exist. If it exists, reconcile it instead of restarting the Journey.
 
+For a default autonomous takeover, reconstruct the long-horizon intent before selecting
+the current development goal. The current goal is the highest-value evidence-backed
+result that can be advanced now; it is not a roadmap item the novice must provide.
+Choose it from current safety/production evidence, broken acceptance paths, incomplete
+core journeys, current defects, accepted milestones, and only then reliability work
+that blocks the next outcome. If evidence cannot recover a bounded product outcome and
+a material value fork remains, ask one concrete human-owned question; otherwise make a
+reversible evidence-bearing move.
+
 ## Gate 1 — First evidence-bearing slice, only when needed
 
 Enter `idea-to-build` **only when there is no trustworthy existing slice from which to continue**.
@@ -159,6 +168,18 @@ For each coherent change:
 6. stop repeated blind retries and re-diagnose when evidence is not changing;
 7. inspect the diff for unrelated changes and sensitive data;
 8. re-read the Journey status/revision and checkpoint meaningful new evidence and the next decision.
+
+### Default takeover next-delta loop
+
+After every coherent result, do not stop at a plan, handoff, one completed task, or
+local green checks. Reconcile the current baseline and existing continuity state, then
+select the next highest-value safe delta from the recovered intent and current evidence.
+Continue this loop while an authorized, evidence-backed delta exists. Diagnose failed
+verification before retrying; re-route when the evidence changes the owning Route; and
+preserve a precise blocker only when the remaining boundary is human-owned, unavailable,
+or otherwise legitimately blocked.
+
+This is coordination over existing Routes and Working Contract/Journey state, not a second planner, workflow engine, state database, or default Provider. A route-level verified no-op closes only that route decision. Journey completion still requires the current release cycle's direct target evidence under Gate 8.
 
 Prefer project-declared validation commands. Where applicable, use the familiar sequence:
 

@@ -33,11 +33,23 @@ The project-local contract records one of two confirmed modes.
 
 Once intent is aligned, the Agent owns ordinary engineering execution and continues without ceremonial approval between steps. It asks only when a genuinely human-owned decision, new authorization/credential/cost, consequential external action, or unresolved blocker requires human input.
 
+An owner can select this mode simply by saying, for example, `AAOP: take over this
+project.` That is sufficient to delegate recovery, current-goal selection, ordinary
+technical decisions, implementation, verification, repair, and the next-delta loop.
+It does not silently authorize credentials, spending, production writes, destructive
+actions, or irrecoverable product-value decisions.
+
 ### Collaborative delivery
 
 The Agent still owns implementation, testing, debugging and ordinary technical choices, but surfaces material product/architecture tradeoffs at useful checkpoints. Collaborative mode is not approval-per-file or approval-per-command.
 
 AAOP never silently chooses one of these modes for a new project. If no authoritative prior choice exists, the host asks the human once and persists the answer.
+
+Technical uncertainty is not a human-owned question. When the project is unfamiliar,
+tests fail, the current goal is missing, or architecture/tool choices remain open, the
+Agent first reconstructs intent and baseline from evidence, runs safe experiments, and
+makes reversible engineering decisions. It asks a novice only when an unresolved value
+fork materially defines the product or a real authority boundary remains.
 
 ## Project-local state
 

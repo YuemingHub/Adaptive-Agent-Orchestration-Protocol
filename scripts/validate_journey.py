@@ -142,6 +142,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         "reroute_requires_new_evidence": True,
         "stale_checkpoint_never_overrides_current_evidence": True,
         "completed_cycle_must_reopen_explicitly": True,
+        "autonomous_takeover_reconstructs_intent_and_selects_current_goal": True,
     }
     if not isinstance(routing, dict):
         fail(errors, f"{path}: routing_policy must be an object")
@@ -265,6 +266,8 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
         "existing",
         "current evidence wins",
         "release cycle",
+        "Default takeover next-delta loop",
+        "not a second planner, workflow engine, state database, or default Provider",
         "--expected-revision",
         "compare-and-swap",
         "stale revision",

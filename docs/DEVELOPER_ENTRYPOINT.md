@@ -22,6 +22,26 @@ The surface interaction is intentionally the same:
 
 AAOP handles the internal route.
 
+### Default autonomous takeover
+
+For a project the owner does not understand, the entire entry can be:
+
+```text
+AAOP: take over this project.
+```
+
+That delegates ordinary development responsibility. AAOP recovers current evidence and
+intent, selects the highest-value safe next goal, implements and verifies the smallest
+delta, then reassesses and continues. The owner does not need to know the roadmap,
+current stage, routes, stack, providers, or test commands.
+
+AAOP asks only when a material product/domain choice cannot be recovered or safely
+tested, or for credentials, cost, external-account access, production authorization,
+or irreversible/high-impact actions. An unfamiliar codebase, technical ambiguity,
+failed test, architecture choice, and ordinary debugging are not reasons to send the
+work back to a novice. This entry composes the existing Working Contract, discovery,
+Route, and Journey mechanisms; it is not a new workflow engine or state store.
+
 ## 1. The real entry model
 
 Do not start from:
