@@ -24,6 +24,11 @@ def require(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+def normalize_text(value: str) -> str:
+    """Normalize formatting-only whitespace/case without weakening semantic phrase checks."""
+    return " ".join(value.split()).lower()
+
+
 def load_tool() -> ModuleType:
     spec = importlib.util.spec_from_file_location("aaop_source_freshness_test", TOOL_PATH)
     require(spec is not None and spec.loader is not None, "cannot load source_freshness tool")
@@ -59,7 +64,7 @@ def main() -> int:
 
     release = json.loads(RELEASE_PATH.read_text(encoding="utf-8"))
     require(release.get("package_version") == version, "production release identity must match VERSION")
-    serialized_release = json.dumps(release, ensure_ascii=False).lower()
+    serialized_release = normalize_text(json.dumps(release, ensure_ascii=False))
     for phrase in (
         "new package release identity",
         "stable-managed source freshness",
@@ -67,7 +72,7 @@ def main() -> int:
     ):
         require(phrase in serialized_release, f"production release contract missing stable identity invariant: {phrase}")
 
-    versioning = VERSIONING_PATH.read_text(encoding="utf-8").lower()
+    versioning = normalize_text(VERSIONING_PATH.read_text(encoding="utf-8"))
     for phrase in (
         "do not fast-forward `stable`",
         "new semver release identity",
@@ -76,16 +81,16 @@ def main() -> int:
     ):
         require(phrase in versioning, f"VERSIONING missing stable freshness rule: {phrase}")
 
-    intake = INTAKE_PATH.read_text(encoding="utf-8")
+    intake = normalize_text(INTAKE_PATH.read_text(encoding="utf-8"))
     for phrase in (
-        "Control-plane source freshness before takeover",
+        "control-plane source freshness before takeover",
         "python .aaop/tools/source_freshness.py --json",
         "canonical state-preserving **stable bootstrap**",
-        "Do not build another updater",
+        "do not build another updater",
     ):
         require(phrase in intake, f"developer intake missing source-freshness behavior: {phrase}")
 
-    readme = README_PATH.read_text(encoding="utf-8")
+    readme = normalize_text(README_PATH.read_text(encoding="utf-8"))
     require("**v1.1.0 — production release line" in readme, "README status must identify v1.1.0")
     require("source_freshness.py" in readme, "README must document source freshness")
 
