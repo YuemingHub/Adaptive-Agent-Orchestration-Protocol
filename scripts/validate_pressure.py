@@ -12,6 +12,7 @@ from validate_pre_mutation_reconciliation import main as validate_pre_mutation_r
 from validate_autonomous_takeover import main as validate_autonomous_takeover
 from validate_consumer_integration_freshness import main as validate_consumer_integration_freshness
 from validate_project_frontier_reconciliation import main as validate_project_frontier_reconciliation
+from validate_source_freshness import main as validate_source_freshness
 from validate_pressure_promotion import main as validate_pressure_promotion
 from validate_team_execution_patterns import main as validate_team_execution_patterns
 
@@ -189,6 +190,7 @@ def main() -> int:
         ("default autonomous takeover", validate_autonomous_takeover),
         ("consumer integration freshness", validate_consumer_integration_freshness),
         ("project frontier reconciliation", validate_project_frontier_reconciliation),
+        ("stable source freshness", validate_source_freshness),
         ("team execution pattern", validate_team_execution_patterns),
         ("pre-mutation reconciliation", validate_pre_mutation_reconciliation),
         ("real-project pressure promotion", validate_pressure_promotion),
