@@ -96,9 +96,16 @@ def validate_runtime_detection() -> None:
         fakebin = root / "fakebin"
         project.mkdir()
         fakebin.mkdir()
-        executable = fakebin / "loopx"
-        executable.write_text("#!/usr/bin/env sh\nexit 0\n", encoding="utf-8")
-        executable.chmod(0o755)
+        # `shutil.which` follows the host executable convention. A bare POSIX
+        # file is not discoverable as a command on Windows, even though the
+        # provider detection contract is otherwise platform-neutral.
+        if os.name == "nt":
+            executable = fakebin / "loopx.cmd"
+            executable.write_text("@echo off\r\nexit /b 0\r\n", encoding="utf-8")
+        else:
+            executable = fakebin / "loopx"
+            executable.write_text("#!/usr/bin/env sh\nexit 0\n", encoding="utf-8")
+            executable.chmod(0o755)
 
         env = os.environ.copy()
         env["PATH"] = str(fakebin) + os.pathsep + env.get("PATH", "")

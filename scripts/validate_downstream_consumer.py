@@ -38,7 +38,24 @@ AUTHORITY_FILES = (
 
 def run(*args: object, cwd: Path | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     command = [str(arg) for arg in args]
-    completed = subprocess.run(command, cwd=cwd, env=env, text=True, capture_output=True)
+    # Python's Windows process launcher does not resolve the `.cmd` extension
+    # for a bare npm command, while the same command is directly executable on
+    # POSIX hosts. Keep the validation command contract platform-neutral.
+    if os.name == "nt" and command and command[0].lower() == "npm":
+        command[0] = "npm.cmd"
+    # npm emits UTF-8 on Windows while the host locale may still be GBK (or
+    # another legacy code page). Decode captured validation output explicitly
+    # so a failing consumer command remains observable instead of crashing the
+    # validator's reader thread before it can report the result.
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        env=env,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+    )
     if completed.returncode != 0:
         raise AssertionError(
             f"command failed ({completed.returncode}): {' '.join(command)}\n"
