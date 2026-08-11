@@ -23,7 +23,6 @@ AAOP_BEGIN = "<!-- AAOP:BEGIN -->"
 AAOP_END = "<!-- AAOP:END -->"
 ROOT = Path(__file__).resolve().parents[1]
 PREVIOUS_STABLE_COMMIT = "036412c4446447cf2170f2aeadf9320450f7481a"
-EXPECTED_CANDIDATE_VERSION = "1.0.0"
 EXPECTED_CONSUMER_REPO = "YuemingHub/MingOS"
 AUTHORITY_FILES = (
     "AGENTS.md",
@@ -50,6 +49,17 @@ def run(*args: object, cwd: Path | None = None, env: dict[str, str] | None = Non
 
 def sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def candidate_version() -> str:
+    path = ROOT / ".aaop" / "VERSION"
+    try:
+        value = path.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise AssertionError(f"cannot read exact AAOP candidate VERSION: {exc}") from exc
+    if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?", value):
+        raise AssertionError(f"invalid exact AAOP candidate VERSION: {value!r}")
+    return value
 
 
 def current_candidate_sha() -> str:
@@ -195,6 +205,7 @@ def bootstrap_previous_stable(consumer: Path) -> None:
 
 
 def working_contract_fixture() -> dict[str, object]:
+    version = candidate_version()
     return {
         "schema_version": "1.0",
         "revision": 7,
@@ -206,10 +217,10 @@ def working_contract_fixture() -> dict[str, object]:
         },
         "alignment": {
             "state": "collecting",
-            "goal": "Preserve MingOS authority while validating AAOP v1",
+            "goal": f"Preserve MingOS authority while validating AAOP {version}",
             "actor": "MingOS project owner",
             "situation": "real repository upgrade",
-            "outcome": "AAOP v1 can be adopted without losing project or collaboration continuity",
+            "outcome": f"AAOP {version} can be adopted without losing project or collaboration continuity",
             "must": ["preserve MingOS project authority"],
             "non_goals": ["do not alter MingOS product behavior"],
             "constraints": ["downstream repository remains read-only remotely"],
@@ -235,6 +246,7 @@ def working_contract_fixture() -> dict[str, object]:
 
 
 def seed_consumer_continuity(consumer: Path) -> dict[str, object]:
+    version = candidate_version()
     journey = consumer / ".aaop" / "tools" / "journey.py"
     run(
         sys.executable,
@@ -242,11 +254,11 @@ def seed_consumer_continuity(consumer: Path) -> dict[str, object]:
         "start",
         "idea-to-production",
         "--goal",
-        "Preserve MingOS project authority while validating AAOP v1 upgrade compatibility",
+        f"Preserve MingOS project authority while validating AAOP {version} upgrade compatibility",
         "--route",
         "understand-review",
         "--reason",
-        "real downstream stable-to-v1 release pressure test",
+        "real downstream stable-to-candidate release pressure test",
     )
     runtime = consumer / ".aaop" / "runtime"
     runtime.mkdir(parents=True, exist_ok=True)
@@ -269,10 +281,11 @@ def seed_consumer_continuity(consumer: Path) -> dict[str, object]:
 
 
 def upgrade_to_candidate(consumer: Path, archive: Path) -> None:
+    expected = candidate_version()
     run(sys.executable, ROOT / "scripts" / "bootstrap.py", "--archive", archive, "--target", consumer)
     version = (consumer / ".aaop" / "VERSION").read_text(encoding="utf-8").strip()
-    if version != EXPECTED_CANDIDATE_VERSION:
-        raise AssertionError(f"candidate consumer upgrade expected {EXPECTED_CANDIDATE_VERSION}, got {version}")
+    if version != expected:
+        raise AssertionError(f"candidate consumer upgrade expected {expected}, got {version}")
 
 
 def assert_candidate_state(consumer: Path, seeded: dict[str, object]) -> None:
@@ -348,6 +361,7 @@ def main() -> int:
         )
 
     candidate_sha = current_candidate_sha()
+    version = candidate_version()
     expected_candidate_sha = os.environ.get("AAOP_CANDIDATE_SHA")
     if expected_candidate_sha and candidate_sha != expected_candidate_sha:
         raise AssertionError(
@@ -357,6 +371,7 @@ def main() -> int:
     print(f"DOWNSTREAM_CONSUMER_REPO={EXPECTED_CONSUMER_REPO}")
     print(f"DOWNSTREAM_CONSUMER_SHA={consumer_sha}")
     print(f"AAOP_CANDIDATE_SHA={candidate_sha}")
+    print(f"AAOP_CANDIDATE_VERSION={version}")
 
     before = tracked_authority_snapshot(consumer)
     validation = discover_consumer_validation(consumer)
@@ -372,7 +387,7 @@ def main() -> int:
     assert_authority_preserved(consumer, before)
     assert_no_unexpected_tracked_diff(consumer)
 
-    with tempfile.TemporaryDirectory(prefix="aaop-v1-consumer-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="aaop-candidate-consumer-") as tmp:
         archive = Path(tmp) / "aaop-candidate.zip"
         build_candidate_archive(archive)
         upgrade_to_candidate(consumer, archive)
@@ -380,11 +395,11 @@ def main() -> int:
     assert_candidate_state(consumer, seeded)
     assert_authority_preserved(consumer, before)
     assert_no_unexpected_tracked_diff(consumer)
-    run_consumer_validation(consumer, validation, "after-aaop-v1-upgrade")
+    run_consumer_validation(consumer, validation, f"after-aaop-{version}-upgrade")
 
-    print("PASS real downstream consumer stable-to-v1 compatibility")
+    print(f"PASS real downstream consumer stable-to-{version} compatibility")
     print(f"PASS downstream repo={EXPECTED_CONSUMER_REPO} commit={consumer_sha}")
-    print(f"PASS exact AAOP candidate commit={candidate_sha}")
+    print(f"PASS exact AAOP candidate commit={candidate_sha} version={version}")
     return 0
 
 
