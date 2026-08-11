@@ -361,6 +361,14 @@ def assert_candidate_state(consumer: Path, seeded: dict[str, object]) -> None:
 
 
 def main() -> int:
+    # Keep validator diagnostics writable on Windows consoles whose legacy
+    # code page cannot represent npm's UTF-8 symbols (for example, checkmarks).
+    # This changes only presentation; command exit codes and captured evidence
+    # remain authoritative.
+    if os.name == "nt":
+        for stream in (sys.stdout, sys.stderr):
+            if hasattr(stream, "reconfigure"):
+                stream.reconfigure(encoding="utf-8", errors="replace")
     consumer_env = os.environ.get("AAOP_DOWNSTREAM_CONSUMER")
     if not consumer_env:
         raise SystemExit("AAOP_DOWNSTREAM_CONSUMER must point to the checked-out MingOS snapshot")
