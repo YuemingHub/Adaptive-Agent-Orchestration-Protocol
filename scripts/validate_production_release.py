@@ -3,9 +3,9 @@
 
 This validator cannot certify GitHub conclusions or downstream consumer behavior by
 reading repository files. It proves that the candidate declares one coherent
-production release line and that the required gate topology/safety contracts are
-present. The release controller must still require live green workflow results and
-real downstream candidate validation before stable promotion.
+production release line and that the required gate topology/safety/interaction
+contracts are present. The release controller must still require live green workflow
+results and real downstream candidate validation before stable promotion.
 """
 
 from __future__ import annotations
@@ -78,6 +78,15 @@ def main() -> int:
         require(canonical.get("required_status") == "canonical", "production Journey required_status must be canonical", errors)
     require(journey.get("status") == "canonical", "idea-to-production Journey must graduate from experimental to canonical", errors)
 
+    working = release.get("human_agent_working_contract")
+    require(isinstance(working, dict), "human_agent_working_contract contract must be an object", errors)
+    if isinstance(working, dict):
+        require(working.get("skill") == ".aaop/skills/working-contract/SKILL.md", "working-contract Skill path drifted", errors)
+        require(working.get("tool") == ".aaop/tools/working_contract.py", "working-contract tool path drifted", errors)
+        require(working.get("schema") == ".aaop/schemas/working-contract.schema.json", "working-contract schema path drifted", errors)
+        require(working.get("task_pod_max_members") == 5, "production Task Pod maximum must remain five", errors)
+        require(working.get("handoff_schema") == ".aaop/schemas/task-handoff.schema.json", "Task Pod handoff schema path drifted", errors)
+
     platform = release.get("production_platform")
     require(isinstance(platform, dict), "production_platform contract must be an object", errors)
     if isinstance(platform, dict):
@@ -111,6 +120,10 @@ def main() -> int:
             require(CONTENTS_READ_RE.search(text) is not None, f"workflow must explicitly declare contents: read: {filename}", errors)
             require(CONTENTS_WRITE_RE.search(text) is None, f"production workflow must not retain contents: write: {filename}", errors)
 
+    if isinstance(required_workflows, list):
+        require("validate-working-contract.yml" in required_workflows, "production topology must include validate-working-contract.yml", errors)
+        require("validate-downstream-consumer.yml" in required_workflows, "production topology must include validate-downstream-consumer.yml", errors)
+
     required_docs = release.get("required_docs")
     require(isinstance(required_docs, list) and bool(required_docs), "required_docs must be a non-empty list", errors)
     if isinstance(required_docs, list):
@@ -121,6 +134,7 @@ def main() -> int:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     quickstart = (ROOT / "docs" / "QUICKSTART.md").read_text(encoding="utf-8")
     production_doc = (ROOT / "docs" / "PRODUCTION_RELEASE.md").read_text(encoding="utf-8")
+    working_doc = (ROOT / "docs" / "HUMAN_AGENT_WORKING_CONTRACT.md").read_text(encoding="utf-8")
     bootstrap = (ROOT / "scripts" / "bootstrap.py").read_text(encoding="utf-8")
 
     status_match = re.search(r"## Status\s+\*\*v([^*\s]+)", readme)
@@ -136,16 +150,28 @@ def main() -> int:
     require("a real downstream consumer" in production_doc.lower(), "production release doc must preserve downstream validation gate", errors)
     require("fast-forward" in production_doc.lower(), "production release doc must preserve stable fast-forward policy", errors)
     require("force-move" in production_doc.lower(), "production release doc must preserve no-routine-force-rollback policy", errors)
+    require("autonomous delivery" in working_doc.lower(), "Working Contract doc must preserve autonomous collaboration mode", errors)
+    require("collaborative delivery" in working_doc.lower(), "Working Contract doc must preserve collaborative collaboration mode", errors)
+    require("1–5 members" in working_doc, "Working Contract doc must preserve Task Pod 1–5 bound", errors)
+    require("agency-agents-zh" in working_doc, "Working Contract doc must preserve optional specialist-role provider boundary", errors)
+    require("agency-orchestrator" in working_doc, "Working Contract doc must preserve delegated orchestration provider boundary", errors)
 
     required_runtime_surfaces = [
         ".aaop/tools/health.py",
         ".aaop/tools/provenance.py",
         ".aaop/tools/journey.py",
         ".aaop/tools/journey_state.py",
+        ".aaop/tools/working_contract.py",
+        ".aaop/schemas/working-contract.schema.json",
+        ".aaop/schemas/team-plan.schema.json",
+        ".aaop/schemas/task-handoff.schema.json",
+        ".aaop/skills/working-contract/SKILL.md",
         "scripts/validate_install_transaction.py",
         "scripts/validate_journey_recovery.py",
         "scripts/validate_platform_support.py",
         "scripts/validate_provenance.py",
+        "scripts/validate_working_contract.py",
+        "scripts/validate_downstream_consumer.py",
         "scripts/validate_ci_supply_chain.py",
     ]
     for relative in required_runtime_surfaces:
@@ -159,7 +185,7 @@ def main() -> int:
 
     print(
         "PASS AAOP production release contract: "
-        f"v{version}, canonical Journey, {len(actual_workflows)} read-only workflow gates"
+        f"v{version}, canonical Journey, Human-Agent Working Contract, {len(actual_workflows)} read-only workflow gates"
     )
     print("LIVE GATE STILL REQUIRED: all workflow conclusions green + exact-candidate downstream consumer validation before stable promotion")
     return 0
