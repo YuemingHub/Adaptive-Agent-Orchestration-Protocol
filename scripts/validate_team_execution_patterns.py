@@ -50,8 +50,10 @@ def main() -> int:
     require(isinstance(guards, list), "feature-change pressure_guards must be a list")
     guard = next((row for row in guards if isinstance(row, dict) and row.get("id") == "contract-fanout-evidence-invalidation"), None)
     require(isinstance(guard, dict), "feature-change missing contract-fanout-evidence-invalidation guard")
-    require("invalidate evidence" in str(guard.get("rule", "")).lower(), "contract guard must invalidate stale evidence")
-    require("affected consumers" in str(guard.get("rule", "")).lower(), "contract guard must discover affected consumers")
+    guard_rule = str(guard.get("rule", "")).lower()
+    require("invalidate evidence" in guard_rule, "contract guard must invalidate stale evidence")
+    require("consumers" in guard_rule, "contract guard must discover current consumers")
+    require("affected" in guard_rule or "classify" in guard_rule, "contract guard must classify the affected surface")
 
     # The reviewed repository is a pattern source, never a new top-level Provider/runtime.
     provider_rows = providers.get("providers", [])
