@@ -1,5 +1,5 @@
 {
-  "version": "0.19.0",
+  "version": "0.20.0",
   "route_id": "feature-change",
   "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract, current write baseline, explicit mutation destination, and regression evidence.",
   "default_execution": "host-native",
@@ -37,6 +37,10 @@
     {
       "id": "behavior-over-commits",
       "rule": "Historical code is evidence of intent, not the deliverable. Rebuild only behavior still missing on current architecture and current quality/release gates."
+    },
+    {
+      "id": "reconcile-current-baseline-before-mutation",
+      "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
     },
     {
       "id": "contract-fanout-evidence-invalidation",

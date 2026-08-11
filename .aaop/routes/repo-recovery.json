@@ -1,5 +1,5 @@
 {
-  "version": "0.18.0",
+  "version": "0.19.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -33,6 +33,10 @@
     {
       "id": "source-authority-freshness",
       "rule": "Do not equate newest file, merged branch, or most detailed document with current truth. Track material source role/authority and freshness; Draft/Proposed/Historical evidence remains non-authoritative unless the project explicitly says otherwise."
+    },
+    {
+      "id": "reconcile-current-baseline-before-mutation",
+      "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
     },
     {
       "id": "preserve-conflicting-evidence",

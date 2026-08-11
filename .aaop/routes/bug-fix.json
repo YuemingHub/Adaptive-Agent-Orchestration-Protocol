@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "route_id": "bug-fix",
   "objective": "Turn an observed failure into a verified root-cause fix with the smallest durable change and explicit regression evidence.",
   "default_execution": "host-native",
@@ -33,6 +33,10 @@
     {
       "id": "reported-baseline-freshness",
       "rule": "An issue, traceback, source line, or reproduction from an older version is historical evidence until compared with the current baseline; do not edit current code as though the old report were current fact."
+    },
+    {
+      "id": "reconcile-current-baseline-before-mutation",
+      "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
     },
     {
       "id": "discussion-is-hypothesis",
