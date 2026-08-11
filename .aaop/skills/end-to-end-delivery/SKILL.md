@@ -190,6 +190,58 @@ The system should repeatedly ask internally:
 
 > What is the smallest next change that materially improves the user's outcome or reduces the next important uncertainty?
 
+### Execution-continuity escalation — use an existing control plane before inventing one
+
+Repeated no-progress is not automatically evidence that more retries, more agents, or another coding runtime are needed.
+
+When a Journey repeatedly loses progress across turns/sessions, first classify the failure:
+
+- **implementation failure** — code/design/test evidence changed but the implementation is still wrong → remain in the evidence-selected engineering Route and diagnose the defect;
+- **environment/tool failure** — required runtime, network, dependency, credential, or external service is unavailable → record the blocker or resolve the actual capability/environment gap;
+- **human-owned decision/authorization** — product truth, credential, cost, destructive/production approval, or another human gate is unresolved → surface the concrete question and stop the covered action;
+- **execution-continuity failure** — the agent can perform the work, but bounded frontier/todo/evidence/gate/wait/handoff state is not surviving reliably enough across turns/sessions, or unchanged waits/retries keep causing useless model calls → treat `execution-continuity` as a capability gap.
+
+Only the last class justifies considering a long-running execution-control provider.
+
+When current evidence proves an `execution-continuity` gap:
+
+1. load `../capability-planning/SKILL.md` and describe the exact missing property;
+2. prove host-native AAOP Working Contract/Journey plus project-native state is insufficient for that property;
+3. load `../provider-selection/SKILL.md`;
+4. prefer the smallest matching provider surface rather than adding a generic agent runtime;
+5. if LoopX is selected, load `../../recipes/loopx.json` and `../../../docs/LOOPX_INTEGRATION.md` when available;
+6. keep adoption conditional on the current upstream revision, OS/runtime support, permissions, privacy, rollback, and the real pilot/verification boundary in that Recipe.
+
+Do **not** select LoopX merely because:
+
+- the task is large;
+- the user asked for autonomy;
+- an implementation failed twice;
+- a model needs more reasoning context;
+- a Task Pod needs specialist roles;
+- a deployment is blocked on credentials/authorization;
+- LoopX happens to be installed.
+
+If LoopX is selected, the authority seam is fixed:
+
+```text
+AAOP Working Contract / Route / Journey / authorization / acceptance
+        ↓ derives one bounded execution outcome
+LoopX todo / claim / gate / evidence / quota / wait / scheduler / handoff
+        ↓ drives bounded turns
+host Agent + project tools
+        ↓ produces real evidence
+LoopX validated writeback
+        ↓ compact accepted evidence/reference only
+AAOP coordinator re-reads current project evidence and checkpoints/reroutes
+```
+
+The LoopX goal/frontier is **not** a second Journey and does not become product truth. LoopX quota eligibility is not permission for protected effects. Specialists or LoopX peer agents do not become independent Journey checkpoint writers.
+
+Do not create a parallel `.aaop` Execution Ledger that mirrors LoopX todo/quota/run-history state. If a real LoopX pilot later proves an AAOP-specific continuity fact is missing, add only that smallest AAOP-owned fact after the gap is demonstrated.
+
+If the execution-control provider does not close the original continuity gap, diagnose why before adding Deep Agents, agency-orchestrator, or another provider. Provider stacking without distinct proven gaps is another form of anti-thrash.
+
 ## Gate 5 — Specialist capability only when justified
 
 Default to one capable agent.
