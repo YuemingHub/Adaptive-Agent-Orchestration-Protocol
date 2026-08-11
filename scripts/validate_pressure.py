@@ -8,6 +8,8 @@ import re
 import sys
 from pathlib import Path
 
+from validate_team_execution_patterns import main as validate_team_execution_patterns
+
 ROUTES = {
     "idea-to-build",
     "repo-recovery",
@@ -177,6 +179,13 @@ def main() -> int:
     missing_routes = ROUTES - covered_routes
     if missing_routes:
         fail(errors, f"pressure suite missing route coverage: {', '.join(sorted(missing_routes))}")
+
+    try:
+        team_result = validate_team_execution_patterns()
+        if team_result != 0:
+            fail(errors, f"team execution pattern validation returned {team_result}")
+    except Exception as exc:  # noqa: BLE001
+        fail(errors, f"team execution pattern validation failed: {exc}")
 
     if errors:
         print("AAOP pressure validation failed:", file=sys.stderr)

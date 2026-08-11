@@ -89,6 +89,74 @@ For each member define:
 
 The top-level Pod also declares `outcome`, `accountable_owner`, and objective `acceptance_criteria`.
 
+## Contract fan-out and evidence invalidation
+
+When a Pod changes a shared contract — API/interface shape, schema, event/data format, public type, deployment contract, security invariant, or other artifact consumed by independent work — the accountable owner must treat that change as an **evidence invalidation event**.
+
+Before accepting dependent work:
+
+1. identify the concrete consumers of the changed contract using current repository evidence rather than remembered architecture;
+2. classify each consumer as `unaffected`, `must-update`, or `must-reverify`;
+3. invalidate acceptance/review evidence that was produced against the old contract for affected consumers;
+4. reopen only the impacted implementation/verification slices instead of restarting the whole Pod or Journey;
+5. search for stale field/type/path/schema references when the changed contract has concrete identifiers;
+6. require new evidence against the new contract before the owner marks the Pod outcome accepted.
+
+A contract document is not valuable merely because it exists. The important property is that changes propagate to real consumers and stale evidence cannot remain green after its governing baseline moved.
+
+## Builder–verifier pair for consequential slices
+
+Do **not** create a QA role for every small edit. Use a separate verifier when a bounded implementation slice is contract-sensitive, high-blast-radius, security/privacy-relevant, difficult to observe, or has repeatedly produced false completion claims.
+
+For such a slice:
+
+1. the builder receives the bounded objective, governing contract/acceptance criteria, allowed mutation surface, and expected deliverables;
+2. the verifier starts from the governing contract plus **current artifacts/diff/runtime evidence**, not the builder's narrative;
+3. the verifier independently runs or reads the strongest practical project-native checks and records the evidence that supports PASS/FAIL;
+4. the verifier may identify missing evidence or contract mismatch but must not invent new product requirements merely to be adversarial;
+5. FAIL returns a bounded defect/evidence packet to the accountable owner, who decides whether to repair, replan, reroute, or block;
+6. repeated unchanged failure is diagnosed before another retry; retry budgets are contextual, not a universal fixed number.
+
+The useful pattern is **separate implementation from proof**, not “always add another agent” and not “default to failure.” Unknown or unverified is not PASS, but the verifier must remain evidence-calibrated.
+
+## Parallelism and verification-baseline coupling
+
+Parallel work is safe only when both mutation and verification baselines are sufficiently independent.
+
+Serialize work when:
+
+- one stream can change an interface/schema/config that another stream is implementing or reviewing against;
+- one stream's security/review fix can materially change the diff another reviewer is currently evaluating;
+- both streams write the same files/resources or depend on the same mutable external state;
+- a verifier would otherwise certify a snapshot that may be stale before its evidence is integrated.
+
+Parallelize when write sets, required baselines, and acceptance evidence are genuinely independent or when the host/runtime supplies safe isolation and an explicit merge/reconciliation boundary.
+
+The optimization target is not maximum concurrency. It is maximum **valid evidence throughput without stale review or conflicting writes**.
+
+## Interruption and partial-delivery recovery
+
+A long-running worker can fail because of host/network/context/runtime interruption after some durable outputs were already written. Treat this differently from “worker completed, but validation failed.”
+
+Before delegating a long or interruption-prone slice, record enough of its expected output contract to recover safely, for example:
+
+- expected files/artifacts or mutation refs;
+- acceptance/evidence commands;
+- allowed write surface;
+- current baseline/precondition;
+- successor/handoff condition when known.
+
+If the worker disappears or returns an execution error before completion:
+
+1. **do not blindly replay the original task**;
+2. inspect current repository/runtime state and enumerate which expected outputs actually exist;
+3. validate important existing outputs enough to distinguish durable completed work from empty/partial/corrupt state;
+4. preserve verified completed outputs and recompute the missing/invalid delta from current evidence;
+5. give the replacement/resumed worker the verified existing outputs, missing delta, current baseline, and explicit “do not overwrite verified work without new evidence” boundary;
+6. if the host cannot preserve this bounded frontier reliably across sessions, classify an `execution-continuity` gap and evaluate the existing LoopX Provider rather than creating a second AAOP task database.
+
+A platform/network/context interruption is not the same failure class as a QA defect. Recovery should salvage verified durable work; repair loops should correct invalid work.
+
 ## Role-source policy
 
 Use role sources progressively:
@@ -148,7 +216,13 @@ If native subagents/teams are unavailable:
 4. keep one logical accountable owner;
 5. preserve independent review by reviewing from acceptance criteria and current diff/evidence rather than the implementation narrative.
 
+Do not assume a delegated/subagent context can itself create or schedule peer subagents. The accountable orchestration context must use only the topology the current host actually exposes; when nested delegation is unavailable, keep orchestration at the capable parent context or degrade to sequential isolated roles.
+
 Lack of native multi-agent capability is never, by itself, a reason to ask the user to switch tools.
+
+## External pattern provenance
+
+The contract-fan-out, task-level independent evidence, interruption-salvage, and host-topology lessons above were pressure-checked against the MIT-licensed `xuanbingbingo/claude-standard-dev-team` repository at reviewed commit `d1aa5006d6b6ecb7430950a966b1d31cd6574a39`. AAOP absorbs the mechanisms only; it does not adopt that repository's fixed 12-role/11-phase topology or Claude-specific deployment assumptions. See `docs/CLAUDE_STANDARD_DEV_TEAM_REVIEW.md`.
 
 ## Completion criterion
 
@@ -161,4 +235,6 @@ Task Pod construction is complete when:
 - tools/permissions are least privilege;
 - provider use, if any, is narrower than the whole provider ecosystem;
 - consequential work has independent review where practical;
+- shared-contract changes have invalidated/reproved affected evidence where needed;
+- interruption recovery can preserve verified durable work instead of blindly replaying long tasks;
 - the Pod can finish, prove its outcome, and hand off without making the human schedule the internal team.
