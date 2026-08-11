@@ -5,6 +5,12 @@
   "stable_channel": "stable",
   "stable_promotion": "post-merge-fast-forward-only",
   "downstream_consumer_validation_required": true,
+  "downstream_consumer": {
+    "repository": "YuemingHub/MingOS",
+    "commit": "b8c3ddecc1371a281df875c3a115378efca9b504",
+    "workflow": ".github/workflows/validate-downstream-consumer.yml",
+    "validation": "stable-v0.27-to-exact-v1-candidate upgrade plus project tests/checks, project authority, Journey, Working Contract, runtime and provenance continuity"
+  },
   "canonical_journey": {
     "path": ".aaop/journeys/idea-to-production.json",
     "required_status": "canonical"
@@ -58,7 +64,7 @@
     "Task Pods default to one agent, never exceed five members, and retain exactly one accountable owner with bounded handoff",
     "external role/orchestration providers remain delegated capability surfaces rather than competing Working Contract/Journey control planes",
     "stable is advanced only after merge and only to a fully validated candidate",
-    "a real downstream consumer validates the exact candidate tree before stable promotion",
+    "the pinned real MingOS downstream consumer validates the exact candidate head tree before stable promotion",
     "if main/base changes during review, affected validation is rerun against the reconciled candidate",
     "stable rollback is performed by a new fully validated forward repair/revert commit rather than silently force-moving the channel backward"
   ]
