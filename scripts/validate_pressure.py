@@ -8,6 +8,7 @@ import re
 import sys
 from pathlib import Path
 
+from validate_pre_mutation_reconciliation import main as validate_pre_mutation_reconciliation
 from validate_team_execution_patterns import main as validate_team_execution_patterns
 
 ROUTES = {
@@ -180,12 +181,16 @@ def main() -> int:
     if missing_routes:
         fail(errors, f"pressure suite missing route coverage: {', '.join(sorted(missing_routes))}")
 
-    try:
-        team_result = validate_team_execution_patterns()
-        if team_result != 0:
-            fail(errors, f"team execution pattern validation returned {team_result}")
-    except Exception as exc:  # noqa: BLE001
-        fail(errors, f"team execution pattern validation failed: {exc}")
+    for label, validator in (
+        ("team execution pattern", validate_team_execution_patterns),
+        ("pre-mutation reconciliation", validate_pre_mutation_reconciliation),
+    ):
+        try:
+            result = validator()
+            if result != 0:
+                fail(errors, f"{label} validation returned {result}")
+        except Exception as exc:  # noqa: BLE001
+            fail(errors, f"{label} validation failed: {exc}")
 
     if errors:
         print("AAOP pressure validation failed:", file=sys.stderr)
