@@ -45,7 +45,7 @@ def main() -> int:
         "second source of truth",
         "provenance/source linkage",
         "consumer-local regression",
-        "does not require every project",
+        "this does **not** require every project",
     ):
         require(phrase.lower() in lower_policy, f"policy missing invariant: {phrase}")
 
