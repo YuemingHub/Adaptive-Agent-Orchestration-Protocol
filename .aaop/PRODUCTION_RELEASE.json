@@ -9,6 +9,13 @@
     "path": ".aaop/journeys/idea-to-production.json",
     "required_status": "canonical"
   },
+  "human_agent_working_contract": {
+    "skill": ".aaop/skills/working-contract/SKILL.md",
+    "tool": ".aaop/tools/working_contract.py",
+    "schema": ".aaop/schemas/working-contract.schema.json",
+    "task_pod_max_members": 5,
+    "handoff_schema": ".aaop/schemas/task-handoff.schema.json"
+  },
   "production_platform": {
     "python_implementation": "CPython",
     "python_min": "3.11",
@@ -26,12 +33,15 @@
     "validate-journey-recovery.yml",
     "validate-platform-support.yml",
     "validate-provenance.yml",
+    "validate-working-contract.yml",
     "validate-ci-supply-chain.yml",
+    "validate-downstream-consumer.yml",
     "validate-production-release.yml"
   ],
   "required_docs": [
     "README.md",
     "docs/QUICKSTART.md",
+    "docs/HUMAN_AGENT_WORKING_CONTRACT.md",
     "docs/PLATFORM_SUPPORT.md",
     "docs/INSTALL_PROVENANCE.md",
     "docs/CI_SUPPLY_CHAIN.md",
@@ -43,6 +53,10 @@
     "all required workflows exist and use reviewed immutable external Action revisions",
     "long-lived validation workflows retain read-only repository contents permissions",
     "canonical idea-to-production Journey is no longer experimental",
+    "Human-Agent Working Contract must preserve an explicit autonomous/collaborative choice instead of silently choosing for the human",
+    "sustained execution is gated until aligned intent has observable success evidence and no unresolved human-owned question",
+    "Task Pods default to one agent, never exceed five members, and retain exactly one accountable owner with bounded handoff",
+    "external role/orchestration providers remain delegated capability surfaces rather than competing Working Contract/Journey control planes",
     "stable is advanced only after merge and only to a fully validated candidate",
     "a real downstream consumer validates the exact candidate tree before stable promotion",
     "if main/base changes during review, affected validation is rerun against the reconciled candidate",
