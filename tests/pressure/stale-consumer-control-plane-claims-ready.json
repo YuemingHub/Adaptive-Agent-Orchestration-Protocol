@@ -1,0 +1,51 @@
+{
+  "version": "0.23.0",
+  "id": "stale-consumer-control-plane-claims-ready",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-11",
+    "privacy": "anonymized"
+  },
+  "developer_request": "AAOP: take over this project. I do not know its current state or next task.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "A project-local AAOP bridge reports health and ready as passing.",
+    "The bridge is pinned to an older AAOP source snapshot that does not contain the autonomous takeover and scoped-blocker continuation invariants the owner expects.",
+    "The package version string alone cannot distinguish that older snapshot from later compatible snapshots on the same production release line.",
+    "Current project evidence still contains meaningful engineering responsibility, but the stale consumer control plane reports verified-no-op after its own narrower recovery checks."
+  ],
+  "expected_first_moves": [
+    "treat the project-local AAOP bridge, installed provenance, and source pin as execution dependencies and reconcile their compatibility before trusting ready, no-op, blocker, or completion conclusions",
+    "treat local health, ready, and version as installation-integrity evidence only rather than proof that the installed control plane supplies the current takeover contract",
+    "when the project uses stable-managed AAOP and host/network policy permits, reuse the existing canonical stable bootstrap to reconcile AAOP-owned files with the deliberately promoted stable channel, then re-run consumer compatibility evidence",
+    "when the project explicitly uses an exact-frozen ref, preserve that reproducibility policy and prove required invariants before changing the pin; if the pin lacks them, classify a consumer-integration compatibility delta or scoped blocker rather than verified-no-op",
+    "after control-plane reconciliation, resume current project evidence reconstruction and executable-frontier selection without asking the novice to schedule engineering work"
+  ],
+  "must_preserve": [
+    "project product and domain authority remain local",
+    "AAOP runtime continuity and project-owned files survive a managed AAOP upgrade",
+    "an explicitly exact-frozen source pin is not silently replaced",
+    "stable promotion remains a separately gated AAOP release action rather than an alias for main"
+  ],
+  "must_not": [
+    "treat passing health or ready from a stale AAOP snapshot as proof of current takeover compatibility",
+    "use only the package version string to prove control-plane freshness",
+    "silently replace an explicitly exact-frozen pin with stable, main, or another ref",
+    "return verified-no-op solely because the stale control plane cannot see or execute newer takeover invariants",
+    "follow main merely because it is newer",
+    "build a second updater, planner, workflow engine, Provider, or state database"
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "consumer-integration-freshness",
+    "default-autonomous-takeover",
+    "scoped-blocker-frontier-continuation"
+  ],
+  "expected_blocker_class": "missing-evidence",
+  "lessons": [
+    "An internally healthy consumer control plane can still be semantically stale for the delegated takeover contract.",
+    "Autonomous takeover must reconcile the control plane used to make orchestration decisions before trusting its no-op or completion verdict.",
+    "Stable-managed refresh and exact-frozen reproducibility are distinct policies; autonomy must support both without following main blindly.",
+    "The reusable fix is to enforce existing consumer-integration freshness through AAOP's current bootstrap and provenance lifecycle rather than build another updater."
+  ]
+}

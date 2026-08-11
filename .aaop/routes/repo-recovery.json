@@ -1,5 +1,5 @@
 {
-  "version": "0.22.0",
+  "version": "0.23.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -56,7 +56,7 @@
     },
     {
       "id": "consumer-integration-freshness",
-      "rule": "Treat project-local orchestration adapters, bootstrap scripts, pinned provider/protocol revisions, generated bridges, and cached checkpoints as execution dependencies rather than product truth. Verify that a consumer pin still supplies the safety/continuity semantics the project assumes; an old pin must not silently disable newer required invariants, while a newer upstream release must not be auto-adopted or allowed to override project authority without a proven local upgrade delta and compatibility verification. Historical observation SHAs inside adapter docs remain provenance, not the execution baseline for a new task."
+      "rule": "Treat project-local AAOP/orchestration adapters, bootstrap scripts, installed package provenance, pinned provider/protocol revisions, generated bridges, and cached checkpoints as execution dependencies rather than product truth. Before an autonomous takeover trusts a project-local health, ready, version, no-op, blocker, or completion verdict, prove that the installed control plane supplies the safety/continuity invariants the takeover requires. Local health/ready/version prove internal installation integrity only; they do not prove current control-plane compatibility. For stable-managed consumers, when host/network policy permits, reuse the canonical state-preserving stable bootstrap to reconcile AAOP-owned files with the deliberately promoted stable channel, then re-run consumer compatibility evidence before continuing. For explicitly exact-frozen consumers, preserve reproducibility and do not silently replace the pin with stable, main, or another ref; if the pin lacks required invariants, classify a consumer-integration compatibility delta or scoped blocker rather than verified-no-op. A newer upstream release must not override project authority, runtime continuity, credentials, or product truth. If stable/exact-source compatibility cannot currently be resolved, keep freshness unknown and scope that environment/missing-evidence blocker while continuing independent authorized project work. Do not build a second updater, planner, state database, Provider, or workflow engine for this lifecycle."
     },
     {
       "id": "prove-delta-before-mutation",
@@ -101,6 +101,9 @@
     "external repository reads were justified by claim ownership or stale/insufficient local dependency evidence",
     "cross-repository writes did not occur without separate scope/authorization",
     "project-local orchestration/provider pins were checked when they materially constrained current execution semantics",
+    "health/ready/version from an installed consumer control plane were not accepted as proof of current takeover compatibility without source/provenance/invariant reconciliation",
+    "stable-managed consumers reused the existing stable bootstrap lifecycle when a proven compatibility delta required refresh; exact-frozen consumers preserved their explicit pin until a compatible upgrade was deliberately selected",
+    "a stale control plane that lacks required takeover invariants was classified as a consumer-integration delta or scoped blocker rather than verified-no-op",
     "stale adapter documentation or checkpoint observations were not promoted into the current execution baseline",
     "a consumer upgrade was proposed or applied only after a concrete compatibility/safety delta was proven",
     "a mutation occurred only after a current local execution delta was proven",
@@ -115,6 +118,7 @@
     "a specific current failing behavior becomes primary -> bug-fix",
     "a current desired new behavior becomes primary -> feature-change",
     "the user only needs a decision/review -> understand-review",
+    "consumer AAOP health/ready is green but the installed source lacks required current takeover/continuation invariants -> consumer-integration compatibility delta; reconcile stable-managed or exact-frozen policy before accepting no-op/completion",
     "one delta is blocked but independent meaningful authorized work remains -> keep the blocker scoped, recompute frontier, and continue under the evidence-selected route",
     "the supposed local next step is already satisfied or not currently justified -> verified no-op for that route decision, then recompute project frontier rather than invent work or declare project completion",
     "the meaningful next delta belongs to another repository -> preserve cross-repository scope and establish separate work scope there"
