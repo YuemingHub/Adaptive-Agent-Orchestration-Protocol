@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +15,8 @@ PROVIDER_SELECTION = ROOT / ".aaop" / "skills" / "provider-selection" / "SKILL.m
 CAPABILITY_PLANNING = ROOT / ".aaop" / "skills" / "capability-planning" / "SKILL.md"
 INTEGRATION_DOC = ROOT / "docs" / "LOOPX_INTEGRATION.md"
 PROGRESSIVE_DOC = ROOT / "docs" / "PROGRESSIVE_ADOPTION.md"
+FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+SEMVER_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 
 
 def require(condition: bool, message: str) -> None:
@@ -85,14 +88,27 @@ def main() -> int:
 
     recipe = load(RECIPE)
     require(recipe.get("provider_id") == "loopx", "LoopX recipe provider id mismatch")
+
+    reviewed = recipe.get("reviewed_upstream")
+    require(isinstance(reviewed, dict), "LoopX recipe must retain a reviewed upstream identity snapshot")
+    stable_tag = reviewed.get("stable_tag")
+    stable_commit = reviewed.get("stable_commit")
+    stable_package_version = reviewed.get("stable_package_version")
+    require(isinstance(stable_tag, str) and SEMVER_TAG_RE.fullmatch(stable_tag), "LoopX reviewed stable tag must be explicit SemVer tag")
+    require(isinstance(stable_commit, str) and FULL_SHA_RE.fullmatch(stable_commit), "LoopX reviewed stable commit must be a full immutable SHA")
+    require(isinstance(stable_package_version, str) and stable_tag == f"v{stable_package_version}", "LoopX reviewed tag/package version must agree")
+    require(contains_text(reviewed, "Re-check"), "LoopX reviewed upstream identity must remain time-scoped evidence")
+
     install = recipe.get("install")
     require(isinstance(install, dict) and install.get("mode") == "manual-choice", "LoopX adoption must remain explicit/manual-choice")
     review = recipe.get("adoption_review")
     require(isinstance(review, dict), "LoopX recipe must retain scoped adoption review")
     require(review.get("decision_effect") == "conditional-adoption-only", "LoopX adoption review must remain conditional")
-    require(contains_text(recipe, "stable"), "LoopX recipe must distinguish reviewed stable adoption")
+    require(contains_text(recipe, stable_tag), "LoopX recipe must retain reviewed stable tag evidence")
+    require(contains_text(recipe, stable_commit), "LoopX recipe must retain exact reviewed stable revision evidence")
     require(contains_text(recipe, "experimental") and contains_text(recipe, "Turn"), "LoopX Turn must remain separately qualified/experimental")
     require(contains_text(recipe, "Windows") or contains_text(recipe, "WSL"), "LoopX recipe must preserve Windows/WSL qualification boundary")
+    require(contains_text(recipe, "feedback template") and contains_text(recipe, "not") and contains_text(recipe, "support"), "LoopX recipe must not mistake Windows/WSL feedback options for support evidence")
     require(contains_text(recipe, "quiet"), "LoopX recipe must preserve no-progress quiet/wait behavior")
     require(contains_text(recipe, "rollback"), "LoopX recipe must define rollback semantics")
     require(contains_text(recipe, "production") and contains_text(recipe, "authorization"), "LoopX must not bypass AAOP production/authorization gates")
@@ -115,8 +131,8 @@ def main() -> int:
     require("agency-orchestrator-style" in progressive_doc, "progressive adoption must preserve delegated Pod alternative")
 
     print(
-        "PASS LoopX provider seam: optional Level 4 escalation, AAOP authority, "
-        "execution-continuity classification, adjacent-provider separation, and rollback gates"
+        "PASS LoopX provider seam: optional Level 4 escalation, immutable reviewed upstream identity, "
+        "AAOP authority, execution-continuity classification, adjacent-provider separation, and rollback gates"
     )
     return 0
 
