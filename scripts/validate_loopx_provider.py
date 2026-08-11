@@ -22,8 +22,16 @@ INTEGRATION_DOC = ROOT / "docs" / "LOOPX_INTEGRATION.md"
 PROGRESSIVE_DOC = ROOT / "docs" / "PROGRESSIVE_ADOPTION.md"
 DOCTOR = ROOT / ".aaop" / "tools" / "doctor.py"
 RECIPE_TOOL = ROOT / ".aaop" / "tools" / "recipe.py"
+UPSTREAM_QUALIFIER = ROOT / "scripts" / "qualify_loopx_upstream.py"
 FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SEMVER_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
+EXPECTED_UPSTREAM_SMOKES = (
+    "examples/control_plane/quota-contract-smoke.py",
+    "examples/control_plane/todo-cli-smoke.py",
+    "examples/control_plane/todo-durability-fixture-smoke.py",
+    "examples/blocker-push-runtime-smoke.py",
+    "examples/project/project-uninstall-smoke.py",
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -117,6 +125,32 @@ def validate_runtime_detection() -> None:
         )
 
 
+def validate_upstream_qualifier_contract() -> None:
+    require(UPSTREAM_QUALIFIER.is_file(), "missing exact-revision LoopX upstream qualification harness")
+    completed = subprocess.run(
+        [sys.executable, str(UPSTREAM_QUALIFIER), "--help"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    require(completed.returncode == 0, f"LoopX upstream qualifier --help failed: {completed.stderr}")
+    require("--checkout" in completed.stdout, "LoopX upstream qualifier must require an explicit checkout")
+    require("--no-execute" in completed.stdout, "LoopX upstream qualifier must support plan-only identity checks")
+    require("--include-install-smoke" in completed.stdout, "LoopX install smoke must remain explicit/optional")
+
+    text = UPSTREAM_QUALIFIER.read_text(encoding="utf-8")
+    for smoke in EXPECTED_UPSTREAM_SMOKES:
+        require(smoke in text, f"LoopX upstream qualifier missing reviewed upstream smoke {smoke}")
+    require("fresh-clone-quickstart-smoke.py" in text, "LoopX qualifier must expose optional upstream install/quickstart smoke")
+    require("reviewed_commit" in text, "LoopX qualifier must bind execution to Recipe-reviewed immutable revision")
+    require("checkout_clean" in text, "LoopX qualifier must reject/identify dirty source before qualification")
+    require(
+        "does not prove AAOP selected LoopX correctly" in text,
+        "LoopX upstream qualification must not impersonate real AAOP consumer-pilot evidence",
+    )
+
+
 def main() -> int:
     for path in (
         PROVIDERS,
@@ -127,6 +161,7 @@ def main() -> int:
         END_TO_END,
         INTEGRATION_DOC,
         PROGRESSIVE_DOC,
+        UPSTREAM_QUALIFIER,
     ):
         require(path.is_file(), f"missing LoopX integration surface: {path.relative_to(ROOT)}")
 
@@ -208,11 +243,13 @@ def main() -> int:
     require("agency-orchestrator-style" in progressive_doc, "progressive adoption must preserve delegated Pod alternative")
 
     validate_runtime_detection()
+    validate_upstream_qualifier_contract()
 
     print(
         "PASS LoopX provider seam: optional Level 4 escalation, immutable reviewed upstream identity, "
-        "runtime detection without auto-adoption, Journey escalation only for proven execution-continuity gaps, "
-        "AAOP authority, adjacent-provider separation, anti-stacking, and rollback gates"
+        "runtime detection without auto-adoption, reusable upstream-owned qualification harness, "
+        "Journey escalation only for proven execution-continuity gaps, AAOP authority, adjacent-provider "
+        "separation, anti-stacking, and rollback gates"
     )
     return 0
 
