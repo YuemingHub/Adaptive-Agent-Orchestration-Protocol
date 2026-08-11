@@ -177,9 +177,19 @@ jobs:
           assert d['health_state'] == 'healthy', d
           assert 'AGENTS.md' in d['instruction_files'], d
           assert d['starter_prompt'], d
+          contract = d['working_contract']
+          assert contract['state'] == 'uninitialized', contract
+          assert contract['mode'] == 'unset', contract
+          assert contract['execution_allowed'] is False, contract
           PY
 
-          python "$target/.aaop/tools/aaop.py" prompt | grep -q 'continue autonomously'
+          prompt="$(python "$target/.aaop/tools/aaop.py" prompt)"
+          printf '%s\n' "$prompt" | grep -q 'autonomous/collaborative working mode is not already established'
+          printf '%s\n' "$prompt" | grep -q 'ask me that one question once'
+          if printf '%s\n' "$prompt" | grep -q 'continue autonomously'; then
+            echo 'starter prompt must not silently choose autonomous mode' >&2
+            exit 1
+          fi
           test ! -d "$target/.aaop/tools/__pycache__"
 
       - name: Re-running bootstrap is a safe upgrade

@@ -1,6 +1,6 @@
 {
   "schema_version": "0.5.0",
-  "last_verified": "2026-08-10",
+  "last_verified": "2026-08-11",
   "policy": "reference-and-select; never auto-install from this catalog",
   "providers": [
     {
@@ -21,6 +21,16 @@
       "avoid_when": ["one capable agent is sufficient", "the missing capability is a tool/API/runtime rather than a specialist role", "more agents would add coordination overhead without a concrete responsibility boundary"],
       "adoption_level": 2,
       "status_note": "optional specialist source; never part of the default stack and never a substitute for a missing technical capability"
+    },
+    {
+      "id": "agency-agents-zh",
+      "kind": "specialist-agent-source",
+      "upstream": "https://github.com/randyjin/agency-agents-zh",
+      "provides": ["specialist-role-procedures", "cross-discipline-role-library", "cross-host-agent-role-adapters"],
+      "select_when": ["a Task Pod has a proven specialist responsibility gap after host-native and project-local roles are checked", "one or a few concrete role procedures materially improve specialization, independent review, or context isolation"],
+      "avoid_when": ["one capable agent is sufficient", "the full catalog would be installed without a concrete role boundary", "the blocker is a tool/API/runtime/credential/authorization/product-decision gap", "role prompts would be treated as project or product authority"],
+      "adoption_level": 2,
+      "status_note": "optional role source only; select the minimum justified role subset, record material upstream revisions, and keep AAOP as Working Contract/Journey control plane"
     },
     {
       "id": "mcp",
@@ -112,6 +122,16 @@
       "select_when": ["dedicated long-running harness materially improves reliability", "subagent context isolation is important", "skills and MCP need a unified runtime"],
       "avoid_when": ["host-native execution is already sufficient"],
       "adoption_level": 4
+    },
+    {
+      "id": "agency-orchestrator",
+      "kind": "delegated-multi-agent-runtime",
+      "upstream": "https://github.com/jnMetaCode/agency-orchestrator",
+      "provides": ["natural-language-role-composition", "bounded-dag-execution", "parallel-specialist-steps", "resume", "acceptance-checks", "human-input-and-approval-steps"],
+      "select_when": ["a justified Task Pod needs multi-role DAG/resume execution that the current host cannot provide adequately", "AAOP can delegate one bounded Pod while retaining goal, authorization, acceptance, and handoff ownership"],
+      "avoid_when": ["host-native subagents or sequential role isolation are sufficient", "it would become a second top-level Journey/control plane", "the user is being asked to manage DAG/YAML/roles directly", "the task is a simple single-agent change"],
+      "adoption_level": 4,
+      "status_note": "optional delegated execution provider; AAOP remains authoritative for Working Contract, Journey, decision ownership, production policy, Pod acceptance, and handoff"
     },
     {
       "id": "microsoft-agent-framework",

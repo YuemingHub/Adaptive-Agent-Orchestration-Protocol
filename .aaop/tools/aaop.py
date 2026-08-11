@@ -28,11 +28,13 @@ from typing import Any
 sys.dont_write_bytecode = True
 
 STARTER_PROMPT = (
-    "Understand this project and its current rules, determine the highest-value "
-    "current executable step toward the user's goal, and continue autonomously. "
-    "Reuse what already exists, preserve project intent, make ordinary engineering "
-    "decisions yourself, verify the result, and ask only for genuinely missing "
-    "authorization, credentials, or material product decisions."
+    "Take responsibility for this project from the current evidence. First understand "
+    "the project and reconcile AAOP continuity state. If my autonomous/collaborative "
+    "working mode is not already established, ask me that one question once. Resolve "
+    "everything the repository or your engineering judgment can resolve without asking "
+    "me, ask only for genuinely human-owned product/domain decisions or authorization, "
+    "then continue through implementation and verification without making me schedule "
+    "the engineering process."
 )
 
 
@@ -87,6 +89,39 @@ def provenance_summary(source_tree: bool) -> dict[str, Any]:
     }
 
 
+def working_contract_summary() -> dict[str, Any]:
+    contract_module = load_tool("working_contract")
+    path = contract_module.state_path()
+    if not path.exists():
+        return {
+            "state": "uninitialized",
+            "mode": "unset",
+            "alignment_state": "collecting",
+            "execution_allowed": False,
+            "revision": None,
+        }
+    try:
+        state = contract_module.load_state()
+        gate = contract_module.gate_result(state)
+    except SystemExit as exc:
+        return {
+            "state": "invalid",
+            "mode": "unknown",
+            "alignment_state": "unknown",
+            "execution_allowed": False,
+            "revision": None,
+            "error": str(exc),
+        }
+    return {
+        "state": "present",
+        "mode": gate.get("mode"),
+        "alignment_state": gate.get("alignment_state"),
+        "execution_allowed": gate.get("execution_allowed"),
+        "revision": gate.get("revision"),
+        "reasons": gate.get("reasons", []),
+    }
+
+
 def readiness(root: Path) -> dict[str, Any]:
     health_module = load_tool("health")
     doctor_module = load_tool("doctor")
@@ -99,6 +134,7 @@ def readiness(root: Path) -> dict[str, Any]:
     install_ready = health_state == "healthy"
     ready = install_ready or source_tree
     provenance = provenance_summary(source_tree)
+    working_contract = working_contract_summary()
 
     hosts = doctor.get("host_commands", {})
     if not isinstance(hosts, dict):
@@ -128,6 +164,7 @@ def readiness(root: Path) -> dict[str, Any]:
         "provenance_source": provenance.get("source"),
         "package_fingerprint": provenance.get("package_fingerprint"),
         "provenance_next_action": provenance.get("next_action"),
+        "working_contract": working_contract,
         "instruction_files": instructions,
         "host_commands": hosts,
         "observed_surface_level": doctor.get("observed_surface_level"),
@@ -151,6 +188,16 @@ def render_ready(report: dict[str, Any]) -> None:
         if source.get("ref"):
             source_label += f"@{source['ref']}"
     print(f"  provenance: {provenance_state} ({source_label})")
+
+    contract = report.get("working_contract", {})
+    if isinstance(contract, dict):
+        print(
+            "  working contract: "
+            f"{contract.get('state', 'unknown')} "
+            f"mode={contract.get('mode', 'unknown')} "
+            f"alignment={contract.get('alignment_state', 'unknown')} "
+            f"execution={'allowed' if contract.get('execution_allowed') else 'gated'}"
+        )
 
     instructions = report.get("instruction_files", [])
     print(f"  project instructions: {', '.join(instructions) if instructions else 'none detected'}")
@@ -262,7 +309,7 @@ def main() -> int:
     doctor_parser.add_argument("--route", help="Optionally include one route's provider candidates")
     doctor_parser.add_argument("--json", action="store_true")
 
-    subparsers.add_parser("prompt", help="Print a starter prompt for autonomous project continuation")
+    subparsers.add_parser("prompt", help="Print a starter prompt that establishes/reuses the Working Contract and continues the project")
     subparsers.add_parser("version", help="Print the installed AAOP package version")
 
     args = parser.parse_args()

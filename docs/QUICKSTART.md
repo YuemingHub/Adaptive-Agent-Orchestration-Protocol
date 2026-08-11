@@ -80,9 +80,10 @@ AAOP READY
   version: <installed version>
   project: <your project>
   health: healthy
+  working contract: <uninitialized|present> mode=<...> alignment=<...> execution=<gated|allowed>
 ```
 
-The readiness command also summarizes visible project evidence and prints a starter prompt.
+`AAOP READY` means the package is healthy enough to use. The Working Contract can still be `uninitialized` on first use; that is expected and is resolved through normal conversation, not by asking the user to edit JSON.
 
 If it says `REVIEW REQUIRED`, follow the `Next:` line instead of blindly reinstalling.
 
@@ -97,14 +98,20 @@ Supported target shapes include:
 - Cursor → root project instructions and relevant scoped rules;
 - other coding agents that can read project files/instructions → generic AAOP bootstrap path.
 
-You do not select an “AAOP mode.”
+You do not need to choose Routes, Skills, Agents, MCP servers, runtimes, frameworks, databases, or orchestration topology.
 
 ## 4. Say what you want in ordinary language
 
-A broad continuation prompt:
+Recommended first prompt:
 
 ```text
-Understand this project and its current rules, determine the highest-value current executable step toward my goal, and continue autonomously. Reuse what already exists, preserve project intent, make ordinary engineering decisions yourself, verify the result, and ask only for genuinely missing authorization, credentials, or material product decisions.
+Take responsibility for this project from the current evidence. First understand the project and reconcile AAOP continuity state. If my autonomous/collaborative working mode is not already established, ask me that one question once. Resolve everything the repository or your engineering judgment can resolve without asking me, ask only for genuinely human-owned product/domain decisions or authorization, then continue through implementation and verification without making me schedule the engineering process.
+```
+
+If this is a new idea:
+
+```text
+I have an idea: <describe it normally>. Help me think it through, research what can be researched, ask only what I truly need to decide, then turn the aligned idea into a verified product slice and keep going.
 ```
 
 Concrete tasks are better when you have one:
@@ -125,7 +132,17 @@ This repository is messy. Reconstruct the current state, identify the real next 
 Review this change and tell me whether it is safe to merge. Stay read-only unless I ask for implementation.
 ```
 
-You do **not** need to tell AAOP which Agent, Skill, MCP server, runtime, framework, or team topology to use.
+### What happens the first time
+
+If no Working Contract exists, the Agent should first inspect the project and initialize the known goal. If your collaboration preference is not already established from authoritative context, it asks one question:
+
+```text
+For this project, should I normally:
+A. work autonomously after we align the goal, only returning for human-owned decisions/authorization/final acceptance; or
+B. work collaboratively and surface material checkpoints as we go?
+```
+
+The answer is persisted project-locally. A later `continue` should not ask again unless the preference itself changes.
 
 ## 5. The one user CLI
 
@@ -171,35 +188,45 @@ python .aaop/tools/aaop.py prompt
 python .aaop/tools/aaop.py version
 ```
 
-Lower-level tools remain available under `.aaop/tools/`, but ordinary use should not require memorizing them.
+Lower-level tools remain available under `.aaop/tools/`, including `working_contract.py`, but ordinary use should not require memorizing them.
 
 ## 6. What the agent should do after your request
 
-Internally, expect approximately this reasoning shape:
+Internally, expect approximately this shape:
 
 ```text
 your request
-→ understand current project/rules
+→ inspect current project/rules/continuity
+→ establish/reconcile Human-Agent Working Contract
+→ evidence-resolvable question? inspect it
+→ expert-decidable engineering choice? Agent/CTO decides it
+→ human-owned product/domain/authorization question? ask only that
+→ confirm observable outcome + success evidence
+→ Working Contract execution gate
 → select one primary route
-→ read only enough evidence for the current decision
-→ compare desired outcome with current state
 → prove whether a real execution delta exists
+→ default to one Agent
+→ create a 1–5 member Task Pod only when specialization/isolation/review/parallelism justifies it
 → reuse current capabilities
-→ add a provider only for a real capability gap
+→ add a provider only for a real capability/responsibility gap
 → execute
 → revalidate the target before consequential write/merge
 → verify
+→ hand off when a materially different Task Pod takes over
 → reroute/replan if evidence changes the problem
 ```
 
 Important consequences:
 
-- “continue” does not mean “manufacture a diff”;
+- “continue” does not mean “manufacture a diff” or restart discovery;
+- autonomous mode does not mean “guess human-owned product intent”;
+- collaborative mode does not mean “ask before every file edit”;
 - finding a fix does not authorize mutation during a read-only review;
 - a referenced repository does not automatically become a mutation target;
-- a stale write precondition means re-read/reconcile, not force overwrite;
+- a stale write/Working Contract/Journey precondition means re-read/reconcile, not force overwrite;
 - a network/credential/product-decision blocker is not automatically a capability gap;
-- a detected provider is not automatically needed.
+- a detected provider is not automatically needed;
+- more Agents are not automatically better: a Task Pod is capped at five members and must have one accountable owner.
 
 ## 7. Upgrade
 
@@ -211,7 +238,7 @@ The bootstrap recognizes an existing AAOP installation and delegates to safe `--
 
 Upgrade preserves:
 
-- `.aaop/runtime/`;
+- `.aaop/runtime/`, including Working Contract and Journey continuity;
 - project-owned files under `.aaop/`;
 - project text outside AAOP markers in `AGENTS.md` / `CLAUDE.md`;
 - local managed-file edits as backups before canonical replacement;
@@ -282,7 +309,7 @@ Safe removal:
 - preserves `.aaop/runtime/`;
 - preserves project-owned files under `.aaop/`;
 - backs up modified managed files before removal;
-- leaves Playwright, MCP servers, OpenHands, AutoAgent, Deep Agents, and other providers untouched;
+- leaves external role libraries, MCP servers, OpenHands, Agency Orchestrator, and other providers untouched;
 - refuses automatic uninstall when ownership cannot be established safely;
 - rejects future manifest schemas or unsafe managed paths instead of downgrade-managing unknown ownership metadata.
 
@@ -308,29 +335,23 @@ source-tree
 
 `interrupted-install` takes precedence over ordinary package health. Recover the journaled lifecycle mutation before relying on the package or attempting another mutation.
 
-Health is best-effort accidental-drift detection. It is **not**:
-
-- a cryptographic trust root;
-- a guarantee that your package is the latest upstream version;
-- permission to overwrite local changes.
+Health is best-effort accidental-drift detection. It is **not** a cryptographic trust root, a guarantee that your package is the latest upstream version, or permission to overwrite local changes.
 
 ## 10. If a provider is genuinely needed
 
-AAOP should first determine the missing **capability**, then check what is already present.
+AAOP should first determine whether the gap is a **technical capability** or a **specialist responsibility**, then check what is already present.
 
-Only a real `capability-gap` directly justifies provider selection.
+Only a real capability/responsibility gap justifies provider selection.
 
-When an external provider is actually needed, AAOP should tell you:
+Examples:
 
-- what capability is missing;
-- why existing options are insufficient;
-- which upstream provider/surface is recommended;
-- minimum permissions required;
-- credentials/cost/data exposure;
-- current verification/adoption checks;
-- rollback/removal path.
+- `agency-agents-zh` may provide one or a few bounded specialist role procedures for a justified Task Pod;
+- `agency-orchestrator` may provide delegated DAG/resume execution when a justified Pod needs it and the current host cannot do it adequately;
+- neither provider owns the Working Contract, Journey, authorization boundary, acceptance gate, or handoff.
 
-The user should not have to answer “Which MCP do you want?” as the first step.
+When an external provider is actually needed, AAOP should surface what capability/responsibility is missing, why existing options are insufficient, the minimum provider surface, permissions/credentials/cost/data exposure, verification, and rollback path.
+
+The user should not have to answer “Which MCP/runtime/Agent team do you want?” as the first step.
 
 ## 11. Developing AAOP itself
 
@@ -340,12 +361,13 @@ Inside the AAOP source repository:
 python scripts/validate.py
 python scripts/validate_pressure.py
 python scripts/validate_install_transaction.py
+python scripts/validate_working_contract.py
 python .aaop/tools/aaop.py ready .
 ```
 
 Source-tree readiness is valid but is different from a manifest-tracked installation.
 
-The end-to-end usability gate additionally exercises bootstrap archive safety, injected lifecycle failures + rollback/recovery, install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal.
+The end-to-end usability gate additionally exercises bootstrap archive safety, injected lifecycle failures + rollback/recovery, install → READY → repeat upgrade → safe refusal of unrelated `.aaop` → manifest-scoped removal. The Human-Agent gate separately exercises collaboration-mode persistence, alignment blocking, stale-write rejection, Task Pod limits, and handoff boundaries.
 
 ## Release channels
 
@@ -357,6 +379,7 @@ A green `main` commit does not automatically promote `stable`.
 
 ## More detail
 
+- `docs/HUMAN_AGENT_WORKING_CONTRACT.md`
 - `docs/DEVELOPER_ENTRYPOINT.md`
 - `docs/ROUTE_CAPABILITY_PACKS.md`
 - `docs/REAL_PROJECT_PRESSURE_TESTS.md`
@@ -364,3 +387,4 @@ A green `main` commit does not automatically promote `stable`.
 - `docs/HOST_BOOTSTRAP_CONFORMANCE.md`
 - `docs/INSTRUCTION_TOPOLOGY.md`
 - `docs/ECOSYSTEM_MAP.md`
+- `docs/PRODUCTION_RELEASE.md`

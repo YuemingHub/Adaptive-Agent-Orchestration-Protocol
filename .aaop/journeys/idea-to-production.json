@@ -1,7 +1,7 @@
 {
   "journey_id": "idea-to-production",
   "version": "0.3.2",
-  "status": "experimental-canonical",
+  "status": "canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
     "intake_selects_current_route": true,
