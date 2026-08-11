@@ -32,6 +32,7 @@
     "notes": [
       "Upstream currently documents the no-clone installer and stable ref as the normal user path; do not adopt moving main merely because it is newer.",
       "At review time, upstream main reports package 0.4.4 while stable reports 0.4.3. Treat that difference as release-channel evidence, not a reason to bypass stable.",
+      "The reviewed quick-start path requires Python 3.11+, curl, tar, and a macOS or Linux shell. Do not assume native Windows support merely because the Python package metadata is portable; verify an upstream-supported Windows/WSL path before adopting LoopX on an AAOP Windows consumer.",
       "Prefer LoopX direct CLI/custom-runner integration as the compatibility baseline. Upstream describes LoopX Turn as experimental; do not make Turn an AAOP production dependency without separate qualification.",
       "Install only after a real long-running execution-control gap is proven. A normal AAOP task must not install LoopX by default.",
       "Use LoopX as a bounded execution provider beneath AAOP: AAOP owns Working Contract, current Route, Journey/release-cycle continuity, Task Pod acceptance, authorization, and final target verification.",
@@ -55,6 +56,7 @@
       "LoopX documents itself as provider-neutral and local-first, with durable objective/todo/gate/evidence/quota/handoff state while external agent runtimes execute bounded turns.",
       "The direct CLI/custom-runner contract is documented as the compatibility baseline; the typed LoopX Turn path is explicitly described as experimental.",
       "LoopX stable currently reports package 0.4.3 while main reports 0.4.4, so stable and main must remain distinct adoption surfaces.",
+      "The reviewed README quick-start names macOS/Linux shell requirements; no native Windows install/support path was found in the reviewed repository surfaces, while AAOP v1 itself supports Windows. Cross-platform adoption therefore remains conditional.",
       "LoopX has explicit public/private state guidance and project-uninstall/archive code paths, but project-specific integration still needs a real pilot to prove rollback and privacy behavior in the consumer.",
       "LoopX itself states that dangerous permissions, publishing, production writes, and final ownership remain human-controlled; AAOP must additionally preserve its own Working Contract, target-resolution, conditional-write, and release verification rules.",
       "LoopX can supply todo lifecycle, quota should-run decisions, user/operator gates, scheduler hints, monitor waits, peer claims/handoffs, and validated writeback accounting that would otherwise duplicate a proposed AAOP Execution Ledger."
@@ -67,7 +69,8 @@
       "https://github.com/huangruiteng/loopx/blob/main/docs/public-private-boundary.md"
     ],
     "required_checks": [
-      "re-check the current stable ref/version, license, supported Python/runtime matrix, installer/update instructions, and security/release notes immediately before adoption",
+      "re-check the current stable ref/version, license, supported Python/runtime/OS matrix, installer/update instructions, and security/release notes immediately before adoption",
+      "on Windows consumers, verify an upstream-supported native Windows or explicitly accepted WSL path before installation; absence of that evidence keeps LoopX optional/unadopted for that host",
       "prove on a disposable or non-production consumer that loopx doctor/connect/status work without overwriting project-owned AAOP instructions or tracked project state",
       "define an explicit authority map showing AAOP Working Contract/Route/Journey/authorization/acceptance as authoritative and LoopX as bounded execution continuity only",
       "prove a representative restart resumes from durable LoopX state without replaying chat transcripts or asking already-resolved AAOP human-owned questions",
@@ -106,6 +109,7 @@
   },
   "warnings": [
     "LoopX and AAOP both use control-plane language. Integration is safe only if authority is explicit: AAOP decides why/what/under-which-human-contract; LoopX may govern when/who/which-bounded-turn executes inside that outcome.",
+    "AAOP v1 supports Windows, while the reviewed LoopX quick-start is macOS/Linux-shell oriented. Do not make LoopX a cross-platform default until Windows/WSL support is explicitly qualified.",
     "Do not duplicate LoopX todo/quota/scheduler/run-history state in a new AAOP Execution Ledger unless real pressure proves a missing AAOP-specific fact.",
     "Do not infer that quota eligibility authorizes protected external effects. AAOP autonomy, exact write-target, stale-write, credential, cost, production, and publication gates still apply.",
     "Do not default to LoopX for every project; the simplest host-native AAOP path remains preferred when it reliably completes the task."
