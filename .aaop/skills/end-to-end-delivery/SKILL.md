@@ -256,9 +256,15 @@ Before adding a specialist:
 4. check already connected tools/providers;
 5. identify the exact missing specialization.
 
-`agent-bundles` is an optional curated specialist-agent source. It is **not** part of the default stack and must not be installed because “more agents sounds better.” Load its Integration Recipe only when a bounded specialist role is genuinely missing.
+Load `../team-construction/SKILL.md` when a real responsibility split is justified. AAOP owns Task Pod composition, one accountable owner, responsibility boundaries, acceptance, and handoff.
 
-Agent-role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities. Specialist workers also do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context and protected by the current revision precondition.
+If the Task Pod still has a concrete specialist-role gap after host-native and project-local roles are checked, `agency-agents-zh` may be selected as a **direct optional role source** for the minimum justified role subset. Role prompts do not create missing APIs, tools, credentials, network access, or runtime capabilities and do not become project/product authority.
+
+If the justified Task Pod instead lacks delegated multi-role DAG/resume execution that the current host cannot provide, evaluate `agency-orchestrator` as a **separate runtime capability**. A role source and an execution runtime are different gaps; do not install both without separate evidence.
+
+`agent-bundles` is retired for new AAOP work. Its Provider/Recipe entry is only a compatibility tombstone for older installed instructions and must redirect to current Task Pod/provider policy rather than cloning or installing the old repository.
+
+Specialist workers do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context and protected by the current revision precondition.
 
 ## Gate 6 — Release-candidate proof
 
