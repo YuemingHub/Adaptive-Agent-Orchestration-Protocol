@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "id": "shared-contract-fanout",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "xuanbingbingo/claude-standard-dev-team",
+    "reference": "f2dab03e7d1263287071e7163c2be3356c3248d0",
+    "captured_at": "2026-08-11",
+    "privacy": "public"
+  },
+  "developer_request": "Change a shared API response field/type used by existing frontend consumers, keep unrelated behavior intact, and prove the current application still works on the new contract.",
+  "expected_route": "feature-change",
+  "known_facts": [
+    "A material API field/type/envelope change can leave downstream frontend types or usages on the previous contract even when the contract document itself is correct.",
+    "Acceptance or review evidence produced before the shared contract changes may no longer prove the affected consumers.",
+    "The correct repair surface is the set of real current consumers and affected tests/evidence, not every project file."
+  ],
+  "expected_first_moves": [
+    "Establish the current contract and implementation baseline before mutation.",
+    "Search the current repository for consumers of the changed field/type/interface and identify affected tests, types, runtime flows, and review evidence.",
+    "Implement the smallest coherent contract and consumer updates, then re-establish acceptance/regression evidence on the new baseline only for affected slices."
+  ],
+  "must_preserve": [
+    "Unrelated consumers and behavior that current evidence shows do not depend on the changed contract.",
+    "Current project-native validation and deployment conventions unless the requested behavior requires changing them."
+  ],
+  "must_not": [
+    "Treat a successfully edited contract document as proof that its consumers are aligned.",
+    "Reuse stale acceptance/review evidence from the old contract for affected consumers.",
+    "Restart or rewrite unrelated work merely because one shared contract changed."
+  ],
+  "required_guard_ids": [
+    "contract-fanout-evidence-invalidation"
+  ],
+  "lessons": [
+    "Shared-contract changes are evidence invalidation events, not isolated document edits.",
+    "Impact must be discovered from current consumers, then only affected slices are reopened and reverified.",
+    "Independent verification is most valuable when it compares current implementation evidence to the governing contract rather than trusting the implementer's completion narrative."
+  ]
+}
