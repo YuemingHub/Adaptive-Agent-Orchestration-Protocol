@@ -1,0 +1,54 @@
+{
+  "version": "0.24.0",
+  "id": "green-local-checkout-with-active-project-frontier",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-11",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Take over this existing project and continue the highest-value current work without making me schedule engineering tasks.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The checked-out branch has green project-native tests and no newly reproduced defect in that local checkout.",
+    "Authoritative product/project state still declares a core outcome incomplete and names current acceptance goals that have not yet been proven complete.",
+    "The repository has an explicitly current merge-authoritative release-candidate chain with unmerged work, exact-head executable gates, and review evidence still outstanding.",
+    "A separate target-environment check is human-gated, but independent non-production candidate validation and review work remains safe and authorized.",
+    "Historical issues and arbitrary open pull requests exist too, so open status alone cannot define the current frontier."
+  ],
+  "expected_first_moves": [
+    "reconcile the project-declared current work topology, including only material active candidate, pull-request, branch, issue, handoff, predecessor, and successor surfaces that can change the current goal",
+    "compare the accepted project outcome and current acceptance evidence against the current merge-authoritative work rather than treating a green local checkout as product completion",
+    "distinguish local-no-mutation from project-no-frontier and select the next highest-value safe authorized executable delta on the correct current work target",
+    "keep the human-gated target check scoped while continuing independent exact-head validation, review, repair, or candidate-convergence work",
+    "after each result, recompute the project frontier from current authority and freshness rather than blindly following every open artifact"
+  ],
+  "must_preserve": [
+    "green local tests remain valid evidence for the contracts they actually test",
+    "historical or merely open branches/issues/pull requests do not become current work without authority/freshness evidence",
+    "the human boundary on the target-environment action remains intact",
+    "project-specific product truth and merge topology remain owned by the consumer repository"
+  ],
+  "must_not": [
+    "declare the project complete, perfect, or project-level verified-no-op merely because the current checkout is green",
+    "equate local-no-mutation with absence of a meaningful project frontier",
+    "ignore a project-declared current release-candidate or predecessor/successor chain when it can change the current goal",
+    "pick arbitrary TODOs, stale issues, or random open pull requests merely to appear productive",
+    "ask the novice to choose which current engineering task to do when current evidence can resolve the priority",
+    "create a second project planner, work database, merge queue, or workflow engine"
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "reconcile-current-baseline-before-mutation",
+    "project-frontier-before-project-noop",
+    "prove-delta-before-mutation",
+    "default-autonomous-takeover",
+    "scoped-blocker-frontier-continuation"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A clean or green local checkout can be locally correct while the delegated project still has a current executable frontier elsewhere in its authoritative work topology.",
+    "Verified no-op is scope-relative: local-no-mutation is not project completion and must not become a project pause until current project-wide frontier reconciliation finds no meaningful authorized executable work.",
+    "Autonomous takeover needs bounded discovery of current merge-authoritative work and unmet acceptance evidence, not exhaustive traversal of every historical branch, issue, or pull request.",
+    "Tests verify declared contracts; they do not by themselves discover or prove completion of the product's accepted outcome."
+  ]
+}
