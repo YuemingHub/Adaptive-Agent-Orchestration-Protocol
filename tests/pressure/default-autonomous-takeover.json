@@ -1,0 +1,48 @@
+{
+  "version": "0.21.0",
+  "id": "default-autonomous-takeover",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-11",
+    "privacy": "anonymized"
+  },
+  "developer_request": "AAOP: take over this project. I cannot develop software, do not know where it is now, and do not know what should happen next.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The owner has delegated ordinary development responsibility but supplied no roadmap or current task.",
+    "The repository contains project instructions, current implementation, tests, CI signals, history, and possibly stale continuity artifacts that can recover much of the intent and baseline.",
+    "Existing AAOP Working Contract, Journey, discovery, Routes, verification, and provider-selection mechanisms already exist; the missing behavior is their default autonomous composition.",
+    "A technical uncertainty, failing test, unfamiliar architecture, or missing task list is not a product decision owned by the novice."
+  ],
+  "expected_first_moves": [
+    "reconcile governing instructions, current repository/runtime evidence, Working Contract, and any Journey checkpoint before trusting old plans or status files",
+    "reconstruct ultimate intent from authoritative project evidence and distinguish it from the current development goal",
+    "select the highest-value evidence-backed safe next delta without asking the owner to choose a route, roadmap, stack, provider, or task",
+    "implement and verify the smallest coherent delta, then re-read current evidence and continue the next-delta loop while an authorized delta exists"
+  ],
+  "must_preserve": [
+    "AAOP authority over Working Contract, Journey, Route, authorization, acceptance, and handoff",
+    "host-native first and existing project capability before provider escalation",
+    "project-specific product authority and explicit completion/target-evidence boundaries",
+    "the distinction between a route-level verified no-op and long-horizon Journey completion"
+  ],
+  "must_not": [
+    "stop at repository analysis, a roadmap, a handoff document, or one completed delta when current evidence supports another safe next delta",
+    "make the novice supply a technical plan, stack choice, route, provider, test strategy, or ordinary debugging decision",
+    "treat ordinary technical uncertainty as a human-owned blocker or as justification for a default provider",
+    "invent product intent when a material value fork cannot be recovered from evidence or a safe experiment",
+    "add a duplicate planner, workflow engine, state database, or execution runtime"
+  ],
+  "required_guard_ids": [
+    "source-authority-freshness",
+    "reconcile-current-baseline-before-mutation",
+    "prove-delta-before-mutation",
+    "default-autonomous-takeover"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A default takeover is a composition of existing AAOP control surfaces, not a new orchestration product.",
+    "Ultimate intent and the current development goal must be reconstructed separately so an owner does not have to schedule the work.",
+    "Autonomy means continuing across verified deltas while preserving genuine human and production boundaries."
+  ]
+}

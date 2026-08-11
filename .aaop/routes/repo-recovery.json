@@ -1,5 +1,5 @@
 {
-  "version": "0.20.0",
+  "version": "0.21.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -61,6 +61,10 @@
     {
       "id": "prove-delta-before-mutation",
       "rule": "Do not mutate merely because the user authorized continued work or because repo-recovery has a stabilization stage. First prove a current observable delta in the active repository. If a local authorized delta exists, execute or reroute to the owning route; if the desired state already holds or meaningful next work is conditional/externally owned, return a verified no-op/no-local-mutation result instead of inventing a diff."
+    },
+    {
+      "id": "default-autonomous-takeover",
+      "rule": "When a novice delegates an unfamiliar project, recover ultimate intent and select the current highest-value evidence-backed goal from authoritative project, implementation, test, runtime, and continuity evidence. Do not require a roadmap or technical choices from the user, stop at a one-off analysis/plan/delta, or escalate ordinary technical uncertainty; continue through verified next deltas until a real human-owned decision, authority boundary, or completion condition remains."
     }
   ],
   "escalations": [

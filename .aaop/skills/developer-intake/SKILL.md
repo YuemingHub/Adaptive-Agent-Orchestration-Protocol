@@ -30,6 +30,33 @@ Routing is not keyword matching. Consider together:
 5. **Risk** — whether the first meaningful action is local/reversible or externally consequential.
 6. **Solution vocabulary status** — whether named technologies are hard constraints, preferences, or merely hypotheses the user is exploring.
 
+## Default autonomous takeover request
+
+Treat ordinary requests such as "AAOP: take over this project", "I do not know where
+this project is; you are responsible", or "continue development" as a delegation of
+the ordinary engineering loop, not as a request for a route name, roadmap, or a
+read-only repository summary. If the request or an authoritative Working Contract
+clearly selects autonomous delivery, persist/reuse that preference without asking a
+second collaboration-mode question.
+
+Start from current evidence and reconstruct two separate things:
+
+1. **Ultimate intent**: why the project exists and the observable long-horizon outcome.
+   Prefer authoritative product/governance material; use current implementation,
+   tests, CI/deployment evidence, recent history, issues, and PRs as supporting
+   evidence. Preserve material conflicts rather than converting stale artifacts into
+   intent.
+2. **Current development goal**: the highest-value evidence-backed result AAOP can
+   advance now. It is normally selected by the agent from the current baseline, not
+   supplied by a novice.
+
+If intent can be reconstructed only as a bounded hypothesis, advance a reversible
+evidence-bearing slice. Ask one question only when an unresolved product/domain value
+fork would materially define the product and cannot be resolved from evidence or a
+safe experiment. Do not treat technical uncertainty, an unfamiliar repository, failing
+tests, architecture choice, provider choice, or an incomplete plan as a human-owned
+question.
+
 When useful, materialize `.aaop/runtime/intake-envelope.json` against `../../schemas/intake-envelope.schema.json`.
 
 ## Step 1 — Read before asking
@@ -142,6 +169,19 @@ For greenfield requests, classify named technology before using it:
 If a user says “use agents, MCP, RAG, memory, a vector DB, and graph orchestration,” do not silently turn all of those terms into architecture requirements. First identify the user-visible workflow and what capability each term would need to supply.
 
 If the outcome can be safely inferred from project evidence and the request, proceed.
+
+### Choose the current goal without making the user schedule
+
+For an autonomous takeover, choose one current goal after baseline and intent
+reconstruction. Prefer, in order of present evidence: a safety/production blocker; a
+broken acceptance path; a proven incomplete core journey; a current defect; an accepted
+project milestone; or a reliability gap that prevents the next meaningful outcome. Do
+not create speculative cleanup or a broad roadmap merely to have a next task.
+
+After each verified delta, re-read the relevant current evidence and make the same
+selection again. Continue while a safe, authorized, evidence-backed next delta exists;
+reroute when evidence says the delta belongs elsewhere. A route-level verified no-op is
+not permission to declare the long-horizon project complete.
 
 ## Step 4 — Ask only a route-changing or outcome-blocking question
 

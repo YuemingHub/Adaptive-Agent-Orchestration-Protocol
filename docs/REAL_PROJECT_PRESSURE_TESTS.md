@@ -339,6 +339,28 @@ Use the strongest available native precondition: content/blob SHA, expected bran
 
 A precondition failure is first a **baseline/concurrency problem**, not a capability gap. `force` is a separate higher-risk decision, not the default recovery path.
 
+## v0.21 default autonomous takeover pressure
+
+### Novice project handoff -> recover, choose, execute, repeat — `repo-recovery`
+
+An anonymized real-project owner handed over a partially developed repository without
+knowing its current state, roadmap, or next task. The reusable failure was not lack of
+an individual AAOP capability: recovery, Working Contract, Journey, routes, and
+verification already existed, but their default composition did not compel a continuing
+autonomous loop.
+
+Lesson: a terse takeover request must recover intent from current authoritative evidence,
+select the highest-value safe current goal, execute and verify one delta, then reassess
+and continue. Ordinary engineering uncertainty stays agent-owned. AAOP pauses only for
+an irreducible product/domain value fork, credentials/access, new cost, production
+authorization, irreversible/high-impact action, or a precisely diagnosed legitimate
+blocker. The promoted fix is a small default-composition invariant, not a second
+planner, workflow engine, state database, or Provider.
+
+Guard:
+
+- `default-autonomous-takeover`
+
 ## Adding future cases
 
 Add a new pressure case when a real task reveals a repeatable orchestration error or dangerous near-miss.

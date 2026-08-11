@@ -105,8 +105,16 @@ You do not need to choose Routes, Skills, Agents, MCP servers, runtimes, framewo
 Recommended first prompt:
 
 ```text
-Take responsibility for this project from the current evidence. First understand the project and reconcile AAOP continuity state. If my autonomous/collaborative working mode is not already established, ask me that one question once. Resolve everything the repository or your engineering judgment can resolve without asking me, ask only for genuinely human-owned product/domain decisions or authorization, then continue through implementation and verification without making me schedule the engineering process.
+AAOP: take over this project.
 ```
+
+This means: recover the current project and intent from evidence, choose the highest-value
+safe next goal, implement and verify it, then keep selecting the next verified delta.
+You do not need to know the project stage or give AAOP a roadmap. If the autonomous or
+collaborative preference is not already established, AAOP asks that one question once;
+an explicit takeover request is an autonomous preference. It returns only for an
+irreducible product/domain decision, credentials or external-account access, new cost,
+production authorization, or irreversible/high-impact action.
 
 If this is a new idea:
 
