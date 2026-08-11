@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Static regression guard for the optional AAOP <-> LoopX provider seam."""
+"""Static and local-smoke regression guard for the optional AAOP <-> LoopX provider seam."""
 
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,6 +19,8 @@ PROVIDER_SELECTION = ROOT / ".aaop" / "skills" / "provider-selection" / "SKILL.m
 CAPABILITY_PLANNING = ROOT / ".aaop" / "skills" / "capability-planning" / "SKILL.md"
 INTEGRATION_DOC = ROOT / "docs" / "LOOPX_INTEGRATION.md"
 PROGRESSIVE_DOC = ROOT / "docs" / "PROGRESSIVE_ADOPTION.md"
+DOCTOR = ROOT / ".aaop" / "tools" / "doctor.py"
+RECIPE_TOOL = ROOT / ".aaop" / "tools" / "recipe.py"
 FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 SEMVER_TAG_RE = re.compile(r"^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
 
@@ -46,6 +52,60 @@ def contains_text(value: object, needle: str) -> bool:
     if isinstance(value, dict):
         return any(contains_text(item, needle) for item in value.values())
     return False
+
+
+def run_json(args: list[str], *, env: dict[str, str] | None = None) -> dict[str, object]:
+    completed = subprocess.run(
+        args,
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    require(
+        completed.returncode == 0,
+        f"command failed ({completed.returncode}): {' '.join(args)}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}",
+    )
+    payload = json.loads(completed.stdout)
+    require(isinstance(payload, dict), f"command must return JSON object: {' '.join(args)}")
+    return payload
+
+
+def validate_runtime_detection() -> None:
+    require(DOCTOR.is_file(), "missing doctor.py for LoopX provider detection smoke")
+    require(RECIPE_TOOL.is_file(), "missing recipe.py for LoopX recipe smoke")
+
+    shown = run_json([sys.executable, str(RECIPE_TOOL), "show", "loopx"])
+    require(shown.get("provider_id") == "loopx", "recipe CLI must expose LoopX recipe")
+    require(shown.get("install", {}).get("mode") == "manual-choice", "recipe CLI must preserve explicit LoopX adoption")
+
+    with tempfile.TemporaryDirectory(prefix="aaop-loopx-detect-") as tmp:
+        root = Path(tmp)
+        project = root / "project"
+        fakebin = root / "fakebin"
+        project.mkdir()
+        fakebin.mkdir()
+        executable = fakebin / "loopx"
+        executable.write_text("#!/usr/bin/env sh\nexit 0\n", encoding="utf-8")
+        executable.chmod(0o755)
+
+        env = os.environ.copy()
+        env["PATH"] = str(fakebin) + os.pathsep + env.get("PATH", "")
+        doctor = run_json([sys.executable, str(DOCTOR), str(project), "--json"], env=env)
+        detection = doctor.get("provider_detection")
+        require(isinstance(detection, dict), "doctor must expose provider_detection")
+        loopx = detection.get("loopx")
+        require(isinstance(loopx, dict), "doctor must expose LoopX provider detection row")
+        require(loopx.get("detected") is True, "provider detection must recognize a LoopX executable on PATH")
+        require("command" in loopx.get("evidence", {}), "LoopX detection must report command evidence")
+        require(doctor.get("observed_surface_level", 0) >= 4, "detected LoopX must project its Level 4 observed surface")
+
+        # Presence is evidence of availability only. Selection remains a policy decision.
+        require(
+            "recommended" not in json.dumps(loopx, ensure_ascii=False).lower(),
+            "doctor detection must not silently turn LoopX presence into an adoption recommendation",
+        )
 
 
 def main() -> int:
@@ -130,9 +190,12 @@ def main() -> int:
     require("Deep Agents-style provider" in progressive_doc, "progressive adoption must preserve runtime alternative")
     require("agency-orchestrator-style" in progressive_doc, "progressive adoption must preserve delegated Pod alternative")
 
+    validate_runtime_detection()
+
     print(
         "PASS LoopX provider seam: optional Level 4 escalation, immutable reviewed upstream identity, "
-        "AAOP authority, execution-continuity classification, adjacent-provider separation, and rollback gates"
+        "runtime detection without auto-adoption, AAOP authority, execution-continuity classification, "
+        "adjacent-provider separation, and rollback gates"
     )
     return 0
 
