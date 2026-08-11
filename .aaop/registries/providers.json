@@ -14,13 +14,13 @@
     },
     {
       "id": "agent-bundles",
-      "kind": "specialist-agent-source",
+      "kind": "retired-compatibility-alias",
       "upstream": "https://github.com/YuemingHub/agent-bundles",
-      "provides": ["curated-specialist-agent-prompts", "project-aware-agent-pairing", "cross-host-agent-install"],
-      "select_when": ["a bounded specialist role is genuinely missing after checking native agents, project agents, Skills, and local procedures", "specialization or context isolation materially improves the current task"],
-      "avoid_when": ["one capable agent is sufficient", "the missing capability is a tool/API/runtime rather than a specialist role", "more agents would add coordination overhead without a concrete responsibility boundary"],
+      "provides": ["legacy-specialist-source-reference"],
+      "select_when": ["a legacy AAOP instruction still names agent-bundles and must be resolved safely during migration; redirect immediately to the current Task Pod role-source policy rather than installing the repository"],
+      "avoid_when": ["all new specialist selection", "the role can be sourced from host-native/project-local roles", "agency-agents-zh or another current reviewed role source can satisfy the bounded role gap", "the missing capability is a tool/API/runtime/credential/authorization/product-decision gap"],
       "adoption_level": 2,
-      "status_note": "optional specialist source; never part of the default stack and never a substitute for a missing technical capability"
+      "status_note": "RETIRED compatibility alias: do not install or newly adopt YuemingHub/agent-bundles. New bounded specialist-role selection uses AAOP Task Pods and, only when justified, the reviewed agency-agents-zh source. The alias remains temporarily so historical instructions fail safe while old consumers migrate; AAOP runtime no longer depends on the agent-bundles repository."
     },
     {
       "id": "agency-agents-zh",

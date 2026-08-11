@@ -1,63 +1,53 @@
 {
   "id": "agent-bundles",
   "provider_id": "agent-bundles",
-  "last_verified": "2026-08-10",
-  "source_of_truth": "https://github.com/YuemingHub/agent-bundles",
+  "last_verified": "2026-08-11",
+  "source_of_truth": "https://github.com/YuemingHub/Adaptive-Agent-Orchestration-Protocol/blob/main/docs/AUXILIARY_REPO_RETIREMENT.md",
   "selection": {
     "use_when": [
-      "a bounded specialist-agent role is genuinely missing after checking the host's native agents, existing project agents, Skills, and local procedures",
-      "project-aware curation of specialist role prompts would materially improve specialization or context isolation"
+      "a legacy AAOP instruction or installed consumer still names agent-bundles and needs a safe migration path to the current Task Pod role-source policy"
     ],
     "avoid_when": [
-      "the main agent can perform the work adequately",
-      "the need is actually a technical tool or external-service capability gap rather than a role/specialization gap",
-      "installing a broad catalog would add context or coordination overhead without a concrete responsibility boundary",
-      "the task is blocked by authorization, credentials, environment, network, external dependency, or product decision"
+      "all new specialist-role selection",
+      "the main agent or a project-local role can perform the responsibility",
+      "a bounded missing role can be sourced directly from the current reviewed agency-agents-zh provider",
+      "the missing capability is a tool/API/runtime/credential/authorization/product-decision gap"
     ]
   },
   "detect": {},
   "install": {
     "mode": "manual-choice",
     "minimal_commands": [
-      "git clone https://github.com/YuemingHub/agent-bundles.git",
-      "cd agent-bundles && ./bootstrap.sh --list",
-      "cd agent-bundles && ./bootstrap.sh --division <one-or-few-justified-divisions> --dry-run",
-      "cd agent-bundles && ./bootstrap.sh --division <one-or-few-justified-divisions>"
+      "do not install or clone YuemingHub/agent-bundles for new AAOP work",
+      "load the AAOP team-construction policy and the agency-agents-zh Integration Recipe only if a bounded specialist role is genuinely missing",
+      "use agency-orchestrator separately only when the justified Task Pod needs delegated DAG/resume execution that the host cannot provide"
     ],
     "notes": [
-      "On Windows use bootstrap.ps1 instead of bootstrap.sh.",
-      "Provider detection is intentionally empty because the current installer does not create a provider-specific ownership marker. Generic files under .claude/agents, .cursor/agents, or similar directories are not proof that agent-bundles was installed.",
-      "Preview with --dry-run before installation and prefer one or a few explicit divisions that match the evidenced responsibility gap; do not use the broad project/default bundle merely for convenience.",
-      "Record the agent-bundles revision and the resolved upstream agency-agents revision when the specialist prompts become material to a project, because the upstream is fetched at runtime and can change independently.",
-      "Review the selected role files as procedural input before relying on them in a sensitive project; upstream role prompts are installed as-is rather than vendored or independently certified by AAOP.",
-      "agent-bundles does not vendor upstream agents. Its bootstrap fetches msitarzewski/agency-agents at runtime and installs a curated subset into the selected host's agent directory."
+      "RETIRED compatibility tombstone. This Recipe intentionally contains no agent-bundles bootstrap/install command and no runtime dependency on the YuemingHub/agent-bundles repository.",
+      "The historical repository was a cross-host installer for curated role prompts. AAOP v1 now owns Task Pod composition and can select a current reviewed role source directly, so keeping another installer layer no longer adds a distinct capability.",
+      "Legacy consumers may resolve this Recipe during migration, but the result is a redirect to current AAOP Task Pod/provider selection rather than a fresh agent-bundles adoption.",
+      "Role prompts still do not create missing APIs, tools, credentials, network access, or runtime capabilities."
     ]
   },
-  "permissions": [
-    "local write access to the selected host's agent configuration directory",
-    "network access to GitHub for the agent-bundles repository and its configured upstream source"
-  ],
+  "permissions": [],
   "verify": {
     "checks": [
-      "confirm only the intended specialist divisions/agents were installed",
-      "confirm generic pre-existing agent files were not mistaken for agent-bundles ownership",
-      "record or inspect the concrete provider/upstream revisions used for material adoption",
-      "restart or reload the host if it requires agent discovery at startup",
-      "delegate one bounded representative responsibility and verify that specialist separation materially improves the original task",
-      "remove or avoid specialists that duplicate the main agent without measurable value"
+      "confirm no new project or host configuration was written by agent-bundles",
+      "confirm the required specialist responsibility is represented by an AAOP Task Pod with one accountable owner",
+      "if an external role source is still justified, confirm the current reviewed provider/revision is recorded directly rather than through agent-bundles",
+      "confirm a technical capability gap was not misclassified as a need for more roles"
     ]
   },
   "rollback": {
     "steps": [
-      "remove only the agent files proven to have been installed for this adoption from the target host agent directory",
-      "preserve project-owned or pre-existing agent files",
-      "remove the temporary agent-bundles checkout if it is no longer needed"
+      "for legacy installations only, remove agent files using the ownership evidence from that historical installation without deleting project-owned or pre-existing roles",
+      "remove any obsolete local clone/reference to YuemingHub/agent-bundles after migration",
+      "continue from AAOP Task Pod/provider-selection state without the retired installer layer"
     ]
   },
   "warnings": [
-    "Agent-role prompts do not create new external tool permissions or technical capabilities; do not misclassify a missing tool/API/runtime as something more agents can solve.",
-    "More agents can increase coordination cost and context fragmentation. Default to one agent unless the responsibility boundary is evidenced.",
-    "The current agent-bundles installer has no provider-specific ownership marker, so AAOP must not infer installation merely from the presence of generic host agent files.",
-    "Runtime-fetched upstream role prompts can change; consequential reuse should capture the actual revisions and review the selected files rather than assuming a prior catalog review still applies."
+    "Do not newly install agent-bundles. This file exists only so historical AAOP references fail safe during migration.",
+    "Use agency-agents-zh only when a concrete bounded specialist responsibility is missing; do not replace one broad role catalog with another broad default install.",
+    "Use agency-orchestrator only for a distinct proven Task Pod DAG/resume execution gap; a role source and a delegated execution runtime are separate capability classes."
   ]
 }
