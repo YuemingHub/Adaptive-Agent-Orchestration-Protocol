@@ -18,6 +18,8 @@ jobs:
           python-version: "3.12"
       - name: Validate source package
         run: python scripts/validate.py
+      - name: Validate optional LoopX provider seam
+        run: python scripts/validate_loopx_provider.py
       - name: Validate real-project pressure regressions
         run: python scripts/validate_pressure.py
       - name: Validate AAOP source-tree health semantics
