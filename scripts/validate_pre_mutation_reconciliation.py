@@ -43,7 +43,7 @@ def main() -> int:
         "not a project-specific onboarding flow",
         "derived control surface truth boundary",
         "second source of truth",
-        "source/provenance linkage",
+        "provenance/source linkage",
         "consumer-local regression",
         "does not require every project",
     ):
