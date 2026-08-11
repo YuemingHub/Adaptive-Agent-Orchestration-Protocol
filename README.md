@@ -84,6 +84,14 @@ AAOP READY
 
 The same command also gives you a starter prompt.
 
+For an installation whose bootstrap provenance is `official-ref@stable`, a non-trivial takeover also checks whether that internally healthy package is still the current deliberately promoted stable control plane:
+
+```bash
+python .aaop/tools/source_freshness.py --json
+```
+
+`current` means the local package release identity matches official `stable`. `stale` means reuse the canonical stable bootstrap above, which preserves AAOP runtime/project-owned state, then rerun project compatibility evidence before trusting takeover/no-op/completion semantics. Network/source failure is `unknown`, not proof of either freshness or staleness. Exact/pinned/local sources are preserved rather than silently moved to `stable`.
+
 ### 3. Open the project in Codex, Claude Code, Cursor, or another host that reads project instructions
 
 Then speak normally. A recommended first sentence is:
@@ -148,7 +156,9 @@ Desired outcome vs current evidence
         ↓
 Proven execution delta?
   yes → smallest coherent change
-  no  → verified no-op / correct blocker
+  no  → scope-level verified no-op / correct blocker
+        ↓
+Reconcile current project frontier before project-level no-op/pause
         ↓
 One Agent by default
   justified specialization → bounded Task Pod (1–5, one accountable owner)
@@ -197,9 +207,10 @@ python .aaop/tools/aaop.py status .
 python .aaop/tools/aaop.py doctor .
 python .aaop/tools/aaop.py prompt
 python .aaop/tools/aaop.py version
+python .aaop/tools/source_freshness.py --json
 ```
 
-Lower-level tools such as `health.py`, `doctor.py`, `route.py`, `recipe.py`, `journey.py`, `working_contract.py`, and `instructions.py` remain available for orchestration and debugging, but a normal user should not need to memorize them.
+Lower-level tools such as `health.py`, `doctor.py`, `source_freshness.py`, `route.py`, `recipe.py`, `journey.py`, `working_contract.py`, and `instructions.py` remain available for orchestration and debugging, but a normal user should not need to memorize them.
 
 ## Human-Agent Working Contract
 
@@ -232,6 +243,8 @@ External role libraries such as `agency-agents-zh` are optional specialist sourc
 ## Upgrade
 
 Run the current `stable` bootstrap command again. It upgrades only when the `stable` channel has been deliberately advanced to a new fully gated release candidate; ordinary commits to `main` do not change the production install path.
+
+Starting with v1.1, a stable semantic package promotion must use a new package release identity. A `stable-managed` installation can therefore compare its local `.aaop/VERSION` with official stable through `source_freshness.py`; local `health` / `ready` alone are not freshness proof.
 
 If a consumer is intentionally pinned to an exact commit, keep using that exact command for reproducibility. To upgrade it, choose the newly validated commit deliberately rather than silently replacing the pin.
 
@@ -270,10 +283,10 @@ Removal is manifest-scoped: AAOP removes only what it can prove it owns, preserv
 ## Release channels
 
 - `main` — development/edge. It may advance whenever reviewed development work lands.
-- `stable` — production channel. Advance it only to a candidate that has already passed the full AAOP release gate and production-readiness checks relevant to that release.
+- `stable` — production channel. Advance it only to a candidate that has already passed the full AAOP release gate and production-readiness checks relevant to that release, with a package VERSION that identifies that stable semantic release.
 - exact commit — immutable revision pin for consumers that require repeatable source identity.
 
-A green `main` commit does not automatically move `stable`. Promotion is a separate release decision so downstream repositories are not silently upgraded by ordinary AAOP development.
+A green `main` commit does not automatically move `stable`. Promotion is a separate release decision so downstream repositories are not silently upgraded by ordinary AAOP development. Do not fast-forward `stable` across materially changed managed AAOP semantics while reusing the previous package VERSION.
 
 ## Safety and autonomy boundary
 
@@ -287,7 +300,8 @@ AAOP aims for high autonomy without pretending all actions are equivalent.
 - credentials, new external accounts, costs, production writes, destructive changes, consequential publication, or materially expanded permissions: require the appropriate authorization;
 - remote write destination: resolve explicitly when branch/ref/environment/destination omission would silently select a target;
 - stale write/merge/Working Contract/Journey preconditions: re-read and reconcile instead of forcing over concurrent work;
-- no proven current delta: do not manufacture a diff merely to look productive.
+- no proven current delta: do not manufacture a diff merely to look productive;
+- a green/local no-mutation scope is not project completion while current authoritative work topology or unmet acceptance evidence still supplies a meaningful authorized frontier.
 
 A repository API's default branch is metadata, not the default engineering write destination. When a project requires a working branch + PR, remote file/ref mutations must explicitly target that branch; a syntactically optional `branch`/`ref` field must not be omitted if omission writes to `main`, `production`, or another implicit destination. Verify after the write that the intended target changed and the protected/default target did not change unexpectedly.
 
@@ -323,7 +337,7 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 6. Read only enough evidence to change the current decision.
 7. Cross-repository relevance does not automatically create cross-repository work scope.
 8. Prove a real execution delta before mutation.
-9. Accept a verified no-op when nothing should change.
+9. Accept a scope-level verified no-op when nothing in that selected scope should change; reconcile the project frontier before promoting it to a project pause/completion claim.
 10. Resolve the explicit destination before a consequential remote mutation; do not let an optional API field silently choose the write target.
 11. Revalidate the target baseline immediately before consequential writes.
 12. Treat PR merge approval as scoped to its reviewed base/head and declared predecessor order; textual mergeability is not semantic independence.
@@ -338,7 +352,8 @@ Integration Recipes can reference mature providers such as Agent Skills, MCP, AR
 21. Resume an existing Journey from Working Contract + checkpoint + current evidence before inferring a new goal from a terse continuation message.
 22. Reject stale Journey/Working Contract writes rather than allowing parallel or old coordinator state to overwrite newer evidence.
 23. Treat consumer adapters, pinned protocol/provider revisions, generated bridges, and cached observations as execution dependencies: verify their freshness when material, but never let them override project truth or auto-upgrade without a proven local delta.
-24. Treat `stable` promotion as a release action, not a synonym for whatever happens to be on `main`.
+24. Treat `stable` promotion as a release action with a new package release identity for materially changed managed semantics, not a synonym for whatever happens to be on `main`.
+25. Reconcile material current PR/candidate/branch/handoff/predecessor-successor topology before claiming the delegated project has no executable frontier.
 
 ## Repository map
 
@@ -358,6 +373,7 @@ AGENTS.md / CLAUDE.md              host-native bootstrap
 └── tools/
     ├── aaop.py                    human-facing command surface
     ├── health.py
+    ├── source_freshness.py        stable-managed release identity check
     ├── doctor.py
     ├── instructions.py
     ├── journey.py                 revisioned Journey checkpoint continuity
@@ -393,11 +409,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v1.0.0 — production release line governed by the AAOP production release contract.**
+**v1.1.0 — production release line governed by the AAOP production release contract.**
 
-A source-tree or pull-request copy is not production merely because it carries the v1.0.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
+A source-tree or pull-request copy is not production merely because it carries the v1.1.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
 
-The v1 release candidate adds the production Human-Agent Working Contract: explicit autonomous/collaborative mode persistence, evidence-first alignment, decision ownership, execution gating while human-owned questions remain, revision/CAS stale-write protection, bounded 1–5 member Task Pods with one accountable owner, standardized handoff, and optional `agency-agents-zh` / `agency-orchestrator` provider boundaries that remain subordinate to AAOP.
+v1.1 keeps the v1 Human-Agent Working Contract and adds the production lessons learned from real autonomous takeover pressure: current control-plane freshness, default takeover continuation, scoped-blocker frontier continuation, project-wide frontier reconciliation before project no-op/pause, and stable release identity that can distinguish a coherent-but-stale control plane from the latest deliberately promoted stable package.
 
 Accumulated production hardening also includes stable-vs-edge bootstrap separation and exact-ref pinning; bounded archive extraction; transactional install/upgrade/uninstall with interrupted-operation recovery; fail-closed manifest and Journey schema handling; Journey CAS/OS locking and last-good recovery; CPython 3.11–3.14 support across Linux/Windows/macOS; install provenance with managed-byte fingerprinting; immutable reviewed GitHub Action pins; and exact-candidate downstream consumer validation.
 
