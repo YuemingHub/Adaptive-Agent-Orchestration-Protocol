@@ -20,6 +20,7 @@ VERSION_PATH = ROOT / ".aaop" / "VERSION"
 JOURNEY_PATH = ROOT / ".aaop" / "journeys" / "idea-to-production.json"
 WORKFLOW_ROOT = ROOT / ".github" / "workflows"
 SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
 WORKFLOW_NAME_RE = re.compile(r"^name:\s*(.+?)\s*$", re.MULTILINE)
 CONTENTS_READ_RE = re.compile(r"^\s*contents\s*:\s*read\s*(?:#.*)?$", re.MULTILINE | re.IGNORECASE)
 CONTENTS_WRITE_RE = re.compile(r"^\s*contents\s*:\s*write\s*(?:#.*)?$", re.MULTILINE | re.IGNORECASE)
@@ -71,6 +72,22 @@ def main() -> int:
         errors,
     )
 
+    downstream = release.get("downstream_consumer")
+    require(isinstance(downstream, dict), "downstream_consumer contract must be an object", errors)
+    downstream_sha = ""
+    if isinstance(downstream, dict):
+        require(downstream.get("repository") == "YuemingHub/MingOS", "production downstream consumer must remain the real MingOS repository", errors)
+        downstream_sha = str(downstream.get("commit") or "")
+        require(SHA40_RE.fullmatch(downstream_sha) is not None, "production downstream consumer must pin one exact 40-char commit SHA", errors)
+        require(
+            downstream.get("workflow") == ".github/workflows/validate-downstream-consumer.yml",
+            "downstream consumer workflow path drifted",
+            errors,
+        )
+        validation_text = str(downstream.get("validation") or "").lower()
+        require("working contract" in validation_text, "downstream contract must include Working Contract continuity", errors)
+        require("project authority" in validation_text, "downstream contract must include project-authority preservation", errors)
+
     canonical = release.get("canonical_journey")
     require(isinstance(canonical, dict), "canonical_journey contract must be an object", errors)
     if isinstance(canonical, dict):
@@ -120,9 +137,24 @@ def main() -> int:
             require(CONTENTS_READ_RE.search(text) is not None, f"workflow must explicitly declare contents: read: {filename}", errors)
             require(CONTENTS_WRITE_RE.search(text) is None, f"production workflow must not retain contents: write: {filename}", errors)
 
-    if isinstance(required_workflows, list):
         require("validate-working-contract.yml" in required_workflows, "production topology must include validate-working-contract.yml", errors)
         require("validate-downstream-consumer.yml" in required_workflows, "production topology must include validate-downstream-consumer.yml", errors)
+
+    downstream_workflow_path = WORKFLOW_ROOT / "validate-downstream-consumer.yml"
+    if downstream_workflow_path.is_file():
+        downstream_workflow = downstream_workflow_path.read_text(encoding="utf-8")
+        if downstream_sha:
+            require(downstream_sha in downstream_workflow, "downstream workflow must pin the same MingOS commit declared by PRODUCTION_RELEASE", errors)
+        require(
+            "github.event.pull_request.head.sha" in downstream_workflow,
+            "downstream PR workflow must checkout the exact PR candidate head rather than only the synthetic merge ref",
+            errors,
+        )
+        require(
+            "git rev-parse HEAD" in downstream_workflow,
+            "downstream workflow must record the actual checked-out AAOP candidate SHA",
+            errors,
+        )
 
     required_docs = release.get("required_docs")
     require(isinstance(required_docs, list) and bool(required_docs), "required_docs must be a non-empty list", errors)
@@ -185,7 +217,7 @@ def main() -> int:
 
     print(
         "PASS AAOP production release contract: "
-        f"v{version}, canonical Journey, Human-Agent Working Contract, {len(actual_workflows)} read-only workflow gates"
+        f"v{version}, canonical Journey, Human-Agent Working Contract, pinned MingOS consumer, {len(actual_workflows)} read-only workflow gates"
     )
     print("LIVE GATE STILL REQUIRED: all workflow conclusions green + exact-candidate downstream consumer validation before stable promotion")
     return 0
