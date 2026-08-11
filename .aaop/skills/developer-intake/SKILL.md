@@ -39,6 +39,37 @@ read-only repository summary. If the request or an authoritative Working Contrac
 clearly selects autonomous delivery, persist/reuse that preference without asking a
 second collaboration-mode question.
 
+### Control-plane source freshness before takeover
+
+An installed AAOP package can be internally healthy while still being an old control
+plane. Before a non-trivial autonomous takeover trusts local `health`, `ready`, route,
+no-op, blocker, continuation, or completion semantics, inspect the installed source
+policy when bootstrap provenance is available.
+
+For a `stable-managed` installation, run:
+
+```bash
+python .aaop/tools/source_freshness.py --json
+```
+
+Interpret the result as execution evidence:
+
+- `current` — continue with the installed stable control plane;
+- `stale` — this is a proven control-plane compatibility delta. Reuse the canonical
+  state-preserving **stable bootstrap**, preserve `.aaop/runtime` and project-owned
+  rules/state, re-run project compatibility/readiness evidence, then re-read the
+  current AAOP intake/Journey rules before selecting the project frontier;
+- `unknown` — do not infer freshness from the local version or health result. Keep the
+  network/source-evidence limitation explicit and scoped; continue independent safe
+  authorized project work that does not depend on the missing control-plane claim;
+- `frozen` / `explicit-ref` / `not-managed` — preserve the explicit source policy.
+  Do not silently replace an exact/pinned/local source with `stable` or `main` merely
+  because upstream moved.
+
+Source freshness is not product truth and does not grant production, credential, cost,
+or project mutation authority. Do not build another updater: the existing canonical
+bootstrap remains the only package lifecycle path.
+
 Start from current evidence and reconstruct two separate things:
 
 1. **Ultimate intent**: why the project exists and the observable long-horizon outcome.
@@ -178,6 +209,13 @@ broken acceptance path; a proven incomplete core journey; a current defect; an a
 project milestone; or a reliability gap that prevents the next meaningful outcome. Do
 not create speculative cleanup or a broad roadmap merely to have a next task.
 
+When project authority declares a current release candidate, active PR/candidate stack,
+predecessor/successor order, current handoff, or another current-work surface that can
+change the goal, treat that topology as bounded execution evidence. Compare its unmet
+acceptance/review/executable gates with the accepted product outcome. Do **not** infer
+that every open issue/branch/PR is current, and do not treat green checks on the present
+checkout as proof that the delegated project has no other current frontier.
+
 After each verified delta, re-read the relevant current evidence and make the same
 selection again. Continue while a safe, authorized, evidence-backed next delta exists;
 reroute when evidence says the delta belongs elsewhere. A route-level verified no-op is
@@ -261,7 +299,9 @@ The route is an internal coordination mechanism, not a form the user must operat
 Developer intake is complete when:
 
 - the current situation is sufficiently understood;
+- stable-managed control-plane freshness has been checked when material, or its source/network uncertainty is explicitly scoped without being mistaken for current compatibility;
 - any relevant existing Journey checkpoint has been read/recovered/reconciled rather than ignored or restarted;
+- materially current project work topology that can change the current goal has been bounded/reconciled rather than replaced by the checked-out branch alone;
 - one primary route is selected;
 - a provisional observable outcome is defined;
 - proposed solution vocabulary is not being mistaken for requirements without evidence;
