@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "id": "stale-project-assumption-drift",
   "provenance": {
     "kind": "anonymized-real-project",
@@ -13,14 +13,16 @@
     "A project-local orchestration readiness adapter still hard-codes an old pre-release assumption as current fact.",
     "A release-status regression fails because it repeats the same historical assumption.",
     "A separate interaction regression asserts a retired public label while current accepted project evidence uses a newer label.",
-    "The contradictions affect route/delta interpretation before feature work but do not by themselves prove that current product behavior should be changed."
+    "The contradictions affect route/delta interpretation before feature work but do not by themselves prove that current product behavior should be changed.",
+    "The repaired consumer derives readiness facts from project-owned current evidence, propagates missing input as unknown, preserves historical material as provenance, and adds a local regression so the adapter cannot silently reintroduce the old literal assumption."
   ],
   "expected_first_moves": [
     "Anchor the active work target and inspect the project-declared current/canonical state sources before editing.",
     "Classify the readiness adapter, failing regressions, accepted current-state sources, implementation, and any runtime evidence by claim authority and freshness.",
     "Treat the failing derived assertions as possible stale evidence rather than automatically treating them as current product defects.",
     "Preserve any fact that remains unknown instead of converting it into a negative assertion.",
-    "If current authority is sufficient, repair only stale derived adapters/tests and re-establish affected evidence; if authority remains materially conflicted, keep recovery active until the baseline is trustworthy."
+    "If current authority is sufficient, repair only stale derived adapters/tests, make the adapter derive material claims from the project-owned source instead of duplicating literals, and re-establish affected evidence.",
+    "When recurrence risk is material, add a consumer-local regression that proves the derived control surface still follows current authority and unknown semantics; if authority remains materially conflicted, keep recovery active until the baseline is trustworthy."
   ],
   "must_preserve": [
     "Historical evidence remains available as history/provenance.",
@@ -30,6 +32,7 @@
   "must_not": [
     "Do not change current product behavior merely to make an old assertion pass.",
     "Do not hard-code a consumer-specific product name, domain actor, deployment status, or status filename into AAOP Core.",
+    "Do not let a project-local readiness/orchestration adapter become a shadow source of project or operational truth.",
     "Do not treat unknown external/runtime facts as false.",
     "Do not add a new workflow/runtime/state database to solve a source-reconciliation problem."
   ],
@@ -37,12 +40,14 @@
     "source-authority-freshness",
     "preserve-conflicting-evidence",
     "reconcile-current-baseline-before-mutation",
+    "derived-control-surface-no-shadow-truth",
     "prove-delta-before-mutation"
   ],
   "expected_blocker_class": "missing-evidence",
   "lessons": [
     "Existing-project autonomy requires a trustworthy current mutation baseline, not merely a roadmap or a set of failing tests.",
     "Tests and adapters can become stale derived evidence when project identity, deployment state, contracts, or other assumptions evolve.",
-    "The reusable AAOP fix is a project-independent pre-mutation reconciliation invariant; the consumer project remains only a pressure source."
+    "A derived control surface should consume project-defined authority, preserve provenance and unknown semantics, and use local regression evidence when recurrence risk matters instead of becoming a second source of truth.",
+    "The reusable AAOP fix is project-independent: reconcile before mutation and prevent derived automation surfaces from shadowing project truth; the consumer project remains only a pressure source."
   ]
 }
