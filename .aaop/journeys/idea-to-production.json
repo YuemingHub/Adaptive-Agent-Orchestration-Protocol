@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "status": "canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -9,13 +9,18 @@
     "reroute_requires_new_evidence": true,
     "stale_checkpoint_never_overrides_current_evidence": true,
     "completed_cycle_must_reopen_explicitly": true,
-    "autonomous_takeover_reconstructs_intent_and_selects_current_goal": true
+    "autonomous_takeover_reconstructs_intent_and_selects_current_goal": true,
+    "route_completion_is_not_project_completion": true,
+    "blocked_delta_is_scoped_and_frontier_recomputed": true,
+    "bounded_execution_end_is_handoff_not_completion": true
   },
   "completion_policy": {
     "blocked_is_complete": false,
     "target_verification_required": true,
     "target_verification_is_cycle_scoped": true,
-    "local_or_ci_evidence_cannot_substitute_for_target_evidence": true
+    "local_or_ci_evidence_cannot_substitute_for_target_evidence": true,
+    "single_blocker_cannot_block_project_when_other_executable_delta_exists": true,
+    "project_pause_requires_no_meaningful_authorized_executable_frontier_or_bounded_run_end": true
   },
   "state_contract": {
     "runtime_file": ".aaop/runtime/journeys/idea-to-production.json",
@@ -41,6 +46,7 @@
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
+    "scoped blocker handling and executable-frontier recomputation after every completed, blocked, or no-op delta",
     "journey checkpoint maintenance, resume reconciliation, and stale-write prevention",
     "release-cycle boundaries so old target verification cannot prove a later release",
     "capability/provider selection only after a proven gap",
@@ -88,12 +94,13 @@
       "route_selection": "current-route",
       "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
       "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery", "understand-review"],
-      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, reselecting the next highest-value safe delta after each verified result, until the intended release behavior is present or a genuine human boundary blocks it.",
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, recomputing the highest-value safe executable frontier after every verified, blocked, or no-op delta. A human or external boundary blocks only the affected scope; continue independent authorized work until intended release behavior is present or no meaningful executable frontier remains.",
       "exit_evidence": [
         "acceptance behavior",
         "regression evidence",
         "reviewed diff",
-        "current next-decision evidence"
+        "current next-decision evidence",
+        "scoped blocker plus recomputed remaining frontier when any delta is blocked"
       ]
     },
     {
@@ -156,6 +163,10 @@
     "deployment/release is the immediate blocker -> release-operations",
     "a route transition must be justified by materially new evidence or a changed blocker classification; lack of progress alone is not a reroute signal",
     "if routes begin to oscillate without new evidence, stop and reclassify the blocker instead of continuing to bounce",
+    "route completion, verified no-op, or one blocked delta must trigger current-evidence frontier recomputation; none of them is project completion by itself",
+    "a human, credential, production, safety, environment, or external-dependency blocker applies only to the delta whose required precondition it covers; unrelated authorized deltas remain executable",
+    "surface a human unblock request as a project-level pause only when current evidence proves no other meaningful authorized executable delta remains",
+    "if a bounded host execution window ends while executable work remains, checkpoint the exact next frontier and blockers as a resumable handoff; do not mark the Journey complete",
     "after a completed release, new build/fix work starts an explicit next release cycle; previous target verification is archived and cannot satisfy the new cycle",
     "before mutating Journey continuity state, re-read and reconcile the current checkpoint revision; a stale revision must fail rather than overwrite concurrent evidence"
   ],
@@ -177,6 +188,7 @@
     "rollback/recovery status is known",
     "material residual risks are visible",
     "the next product decision can be based on real evidence rather than speculative architecture",
-    "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition"
+    "a blocked delta does not make the project blocked while another meaningful authorized executable delta remains",
+    "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition only after the remaining executable frontier has been exhausted"
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "version": "0.21.0",
+  "version": "0.22.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -64,7 +64,11 @@
     },
     {
       "id": "default-autonomous-takeover",
-      "rule": "When a novice delegates an unfamiliar project, recover ultimate intent and select the current highest-value evidence-backed goal from authoritative project, implementation, test, runtime, and continuity evidence. Do not require a roadmap or technical choices from the user, stop at a one-off analysis/plan/delta, or escalate ordinary technical uncertainty; continue through verified next deltas until a real human-owned decision, authority boundary, or completion condition remains."
+      "rule": "When a novice delegates an unfamiliar project, recover ultimate intent and select the current highest-value evidence-backed goal from authoritative project, implementation, test, runtime, and continuity evidence. Do not require a roadmap or technical choices from the user, stop at a one-off analysis/plan/delta, or escalate ordinary technical uncertainty; continue through verified next deltas until project completion or until no meaningful authorized executable delta remains without a genuine human/external boundary."
+    },
+    {
+      "id": "scoped-blocker-frontier-continuation",
+      "rule": "A blocker applies only to the delta whose required precondition it covers. After any delta becomes blocked, verified no-op, or route-complete, recompute the highest-value safe authorized executable frontier from current project evidence. Do not end the takeover, declare the project blocked, or ask the human merely because the top-ranked delta needs authorization, credentials, production access, an external dependency, or another scoped precondition while independent valuable work remains. Pause the project only when completion is proven, no meaningful authorized executable frontier remains, or the bounded host run ends with an exact durable handoff rather than a false completion."
     }
   ],
   "escalations": [
@@ -102,6 +106,8 @@
     "a mutation occurred only after a current local execution delta was proven",
     "when no current local delta existed, verified no-op/no-local-mutation evidence was accepted instead of manufacturing a change",
     "when recovery exposed a concrete bug or desired behavior, the route executed or rerouted instead of remaining in analysis mode",
+    "when one delta was human/external blocked, the blocker stayed scoped and remaining meaningful authorized work was recomputed before any project-level pause",
+    "route completion or a route-level no-op did not get promoted into project/Journey completion without current completion evidence",
     "unresolved conflicts remain explicit",
     "broad cleanup or exhaustive repository reading was avoided unless evidence justified it"
   ],
@@ -109,7 +115,8 @@
     "a specific current failing behavior becomes primary -> bug-fix",
     "a current desired new behavior becomes primary -> feature-change",
     "the user only needs a decision/review -> understand-review",
-    "the supposed local next step is already satisfied or not currently justified -> verified no-op / no-local-mutation, do not invent work",
+    "one delta is blocked but independent meaningful authorized work remains -> keep the blocker scoped, recompute frontier, and continue under the evidence-selected route",
+    "the supposed local next step is already satisfied or not currently justified -> verified no-op for that route decision, then recompute project frontier rather than invent work or declare project completion",
     "the meaningful next delta belongs to another repository -> preserve cross-repository scope and establish separate work scope there"
   ]
 }
