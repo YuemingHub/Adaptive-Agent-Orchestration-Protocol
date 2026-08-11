@@ -35,6 +35,23 @@ Do not inventory the whole repository merely to satisfy this policy. Stop when t
 - `unknown` is a first-class state. Do not silently convert unknown into `false`, absent, disabled, unused, non-production, or any other negative assertion.
 - Newest timestamp, default branch, merged status, or most detailed document does not automatically win an authority conflict.
 
+## Derived control surface truth boundary
+
+A project may contain local orchestration/readiness scripts, CI helpers, release-status commands, generated bridges, dashboards, Agent bootstrap files, or other **derived control surfaces** that summarize project or operational state for automation.
+
+These surfaces are allowed to calculate, aggregate, validate, or present project facts. They must not silently become a second source of truth for claims already owned elsewhere.
+
+When a derived control surface makes a material claim:
+
+1. resolve the project-defined source that owns that claim, or keep the value `unknown` when the source cannot establish it;
+2. derive from current source/runtime evidence rather than copying a historical literal into the adapter;
+3. preserve enough provenance/source linkage that a future maintainer or Agent can identify where the claim came from;
+4. do not convert missing input into a convenient negative assertion;
+5. when the owning contract changes, treat dependent adapter/test/readiness evidence as stale and re-establish it on the new baseline;
+6. when recurrence risk is material, prefer a consumer-local regression that proves the adapter still derives from current authority and preserves unknown semantics.
+
+This does **not** require every project to create a readiness adapter, state file, or conformance test. The rule applies only when such a derived control surface exists and its output can affect route, release, safety, or mutation decisions.
+
 ## Mutation gate
 
 Before the first material mutation, classify the reconciled result:
