@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "status": "canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -12,7 +12,8 @@
     "autonomous_takeover_reconstructs_intent_and_selects_current_goal": true,
     "route_completion_is_not_project_completion": true,
     "blocked_delta_is_scoped_and_frontier_recomputed": true,
-    "bounded_execution_end_is_handoff_not_completion": true
+    "bounded_execution_end_is_handoff_not_completion": true,
+    "project_frontier_reconciled_before_project_pause": true
   },
   "completion_policy": {
     "blocked_is_complete": false,
@@ -20,14 +21,16 @@
     "target_verification_is_cycle_scoped": true,
     "local_or_ci_evidence_cannot_substitute_for_target_evidence": true,
     "single_blocker_cannot_block_project_when_other_executable_delta_exists": true,
-    "project_pause_requires_no_meaningful_authorized_executable_frontier_or_bounded_run_end": true
+    "project_pause_requires_no_meaningful_authorized_executable_frontier_or_bounded_run_end": true,
+    "local_no_mutation_is_not_project_no_frontier": true,
+    "green_checks_are_not_project_completion": true
   },
   "state_contract": {
     "runtime_file": ".aaop/runtime/journeys/idea-to-production.json",
     "schema": ".aaop/schemas/journey-state.schema.json",
     "checkpoint_tool": ".aaop/tools/journey.py",
     "write_precondition": "Every checkpoint mutation must use the revision returned by the latest reconciled status read; stale revisions are rejected while mutation is serialized by a local OS file lock.",
-    "authority": "Journey state is a resumability checkpoint only. Current repository, runtime, target-environment, and user evidence wins when it conflicts with a saved checkpoint. Completed release evidence is historical and must not satisfy a later release cycle."
+    "authority": "Journey state is a resumability checkpoint only. Current repository, runtime, target-environment, user, and materially current project-work evidence wins when it conflicts with a saved checkpoint. Completed release evidence is historical and must not satisfy a later release cycle."
   },
   "entry_conditions": [
     "the user has a product/app idea or an existing partial implementation",
@@ -43,6 +46,7 @@
   "system_owns": [
     "route selection and rerouting",
     "intent reconstruction and current-goal selection from current project evidence",
+    "bounded reconciliation of materially current project work topology and unmet acceptance evidence before project pause/no-frontier claims",
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
@@ -56,10 +60,11 @@
     {
       "id": "intake",
       "route_selection": "developer-intake",
-      "goal": "Resolve the current situation, reconstruct the long-horizon observable outcome when a novice delegates takeover, choose the current highest-value evidence-backed goal, and identify the next evidence-bearing step without assuming the project is greenfield.",
+      "goal": "Resolve the current situation, reconstruct the long-horizon observable outcome when a novice delegates takeover, reconcile any materially current project-declared work topology that can change the goal, choose the current highest-value evidence-backed result, and identify the next evidence-bearing step without assuming the project is greenfield or that the checked-out branch is the whole project frontier.",
       "exit_evidence": [
         "provisional observable outcome",
         "current primary route selected from present evidence",
+        "material current work target/candidate/predecessor-successor evidence when it can change the goal",
         "solution vocabulary classification when relevant",
         "first material uncertainty or immediate blocker"
       ]
@@ -81,10 +86,11 @@
       "id": "project-readiness",
       "route_selection": "current-route",
       "possible_reroutes": ["repo-recovery"],
-      "goal": "Establish only the minimum trustworthy project/environment baseline required to continue from the current project state.",
+      "goal": "Establish only the minimum trustworthy project/environment baseline and current project frontier required to continue from the current state.",
       "exit_evidence": [
         "trusted project baseline",
         "known validation commands or equivalent evidence",
+        "material current work topology/acceptance gaps when they affect the next goal",
         "known blockers",
         "saved Journey checkpoint reconciled with current evidence"
       ]
@@ -92,14 +98,15 @@
     {
       "id": "implementation-loop",
       "route_selection": "current-route",
-      "applies_when": "A verified implementation delta remains after intake/project discovery, whether that delta is a feature, defect, recovery task, or another evidence-selected engineering route.",
+      "applies_when": "A verified implementation, validation, review, candidate-convergence, or other accepted-outcome delta remains after intake/project discovery, whether that delta is on the current checkout or another project-declared current work target.",
       "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery", "understand-review"],
-      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, recomputing the highest-value safe executable frontier after every verified, blocked, or no-op delta. A human or external boundary blocks only the affected scope; continue independent authorized work until intended release behavior is present or no meaningful executable frontier remains.",
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, recomputing the highest-value safe executable project frontier after every verified, blocked, or no-op delta. Green checks or no-local-mutation prove only their tested/scope claims. A human or external boundary blocks only the affected scope; continue independent authorized work on the correct current work target until intended release behavior is present or project-frontier reconciliation finds no meaningful executable frontier.",
       "exit_evidence": [
         "acceptance behavior",
         "regression evidence",
-        "reviewed diff",
+        "reviewed diff or scope-level no-mutation evidence",
         "current next-decision evidence",
+        "current work target/frontier evidence when the checkout is not the whole active project surface",
         "scoped blocker plus recomputed remaining frontier when any delta is blocked"
       ]
     },
@@ -107,10 +114,11 @@
       "id": "release-candidate",
       "route_selection": "current-route",
       "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery"],
-      "goal": "Prove that the application is a release candidate, not merely locally complete.",
+      "goal": "Prove that the application is a release candidate, not merely locally complete, and respect project-declared candidate/predecessor/successor ordering when that ordering is current authority.",
       "exit_evidence": [
         "relevant tests/build checks",
-        "known CI state",
+        "known CI or approved executable-gate state",
+        "current candidate/base/head/order evidence when material",
         "configuration requirements",
         "secret/sensitive-data review",
         "migration impact when applicable",
@@ -156,6 +164,7 @@
   ],
   "route_transition_rules": [
     "initial current route is selected by developer-intake from present evidence, not by Journey position",
+    "material project-declared current candidate/PR/branch/issue/handoff/predecessor-successor evidence may change the current work target or route; merely open or historical artifacts do not automatically become work",
     "observed defect -> bug-fix",
     "desired behavior change -> feature-change",
     "contradictory or untrustworthy repository state -> repo-recovery",
@@ -163,9 +172,11 @@
     "deployment/release is the immediate blocker -> release-operations",
     "a route transition must be justified by materially new evidence or a changed blocker classification; lack of progress alone is not a reroute signal",
     "if routes begin to oscillate without new evidence, stop and reclassify the blocker instead of continuing to bounce",
-    "route completion, verified no-op, or one blocked delta must trigger current-evidence frontier recomputation; none of them is project completion by itself",
+    "route completion, verified no-op, green checks, or one blocked delta must trigger current-evidence project-frontier recomputation; none of them is project completion by itself",
+    "a local no-mutation result is scope-relative; before project pause/no-frontier, reconcile materially current work topology and unmet accepted-outcome evidence that can change the next goal",
     "a human, credential, production, safety, environment, or external-dependency blocker applies only to the delta whose required precondition it covers; unrelated authorized deltas remain executable",
-    "surface a human unblock request as a project-level pause only when current evidence proves no other meaningful authorized executable delta remains",
+    "surface a human unblock request as a project-level pause only when current evidence and project-frontier reconciliation prove no other meaningful authorized executable delta remains",
+    "if repeated host/session termination prevents execution of a known durable frontier without human re-prompting, classify execution-continuity and use provider selection rather than adding a second AAOP scheduler/state store",
     "if a bounded host execution window ends while executable work remains, checkpoint the exact next frontier and blockers as a resumable handoff; do not mark the Journey complete",
     "after a completed release, new build/fix work starts an explicit next release cycle; previous target verification is archived and cannot satisfy the new cycle",
     "before mutating Journey continuity state, re-read and reconcile the current checkpoint revision; a stale revision must fail rather than overwrite concurrent evidence"
@@ -188,7 +199,8 @@
     "rollback/recovery status is known",
     "material residual risks are visible",
     "the next product decision can be based on real evidence rather than speculative architecture",
+    "green checks or local-no-mutation do not prove project completion while materially current accepted-outcome work remains",
     "a blocked delta does not make the project blocked while another meaningful authorized executable delta remains",
-    "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition only after the remaining executable frontier has been exhausted"
+    "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition only after the remaining executable project frontier has been reconciled and exhausted"
   ]
 }
