@@ -1,5 +1,5 @@
 {
-  "version": "0.19.0",
+  "version": "0.20.0",
   "route_id": "repo-recovery",
   "objective": "Recover a trustworthy model of an unfamiliar or messy repository, then either make one evidence-backed local improvement when a real authorized delta exists or conclude with evidence that no local mutation is currently justified.",
   "default_execution": "host-native",
@@ -37,6 +37,10 @@
     {
       "id": "reconcile-current-baseline-before-mutation",
       "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
+    },
+    {
+      "id": "derived-control-surface-no-shadow-truth",
+      "rule": "When a project-local orchestration/readiness script, CI helper, generated bridge, dashboard, release-status command, or similar derived control surface reports a material project/operational fact, treat it as a consumer of the project-defined authority rather than a second source of truth. Derive from current owning evidence, propagate unknown instead of inventing a negative state, preserve source/provenance linkage, and add a local regression when material recurrence risk justifies it."
     },
     {
       "id": "preserve-conflicting-evidence",
@@ -82,6 +86,7 @@
   "verification": [
     "current-state claims are grounded in repository/runtime evidence",
     "material sources have authority/freshness considered rather than being flattened into one truth",
+    "derived orchestration/readiness/control surfaces consume project-defined authority and preserve unknown/provenance semantics instead of becoming shadow truth when they make material claims",
     "explicit project entrypoints/exclusions were respected",
     "reference/repository graphs were traversed only for material unresolved questions",
     "active repository/work target remained explicit",
