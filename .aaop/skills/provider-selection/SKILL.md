@@ -1,6 +1,6 @@
 ---
 name: provider-selection
-description: Select the smallest sufficient external standard, runtime, discovery service, or workspace only after a concrete capability gap is proven. Use when AAOP must decide whether to stay host-native or add Agent Skills, MCP, ARD, A2A, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, or another provider.
+description: Select the smallest sufficient external standard, runtime, execution control plane, discovery service, or workspace only after a concrete capability gap is proven. Use when AAOP must decide whether to stay host-native or add Agent Skills, MCP, LoopX, Deep Agents, a delegated multi-agent runtime, or another provider.
 ---
 
 # Provider Selection
@@ -22,6 +22,15 @@ Record:
 - whether the gap is one-off or recurring;
 - required reliability/durability/governance level.
 
+For work expected to span many turns, sessions, agents, or external waits, explicitly ask whether the missing capability is **execution continuity/control** rather than implementation ability. A useful local capability label is `execution-continuity`:
+
+- preserve one bounded executable frontier across sessions;
+- know when another model turn should run versus wait/gate/quiet;
+- keep todo ownership, evidence and handoff durable;
+- resume from state plus current project evidence rather than transcript memory.
+
+Do **not** declare `execution-continuity` missing merely because a task is large. First prove the current host/Journey/Working Contract cannot continue it reliably enough.
+
 If no gap is proven, select **no additional provider**.
 
 ## Step 2 — Prefer progressive enhancement
@@ -34,8 +43,8 @@ Check in order:
 4. an existing connected MCP/tool;
 5. one new Skill or MCP;
 6. ARD/A2A discovery/interoperability when provider identity is unknown or cross-system communication is needed;
-7. one specialized runtime when runtime properties are the actual gap;
-8. an organizational workspace only when governance/persistence is the actual gap.
+7. one specialized runtime or execution-control provider when runtime/control properties are the actual gap;
+8. an organizational workspace only when shared governance is the actual gap.
 
 Read `../../registries/providers.json` and `../../../docs/PROGRESSIVE_ADOPTION.md` when available.
 
@@ -73,11 +82,25 @@ Use these as heuristics, not hard-coded routing:
 - Missing external service access → **native tool or MCP**.
 - Unknown resource/provider across catalogs → **ARD-compatible discovery**.
 - Independent opaque agents must communicate → **A2A**.
-- Long-horizon harness/context isolation/persistent execution is the gap → consider **Deep Agents** or another dedicated runtime.
+- Existing host can perform the engineering work, but durable cross-turn/session todo/evidence/gate/quota/wake/handoff control is the missing property → consider **LoopX** or another execution-control provider.
+- The agent runtime itself is inadequate for long-horizon reasoning/execution, context isolation, persistence, filesystem/Skills/MCP-heavy work → consider **Deep Agents** or another dedicated agent runtime.
+- A justified AAOP Task Pod specifically needs bounded multi-role DAG/resume execution that the current host cannot supply → consider **agency-orchestrator** or another delegated multi-agent runtime; AAOP remains the Pod/Journey/Working Contract authority.
 - Typed production workflows/hosting are the gap → consider **Microsoft Agent Framework**.
 - Dynamic workforce composition is the gap → consider **CAMEL Workforce**.
 - Automatic creation/testing of new tools, agents, workflows is itself the desired capability → consider **AutoAgent**.
-- Persistent multi-human/multi-agent governance, approvals, audit, scheduling and runtime routing are the gap → consider **AgentSpace** or another mature control plane.
+- Persistent multi-human/multi-agent governance, approvals, audit, scheduling and runtime routing are the gap → consider **AgentSpace** or another mature organizational workspace.
+
+### Do not collapse these three gaps
+
+`LoopX`, `Deep Agents`, and a delegated multi-agent runtime solve different primary problems:
+
+| Proven gap | Preferred provider family | AAOP boundary |
+| --- | --- | --- |
+| The current agent can do the work, but the loop cannot reliably decide/resume/hand off across turns | LoopX-style execution control plane | AAOP keeps intent, Route/Journey, authorization and acceptance; provider governs bounded execution continuity |
+| The current agent runtime itself lacks the long-horizon execution/context/persistence mechanics needed to do the work | Deep Agents-style agent runtime | AAOP delegates the bounded Route/Pod execution but keeps product/authorization/release authority |
+| A justified Task Pod needs explicit multi-role DAG/resume execution | agency-orchestrator-style delegated Pod runtime | AAOP defines the Pod outcome, members, gates, acceptance and handoff; provider executes the bounded Pod |
+
+Do not install two of these merely because the task is long. Choose the smallest provider whose **primary mechanism** matches the proven gap. If one provider fails to close the gap, diagnose the mismatch before stacking another control plane/runtime on top.
 
 ## Step 5 — Resolve the integration recipe
 
@@ -144,8 +167,11 @@ Return or materialize:
 capability_gap: <what is missing>
 current_level: <0-5>
 selected_providers: [<provider-id>]
+selected_surface: <smallest provider surface actually needed>
+authority_owner: <which AAOP/project state remains authoritative>
 why_now: <evidence-backed reason>
 why_not_simpler: <why lower layers are insufficient>
+why_not_adjacent_provider: <why a runtime/control-plane/workspace alternative is the wrong primary mechanism>
 adoption_review: <none | rechecked current finding/condition>
 permissions_required: []
 credentials_required: []
@@ -157,11 +183,15 @@ rollback: <how to remove/disable it>
 
 Do not propose a bundle of unrelated technologies.
 
+For a provider that stores execution/control state, explicitly state which facts remain authoritative in AAOP/project state and which facts the provider may own. Never allow two systems to become silent competing sources of truth for the same decision class.
+
 ## Step 7 — Verify after integration
 
 After adding a provider, verify the original capability gap is actually closed.
 
 When an adoption review applies, also verify that the actual installed/enabled surface matches the assumptions or mitigations used in the adoption decision.
+
+For execution-control/runtime providers, verification must include at least one behavior that the host previously could not prove reliably: restart/resume, no-progress quieting, durable handoff, independent validation/writeback, or another gap-specific property. “Installed successfully” is not gap closure.
 
 If the capability gap is not closed, diagnose before adding another provider. Multiple failed additions are evidence the problem may be misunderstood rather than under-tooled.
 
@@ -170,4 +200,4 @@ If the capability gap is not closed, diagnose before adding another provider. Mu
 Provider selection is complete when either:
 
 - no external addition is needed; or
-- exactly the justified provider set is selected, the current upstream integration path is known, any applicable adoption review has been rechecked against the intended surface/context, permission/cost implications are explicit, and verification/rollback are defined.
+- exactly the justified provider set is selected, the current upstream integration path is known, the authority seam is explicit, any applicable adoption review has been rechecked against the intended surface/context, permission/cost implications are explicit, and the original gap has a concrete verification/rollback plan.
