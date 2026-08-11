@@ -1,14 +1,15 @@
 # Ecosystem Map: Integrate, Do Not Reimplement
 
-Verified: 2026-08-08
+Verified: 2026-08-11
 
-AAOP sits above existing developer tools, agent standards, SDLC harnesses, verification tools, runtimes, discovery systems, and workspaces. Its role is to understand **what is needed now**, select the smallest sufficient provider surface, constrain permissions, and verify the result.
+AAOP sits above existing developer tools, agent standards, SDLC harnesses, verification tools, execution-control planes, runtimes, discovery systems, and workspaces. Its role is to understand **what is needed now**, select the smallest sufficient provider surface, constrain permissions, and verify the result.
 
 ## Boundary
 
 AAOP owns:
 
 - natural-language developer intake and route selection;
+- Human-Agent Working Contract and decision ownership;
 - Route Capability Packs;
 - project/environment discovery policy;
 - outcome and constraint resolution;
@@ -17,6 +18,7 @@ AAOP owns:
 - least-privilege / autonomy policy;
 - provider selection criteria;
 - normalized Integration Recipes;
+- Journey/release-cycle continuity;
 - evidence, verification, rerouting, and replanning contracts;
 - graceful degradation across hosts.
 
@@ -24,6 +26,7 @@ AAOP does **not** own:
 
 - six replacement software-development workflow engines;
 - a new coding-agent runtime;
+- a duplicate todo/quota/heartbeat execution-control plane;
 - a new MCP protocol or registry;
 - a new Skill format;
 - a new agent-to-agent protocol;
@@ -118,6 +121,36 @@ Select the smallest surface:
 
 Do not install all surfaces by default. Existing project Playwright coverage should be reused before adding another interface.
 
+## Long-running execution-control providers
+
+### LoopX
+
+Upstream: https://github.com/huangruiteng/loopx
+
+LoopX is modeled as an optional **long-running execution-control provider**, not as an AAOP replacement runtime.
+
+Select it when the current host/agent can perform the actual engineering work but the project has a proven `execution-continuity` gap across turns, sessions, agents, or external waits. Relevant mechanisms include:
+
+- durable todo/evidence/gate state;
+- claim and handoff;
+- `quota should-run` decisions;
+- wait/quiet/throttled behavior that avoids useless model turns;
+- scheduler/heartbeat and monitor hints;
+- restartable bounded execution and validated writeback.
+
+AAOP remains authoritative for Working Contract, product/domain truth, current Route, Journey/release-cycle state, provider selection, protected-effect authorization, Task Pod acceptance, and final target verification.
+
+**AAOP must not:**
+
+- copy LoopX's todo/quota/scheduler/run-history model into a parallel AAOP Execution Ledger without a separately proven AAOP-specific gap;
+- initialize LoopX merely because a task is large;
+- treat LoopX eligibility as permission for production, publication, credentials, billing, or destructive writes;
+- use LoopX goal state as a second AAOP Journey/Working Contract;
+- make its experimental Turn surface a production dependency without separate qualification;
+- assume native Windows support from Python portability alone when the reviewed quick-start is macOS/Linux-shell oriented.
+
+See `docs/LOOPX_INTEGRATION.md` and `.aaop/recipes/loopx.json` for the current authority and adoption contract.
+
 ## Software-engineering agent/runtime providers
 
 ### mini-SWE-agent
@@ -147,7 +180,17 @@ AAOP should choose the minimum OpenHands surface (CLI, local SDK, or broader wor
 Upstream: https://github.com/langchain-ai/deepagents
 Docs: https://docs.langchain.com/oss/python/deepagents/overview
 
-Useful when a dedicated long-horizon harness is justified by persistence, context isolation, Skills/MCP-heavy execution, or filesystem/subagent patterns.
+Useful when a dedicated long-horizon **agent runtime** is justified by persistence, context isolation, Skills/MCP-heavy execution, or filesystem/subagent patterns.
+
+This is distinct from LoopX: use Deep Agents when the agent runtime itself is the missing mechanism; use LoopX when the agent can already do the work and durable execution-control between bounded turns is the gap.
+
+### agency-orchestrator
+
+Upstream: https://github.com/jnMetaCode/agency-orchestrator
+
+Useful only when a justified AAOP Task Pod needs bounded multi-role DAG/resume execution that the current host cannot supply adequately.
+
+AAOP defines the Pod outcome, member responsibilities, human gates, acceptance and handoff. The delegated runtime must not become a second top-level Journey or Working Contract.
 
 ### Microsoft Agent Framework
 
@@ -187,13 +230,15 @@ AAOP should not make optimization search part of the baseline. Delegate only whe
 
 ## Route-to-provider examples
 
-These are **conditional candidates**, not fixed routing rules.
+These are **conditional candidates**, not fixed routing rules. Some provider gaps such as execution continuity are cross-route rather than owned by one Route.
 
-| Route | Capability gap | Possible mature provider surface |
+| Route / situation | Capability gap | Possible mature provider surface |
 | --- | --- | --- |
+| any long-running Route/Task Pod | agent can execute, but durable bounded continuation/wait/handoff is unreliable | LoopX direct CLI/custom-runner surface after host-native pressure proves `execution-continuity` gap |
 | `idea-to-build` | durable intent/specification lifecycle | Spec Kit core workflow |
 | `idea-to-build` / `feature-change` | browser acceptance evidence | existing Playwright Test, then CLI+Skills/MCP only if needed |
-| `repo-recovery` | long-horizon isolated coding context | Deep Agents or OpenHands when current host is insufficient |
+| `repo-recovery` | long-horizon isolated coding context | Deep Agents or OpenHands when current host runtime is insufficient |
+| justified Task Pod on any Route | explicit multi-role DAG/resume execution | agency-orchestrator only when host-native/sequential Pod execution is insufficient |
 | `bug-fix` | bounded autonomous issue-solving loop | mini-SWE-agent; OpenHands only if broader runtime is needed |
 | `bug-fix` | browser reproduction/regression | Playwright surface matching the evidence need |
 | `understand-review` | independent/long-context execution | host-native reviewer first; dedicated runtime only for proven context gap |
@@ -208,11 +253,14 @@ Ask:
 
 1. Which Route Capability Pack stage are we in?
 2. What capability is still missing from the current host/repository?
-3. Is the gap temporary or recurring?
-4. Can an existing local capability or open-standard surface solve it?
-5. If an upstream provider is needed, what is its **smallest useful surface**?
-6. What permissions, credentials, infrastructure, data exposure, and lock-in does it introduce?
-7. What evidence will prove it closed the original gap?
-8. Can it be removed again after the task/project no longer needs it?
+3. Is the gap implementation ability, execution continuity, Task Pod execution, or organizational governance?
+4. Is the gap temporary or recurring?
+5. Can an existing local capability or open-standard surface solve it?
+6. If an upstream provider is needed, what is its **smallest useful surface**?
+7. Why is the adjacent provider family not the right primary mechanism?
+8. What permissions, credentials, infrastructure, data exposure, and lock-in does it introduce?
+9. Which AAOP/project state remains authoritative after integration?
+10. What evidence will prove it closed the original gap?
+11. Can it be removed again after the task/project no longer needs it?
 
 The correct answer may be **no additional provider**.
