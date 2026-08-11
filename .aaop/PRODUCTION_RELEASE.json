@@ -7,7 +7,7 @@
   "downstream_consumer_validation_required": true,
   "downstream_consumer": {
     "repository": "YuemingHub/MingOS",
-    "commit": "b8c3ddecc1371a281df875c3a115378efca9b504",
+    "commit": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
     "workflow": ".github/workflows/validate-downstream-consumer.yml",
     "validation": "stable-v0.27-to-exact-v1.1-candidate upgrade plus project tests/checks, project authority, Journey, Working Contract, runtime and provenance continuity"
   },

@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 env:
-  AAOP_DOWNSTREAM_CONSUMER_SHA: b8c3ddecc1371a281df875c3a115378efca9b504
+  AAOP_DOWNSTREAM_CONSUMER_SHA: c355f2b1fdbe067eb66fbd622dec372b5b12b27d
 
 jobs:
   mingos-consumer:
