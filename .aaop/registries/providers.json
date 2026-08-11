@@ -124,6 +124,16 @@
       "adoption_level": 4
     },
     {
+      "id": "loopx",
+      "kind": "long-running-execution-control-plane",
+      "upstream": "https://github.com/huangruiteng/loopx",
+      "provides": ["durable-agent-loop-state", "todo-claims-and-handoff", "evidence-writeback", "operator-and-user-gates", "quota-should-run-control", "scheduler-heartbeat-hints", "monitor-wait-state", "restartable-cross-session-execution"],
+      "select_when": ["a long-running AAOP Journey or bounded Task Pod needs durable execution continuity beyond the current host", "repeated unchanged retries/polls need quota and no-progress control", "a custom runner needs a provider-neutral local-first contract between bounded agent turns"],
+      "avoid_when": ["host-native execution already finishes the task reliably", "AAOP Working Contract/Journey/Task Pod continuity is already sufficient without another execution state layer", "the blocker is authorization/credential/environment/product-decision/tool capability rather than loop control", "LoopX would become a competing source of truth for AAOP Working Contract/Route/Journey/production authority"],
+      "adoption_level": 4,
+      "status_note": "optional bounded execution-loop provider; prefer upstream stable direct-CLI/custom-runner surface first, keep AAOP authoritative for human contract, Route/Journey, authorization, acceptance, and release truth"
+    },
+    {
       "id": "agency-orchestrator",
       "kind": "delegated-multi-agent-runtime",
       "upstream": "https://github.com/jnMetaCode/agency-orchestrator",
