@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE_PATH = ROOT / ".aaop" / "routes" / "repo-recovery.json"
+JOURNEY_PATH = ROOT / ".aaop" / "journeys" / "idea-to-production.json"
 PRESSURE_PATH = ROOT / "tests" / "pressure" / "green-local-checkout-with-active-project-frontier.json"
 GUARD_ID = "project-frontier-before-project-noop"
 BANNED_CONSUMER_TOKENS = ("Family Space", "Family-Space", "MingOS", "aaop-family", "Jiaming")
@@ -28,6 +29,7 @@ def load(path: Path) -> dict[str, object]:
 
 def main() -> int:
     route = load(ROUTE_PATH)
+    journey = load(JOURNEY_PATH)
     pressure = load(PRESSURE_PATH)
 
     require(route.get("route_id") == "repo-recovery", "frontier reconciliation must strengthen repo-recovery")
@@ -77,6 +79,26 @@ def main() -> int:
     ):
         require(phrase in serialized_verification, f"repo-recovery verification missing frontier distinction: {phrase}")
 
+    routing = journey.get("routing_policy")
+    require(isinstance(routing, dict), "canonical Journey routing_policy must be an object")
+    require(
+        routing.get("project_frontier_reconciled_before_project_pause") is True,
+        "canonical Journey must reconcile project frontier before project pause",
+    )
+    completion = journey.get("completion_policy")
+    require(isinstance(completion, dict), "canonical Journey completion_policy must be an object")
+    require(completion.get("local_no_mutation_is_not_project_no_frontier") is True, "Journey must separate local no-mutation from project no-frontier")
+    require(completion.get("green_checks_are_not_project_completion") is True, "Journey must reject green checks as project completion proof")
+    serialized_journey = json.dumps(journey, ensure_ascii=False).lower()
+    for phrase in (
+        "material project-declared current candidate/pr/branch/issue/handoff/predecessor-successor evidence",
+        "green checks or no-local-mutation",
+        "scope-relative",
+        "execution-continuity",
+        "provider selection",
+    ):
+        require(phrase in serialized_journey, f"Journey missing project-frontier/continuity invariant: {phrase}")
+
     require(
         pressure.get("expected_route") == "repo-recovery",
         "project-frontier pressure must begin with repo-recovery",
@@ -94,13 +116,18 @@ def main() -> int:
     ):
         require(phrase in serialized_pressure, f"project-frontier pressure missing real-project lesson: {phrase}")
 
-    combined = f"{json.dumps(route, ensure_ascii=False)}\n{json.dumps(pressure, ensure_ascii=False)}".lower()
+    combined = (
+        f"{json.dumps(route, ensure_ascii=False)}\n"
+        f"{json.dumps(journey, ensure_ascii=False)}\n"
+        f"{json.dumps(pressure, ensure_ascii=False)}"
+    ).lower()
     for token in BANNED_CONSUMER_TOKENS:
         require(token.lower() not in combined, f"project-frontier invariant leaked consumer-specific token: {token}")
 
     print(
         "PASS project frontier reconciliation: local green/no-mutation evidence stays scope-relative; "
-        "current project work topology and unmet acceptance evidence are reconciled before project no-op/pause"
+        "current project work topology and unmet acceptance evidence are reconciled before project no-op/pause; "
+        "repeated host termination remains an execution-continuity/provider-selection concern"
     )
     return 0
 
