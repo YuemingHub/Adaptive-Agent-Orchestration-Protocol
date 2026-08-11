@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from validate_pre_mutation_reconciliation import main as validate_pre_mutation_reconciliation
+from validate_pressure_promotion import main as validate_pressure_promotion
 from validate_team_execution_patterns import main as validate_team_execution_patterns
 
 ROUTES = {
@@ -184,6 +185,7 @@ def main() -> int:
     for label, validator in (
         ("team execution pattern", validate_team_execution_patterns),
         ("pre-mutation reconciliation", validate_pre_mutation_reconciliation),
+        ("real-project pressure promotion", validate_pressure_promotion),
     ):
         try:
             result = validator()
