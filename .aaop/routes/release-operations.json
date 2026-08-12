@@ -1,5 +1,5 @@
 {
-  "version": "0.19.0",
+  "version": "0.20.0",
   "route_id": "release-operations",
   "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, authorization-aware execution, and write-time target revalidation.",
   "default_execution": "host-native",
@@ -33,6 +33,10 @@
     {
       "id": "reconcile-current-baseline-before-mutation",
       "rule": "Before the first material mutation in an existing project or target environment, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product or operational behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
+    },
+    {
+      "id": "verification-harness-integrity",
+      "rule": "When a custom test runner, CI wrapper, validation aggregator, generated report, or similar harness materially converts underlying checks into pass/fail acceptance evidence, do not trust a green aggregate merely because the wrapper exited successfully. Verify the smallest consequential integrity surface: intended checks are discovered distinctly, collisions/cached reuse/duplicate counting do not substitute one check for another, skipped/errored/unavailable work is represented honestly, and failures propagate through wrapper exit/status semantics. If harness integrity is unknown or disproven, downgrade the aggregate to provisional/unknown evidence and use direct underlying checks or repair the harness before relying on it for regression, completion, or release claims."
     },
     {
       "id": "blocker-not-capability-gap",
@@ -76,11 +80,12 @@
   "verification": [
     "target environment identity and final state are explicit or intentionally unknown when direct evidence is blocked",
     "preflight and post-change evidence are recorded when execution occurred",
+    "when a custom verification aggregator is material to release eligibility, its discovery/identity/failure-propagation integrity is credible enough for the release claim rather than assumed from a green wrapper result",
     "rollback was defined before consequential writes",
     "the material target revision/precondition was revalidated immediately before the operational write when practical",
     "a moved target caused reconciliation/replanning rather than stale force execution",
     "no production write exceeded the granted authorization scope",
     "environment/authorization/concurrency blockers were not bypassed by unauthorized provider, network, force, or alternate write workarounds"
   ],
-  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery", "the target changed materially since preflight -> re-read/replan the current release delta before executing"]
+  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery", "a green release/CI aggregate is materially authoritative but its harness integrity is disproven -> repair the verification harness under bug-fix or use direct underlying checks before release", "the target changed materially since preflight -> re-read/replan the current release delta before executing"]
 }
