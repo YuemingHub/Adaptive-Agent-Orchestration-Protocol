@@ -68,13 +68,17 @@ Check, where relevant, that:
 4. failure exit codes and failure states propagate through wrappers, matrices, `continue-on-error` behavior, pipelines, and report generators;
 5. counts/summaries do not double-count one execution or hide missing expected executions;
 6. when practical, a representative known failing condition or direct underlying check demonstrates that the aggregate harness would fail rather than remain falsely green;
-7. when acceptance depends on generated or nondeterministic output, the acceptance oracle is independent and explicit enough for the claim: criteria are fixed before the observed output where practical, generator self-assessment is not silently promoted into independent verification, and material model/runtime/version assumptions are recorded when they can change the result.
+7. when acceptance depends on generated or nondeterministic output, the acceptance oracle is independent and explicit enough for the claim: criteria are fixed before the observed output where practical, generator self-assessment is not silently promoted into independent verification, and material model/runtime/version assumptions are recorded when they can change the result;
+8. when a check claims implementation or runtime behavior, the observed **actual** value has a causal path from the authoritative implementation/runtime surface being claimed. A mirror constant, copied decision function, fixture-only self-comparison, `actual = expected`, or another shadow implementation proves only that the local test/spec representation is self-consistent unless it is explicitly scoped as such;
+9. when consequence or evidence concentration is material, use at least one representative mutation-sensitive path: a relevant change in the owning implementation should be capable of changing or failing the check without first editing the test's mirrored implementation. If that dependency cannot be shown, narrow the claim or keep implementation verification provisional.
 
 Do not require a meta-test framework for every ordinary project command. Scale this check to consequence and evidence concentration: a standard mature runner with direct project tests may need no special audit, while a bespoke aggregator that is the sole basis for a safety, release, or completion claim needs stronger proof.
 
 A model, agent, or generator saying that its own output passes the criteria can be useful diagnostic evidence, but it is weaker than an independent evaluator, deterministic assertion, calibrated rubric, or other external acceptance signal. Do not treat same-turn self-judgment as independent proof merely because it returns structured `PASS`/`FAIL` JSON.
 
-If harness integrity or evaluator validity is materially unknown or disproven, downgrade its green result to provisional/unknown evidence. Prefer direct underlying checks where practical, repair the harness when it owns the defect, and re-establish only the affected acceptance evidence. Do not change product behavior merely to satisfy an unsound verification harness.
+A shadow implementation or mirrored constant can still be useful as a specification/reference check, fixture validator, or contract example. Its evidence scope must stay honest: it does not become implementation/runtime proof merely because it executes successfully or lives under a test directory.
+
+If harness integrity, evaluator validity, or evidence-target fidelity is materially unknown or disproven, downgrade the affected green result to provisional/unknown evidence. Prefer direct underlying checks where practical, repair the harness when it owns the defect, and re-establish only the affected acceptance evidence. Do not change product behavior merely to satisfy an unsound verification harness.
 
 ## Derived control surface truth boundary
 
