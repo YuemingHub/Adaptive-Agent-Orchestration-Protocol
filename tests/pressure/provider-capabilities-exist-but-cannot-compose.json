@@ -38,13 +38,13 @@
     "turn the current GitHub/container product names into a universal AAOP topology"
   ],
   "required_guard_ids": [
-    "provider-composition-transfer-closure"
+    "scoped-blocker-frontier-continuation"
   ],
   "expected_blocker_class": "capability-composability",
   "lessons": [
-    "Capability availability is not capability composability: an execution plan is viable only when required artifacts, identity, metadata, and authorization can traverse the provider seams between the selected capabilities.",
+    "Candidate generic gap, not yet a promoted AAOP invariant: capability availability is not capability composability when required artifacts, identity, metadata, and authorization cannot traverse the selected provider seams.",
     "Exact-head verification requires revision continuity from evidence source to execution target; separate read and execute capabilities do not prove that continuity.",
-    "Provider selection should reason about an end-to-end capability graph and transfer closure, not a bag of independently available tools.",
-    "When composition fails, prefer the smallest missing bridge or a provider that closes the exact seam rather than stacking unrelated runtimes."
+    "Provider selection may need to reason about an end-to-end capability graph and transfer closure rather than a bag of independently available tools, but the owning AAOP surface is not yet promoted from this single pressure instance.",
+    "Until that owner is proven, preserve the real blocker under existing scoped-blocker continuation: keep exact-head verification unknown, continue genuinely independent work, and prefer the smallest missing bridge over unrelated runtime stacking."
   ]
 }
