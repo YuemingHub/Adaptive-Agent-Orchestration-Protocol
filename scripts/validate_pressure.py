@@ -17,6 +17,7 @@ from validate_pressure_promotion import main as validate_pressure_promotion
 from validate_team_execution_patterns import main as validate_team_execution_patterns
 from validate_verification_harness_integrity import main as validate_verification_harness_integrity
 from validate_critical_control_path import main as validate_critical_control_path
+from validate_human_forward_capability_fabric import main as validate_human_forward_capability_fabric
 
 ROUTES = {
     "idea-to-build",
@@ -197,6 +198,7 @@ def main() -> int:
         ("pre-mutation reconciliation", validate_pre_mutation_reconciliation),
         ("verification harness integrity", validate_verification_harness_integrity),
         ("critical control path", validate_critical_control_path),
+        ("human-forward capability fabric", validate_human_forward_capability_fabric),
         ("real-project pressure promotion", validate_pressure_promotion),
     ):
         try:
