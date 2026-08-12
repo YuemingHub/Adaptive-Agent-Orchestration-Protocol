@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0",
+  "id": "single-model-is-not-the-execution-system",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-13",
+    "privacy": "anonymized"
+  },
+  "developer_request": "Take responsibility for this feature. I do not know which tools or agents you need. Do not rely on your own confidence if the project requires capabilities you do not actually have.",
+  "expected_route": "feature-change",
+  "known_facts": [
+    "The current general-purpose model can reason about code and edit repository files.",
+    "The requested outcome includes browser-visible behavior that cannot be proven from source inspection alone.",
+    "The same builder model judging its own generated behavior would not provide sufficiently independent acceptance evidence for the consequential claim.",
+    "The host may or may not already have browser automation, deterministic project tests, connected tools, specialist agents, or another evaluator available.",
+    "The user is intentionally delegating provider/tool choice rather than asking to manage the agent ecosystem."
+  ],
+  "expected_first_moves": [
+    "define the required capabilities from the observable outcome before choosing tools or agents",
+    "check current project tests, browser tooling, host-native tools, Skills, connected services, and existing specialist capability before declaring a gap",
+    "treat the main model's verbal confidence as reasoning evidence, not proof that browser observation or independent evaluation capability exists",
+    "if a material capability remains missing, classify the precise capability gap and select the smallest provider surface that closes it",
+    "verify the original task-level gap after integration instead of treating provider installation as success",
+    "for consequential acceptance, use an evidence path with a meaningfully different failure mode from the builder when practical"
+  ],
+  "must_preserve": [
+    "AAOP ownership of product outcome, decision boundaries, authorization, Journey, and acceptance",
+    "the user's freedom from choosing agents, MCP servers, runtimes, or model vendors",
+    "least-privilege and minimum-provider-surface principles"
+  ],
+  "must_not": [
+    "assume one large language model is a universal execution, browser, runtime, research, and verification provider",
+    "spawn multiple agents merely to appear capable",
+    "install a new runtime when existing project or host capabilities already close the gap",
+    "treat a second model as automatically independent or better without a defined acceptance role and evidence boundary"
+  ],
+  "required_guard_ids": [
+    "reconcile-current-baseline-before-mutation",
+    "verification-harness-integrity"
+  ],
+  "expected_blocker_class": "capability-gap",
+  "lessons": [
+    "AAOP should orchestrate capabilities, not equate itself with one model.",
+    "Different failure modes matter more than ceremonial model count.",
+    "Provider selection begins only after a concrete capability is proven missing and ends only when that gap is demonstrably closed."
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "route_id": "idea-to-build",
   "objective": "Turn a rough idea into the smallest real, testable product slice without forcing the user to design the engineering process.",
   "default_execution": "host-native",
@@ -9,7 +9,7 @@
       "purpose": "Identify the actor, situation, desired observable outcome, constraints, and the smallest valuable slice while separating product intent from proposed implementation vocabulary.",
       "required_capabilities": ["intent-resolution", "product-reasoning"],
       "optional_capabilities": ["market-or-domain-research"],
-      "evidence": ["user statement", "available domain/project context", "explicit constraints", "distinction between hard requirements and solution hypotheses"],
+      "evidence": ["user statement", "available domain/project context", "lived/domain experience and current workarounds when material", "explicit constraints", "distinction between hard requirements and solution hypotheses"],
       "exit_when": "One small outcome can be built and judged without inventing a large speculative roadmap or making the user choose architecture."
     },
     {
@@ -33,6 +33,10 @@
     {
       "id": "outcome-before-architecture",
       "rule": "For broad greenfield visions, define one actor, situation, observable outcome, and first evidence-bearing slice before committing to platform architecture, data model, agent topology, or infrastructure."
+    },
+    {
+      "id": "human-context-is-product-evidence",
+      "rule": "Do not infer product/domain authority from technical fluency. A person who cannot specify software architecture may still hold decisive lived experience, domain knowledge, current workarounds, stakes, constraints, and observations of real users. Treat that material as product evidence, separate what is directly known from what still needs testing, and translate it into a testable first slice instead of forcing requirements jargon or dismissing it as anecdote."
     },
     {
       "id": "first-slice-must-buy-learning",
@@ -74,6 +78,7 @@
   "verification": [
     "the first slice is usable or executable",
     "acceptance behavior is observable",
+    "material lived/domain experience was preserved as product evidence without being confused with technical specification or universal truth",
     "the slice reduces at least one material product or execution uncertainty",
     "technology choices are traceable to actual behavior/constraints rather than trend vocabulary",
     "the next product decision can be based on evidence rather than speculation"
