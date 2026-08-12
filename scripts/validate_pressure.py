@@ -15,6 +15,7 @@ from validate_project_frontier_reconciliation import main as validate_project_fr
 from validate_source_freshness import main as validate_source_freshness
 from validate_pressure_promotion import main as validate_pressure_promotion
 from validate_team_execution_patterns import main as validate_team_execution_patterns
+from validate_verification_harness_integrity import main as validate_verification_harness_integrity
 
 ROUTES = {
     "idea-to-build",
@@ -193,6 +194,7 @@ def main() -> int:
         ("stable source freshness", validate_source_freshness),
         ("team execution pattern", validate_team_execution_patterns),
         ("pre-mutation reconciliation", validate_pre_mutation_reconciliation),
+        ("verification harness integrity", validate_verification_harness_integrity),
         ("real-project pressure promotion", validate_pressure_promotion),
     ):
         try:
