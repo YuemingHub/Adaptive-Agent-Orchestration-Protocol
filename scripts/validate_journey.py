@@ -312,6 +312,18 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
     if "--start-next-cycle" not in end_text:
         fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
 
+    end_lower = end_text.lower()
+    for required in (
+        "recover the actual deliverable",
+        "deployment is required only when deployment is actually part of that target",
+        "verification debt containment during continuation",
+        "artifact capability closure",
+        "public visibility is access evidence only",
+        "do not invent an unrelated web deployment",
+    ):
+        if required not in end_lower:
+            fail(errors, f"{end_to_end}: missing deliverable-aware execution contract phrase {required!r}")
+
     intake_requirements = (
         "end-to-end-delivery",
         ".aaop/runtime/journeys/idea-to-production.json",
