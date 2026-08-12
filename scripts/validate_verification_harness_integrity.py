@@ -9,7 +9,10 @@ from pathlib import Path
 
 GUARD_ID = "verification-harness-integrity"
 ROUTES = ("repo-recovery", "bug-fix", "feature-change", "release-operations")
-PRESSURE_CASE = "tests/pressure/custom-verification-harness-false-green.json"
+PRESSURE_CASES = (
+    "tests/pressure/custom-verification-harness-false-green.json",
+    "tests/pressure/self-judging-behavioral-eval-is-provisional.json",
+)
 
 
 def load(path: Path) -> object:
@@ -26,6 +29,8 @@ def main() -> int:
         "## Verification harness integrity",
         "distinct checks cannot collide",
         "failure exit codes and failure states propagate",
+        "generator self-assessment is not silently promoted into independent verification",
+        "same-turn self-judgment as independent proof",
         "downgrade its green result to provisional/unknown evidence",
     ):
         if phrase not in policy:
@@ -73,20 +78,36 @@ def main() -> int:
                 f"{journey_path}: route transitions must keep untrusted green aggregates provisional"
             )
 
-    pressure_path = root / PRESSURE_CASE
-    pressure = load(pressure_path)
-    if not isinstance(pressure, dict):
-        errors.append(f"{pressure_path}: pressure case must be an object")
+    runner_case_path = root / PRESSURE_CASES[0]
+    runner_case = load(runner_case_path)
+    if not isinstance(runner_case, dict):
+        errors.append(f"{runner_case_path}: pressure case must be an object")
     else:
-        if pressure.get("expected_route") != "repo-recovery":
-            errors.append(f"{pressure_path}: expected route must be repo-recovery")
-        guards = pressure.get("required_guard_ids", [])
+        if runner_case.get("expected_route") != "repo-recovery":
+            errors.append(f"{runner_case_path}: expected route must be repo-recovery")
+        guards = runner_case.get("required_guard_ids", [])
         if GUARD_ID not in guards:
-            errors.append(f"{pressure_path}: must require {GUARD_ID!r}")
-        facts = "\n".join(pressure.get("known_facts", []))
+            errors.append(f"{runner_case_path}: must require {GUARD_ID!r}")
+        facts = "\n".join(runner_case.get("known_facts", []))
         for phrase in ("bare module basename", "sys.path", "no current GitHub Actions workflow"):
             if phrase not in facts:
-                errors.append(f"{pressure_path}: missing evidence phrase {phrase!r}")
+                errors.append(f"{runner_case_path}: missing evidence phrase {phrase!r}")
+
+    eval_case_path = root / PRESSURE_CASES[1]
+    eval_case = load(eval_case_path)
+    if not isinstance(eval_case, dict):
+        errors.append(f"{eval_case_path}: pressure case must be an object")
+    else:
+        if eval_case.get("expected_route") != "repo-recovery":
+            errors.append(f"{eval_case_path}: expected route must be repo-recovery")
+        guards = eval_case.get("required_guard_ids", [])
+        for guard_id in (GUARD_ID, "scoped-blocker-frontier-continuation"):
+            if guard_id not in guards:
+                errors.append(f"{eval_case_path}: must require {guard_id!r}")
+        facts = "\n".join(eval_case.get("known_facts", []))
+        for phrase in ("same model response", "dry run", "does not execute this behavioral runner"):
+            if phrase not in facts:
+                errors.append(f"{eval_case_path}: missing evidence phrase {phrase!r}")
 
     if errors:
         print("AAOP verification-harness integrity validation failed:", file=sys.stderr)
