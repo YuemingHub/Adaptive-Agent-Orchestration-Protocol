@@ -1,5 +1,5 @@
 {
-  "version": "0.20.0",
+  "version": "0.21.0",
   "route_id": "feature-change",
   "objective": "Add or change product behavior coherently inside the existing system, with a clear behavior contract, current write baseline, explicit mutation destination, and regression evidence.",
   "default_execution": "host-native",
@@ -25,7 +25,7 @@
       "purpose": "Implement only the missing/changed behavior using current primitives, explicitly target the project-authorized destination for remote writes, revalidate material write preconditions at the write boundary, reconcile concurrent/wrong-target conditions, and validate both new and preserved behavior. When a shared contract changes, update or reverify only its affected consumers and reject acceptance evidence that was produced against the stale contract.",
       "required_capabilities": ["implementation", "acceptance-validation", "regression-testing"],
       "optional_capabilities": ["browser-e2e-testing"],
-      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "explicit mutation destination evidence for remote writes", "write/merge precondition evidence when concurrency is material", "post-write evidence that the intended destination changed and protected/default target policy was preserved", "evidence that obsolete historical structure or stale whole-file content was not copied unnecessarily", "for shared-contract changes: evidence that affected consumers were updated/reverified and stale references/evidence were not left green"],
+      "evidence": ["working feature", "acceptance tests/runtime evidence", "relevant old-path regressions", "explicit mutation destination evidence for remote writes", "write/merge precondition evidence when concurrency is material", "post-write evidence that the intended destination changed and protected/default target policy was preserved", "evidence that obsolete historical structure or stale whole-file content was not copied unnecessarily", "for shared-contract changes: evidence that affected consumers were updated/reverified and stale references/evidence were not left green", "verification-harness integrity evidence when a custom aggregator is material to the acceptance claim"],
       "exit_when": "The requested behavior works through the current product path with regression evidence, the intended destination was used, no unreviewed concurrent or protected/default-branch state was overwritten, and any evidence invalidated by a changed shared contract has been re-established on the new baseline."
     }
   ],
@@ -41,6 +41,10 @@
     {
       "id": "reconcile-current-baseline-before-mutation",
       "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
+    },
+    {
+      "id": "verification-harness-integrity",
+      "rule": "When a custom test runner, CI wrapper, validation aggregator, generated report, or similar harness materially converts underlying checks into pass/fail acceptance evidence, do not trust a green aggregate merely because the wrapper exited successfully. Verify the smallest consequential integrity surface: intended checks are discovered distinctly, collisions/cached reuse/duplicate counting do not substitute one check for another, skipped/errored/unavailable work is represented honestly, and failures propagate through wrapper exit/status semantics. If harness integrity is unknown or disproven, downgrade the aggregate to provisional/unknown evidence and use direct underlying checks or repair the harness before relying on it for regression, completion, or release claims."
     },
     {
       "id": "contract-fanout-evidence-invalidation",
@@ -79,6 +83,7 @@
     "new behavior satisfies explicit acceptance evidence",
     "existing affected behavior still works",
     "when a shared contract changed, current consumers were identified and affected implementation/review/test evidence was refreshed on the new contract rather than inherited from the stale baseline",
+    "when a custom verification aggregator is material, its discovery/identity/failure-propagation integrity is credible enough for the acceptance claim rather than assumed from a green wrapper result",
     "current baseline rather than stale implementation determined the final architecture",
     "remote mutations used an explicit project-authorized destination rather than relying on an implicit host/API default when target identity mattered",
     "post-write verification proved the intended branch/ref/resource changed and protected/default target policy was preserved",
