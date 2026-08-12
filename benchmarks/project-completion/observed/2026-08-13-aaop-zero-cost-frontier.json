@@ -8,8 +8,8 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reconciled at c3e5c894b15ba7ae08ecec2738f145c09fb0afbe before this evidence update",
-        "candidate branch was 43 commits ahead of main and 0 behind; no PR exists for the candidate branch"
+        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reconciled at 81d1777cf09a71fd05a4d9ae97900778eef6674c before this evidence update",
+        "candidate branch was 44 commits ahead of main and 0 behind before this evidence update; no merge or stable promotion was attempted"
       ]
     },
     {
@@ -17,25 +17,28 @@
       "status": "proven",
       "evidence": [
         "GitHub-hosted PR/main workflow execution intentionally not triggered because cost is human-owned and the user requested zero GitHub Actions spend",
-        "the local execution container cannot resolve github.com, and the GitHub connector exposes repository content but does not mount an arbitrary repository revision archive into that container; therefore full exact-head repository execution remains unproven"
+        "the local execution container was re-probed on 2026-08-13 and still could not resolve github.com or api.github.com; therefore direct clone/archive execution remains unavailable in this run",
+        "the GitHub connector can read exact-SHA repository content but still does not mount an arbitrary repository revision archive into the local executor; full exact-head repository execution remains unproven"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "the exact candidate tree and changed-file set were re-read from GitHub rather than inferred from conversation state",
-        "the project-completion benchmark validator was inspected at the exact candidate SHA and retains balanced positive/negative controls plus two candidate-only failure classes: unknown external-effect replay and logical-scope-without-technical-sandbox"
+        "the exact candidate head and main/head comparison were re-read from GitHub rather than inferred from prior automation state",
+        "scripts/validate_project_completion_benchmark.py and scripts/score_project_completion_run.py were re-read at exact candidate SHA 81d1777cf09a71fd05a4d9ae97900778eef6674c",
+        "the benchmark validator dependency closure was narrowed to its scorer module, benchmarks/project-completion/README.md, all case JSON files, and four fixture JSON files; this is a finite connector-reconstructable targeted gate rather than a whole-repository requirement"
       ]
     },
     {
       "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "AWS Durable Execution current guidance states replay/retry may run a side-effecting operation more than once and requires idempotency keys, conditional writes, or an appropriate at-most-once boundary for non-idempotent effects",
-        "LangGraph current durable-execution guidance requires side effects to be idempotent or to verify existing results because interrupted tasks may be re-executed",
-        "mingos-skills current indexed code produced no evidence of a reproducible external write/retry chain; unknown-effect replay therefore remains candidate-generic-gap pressure rather than a promoted invariant",
-        "execution isolation likewise remains candidate pressure until project evidence shows that logical scope without a technical filesystem/network boundary is an actual cross-project failure rather than only an industry hazard"
+        "AWS Durable Execution current guidance states replay/retry may run a side-effecting operation more than once and requires stable idempotency keys or an appropriate at-most-once boundary for non-idempotent effects",
+        "LangGraph current durable-execution guidance requires API calls and side effects to be idempotent or to verify existing results because interrupted tasks may be re-executed",
+        "OpenAI current Codex safety guidance uses sandboxed workspace-write/read-only modes and constrained outbound network access as technical controls rather than treating a logical working directory as isolation",
+        "mingos-skills remains at 064dbab7d071a9bdb3e761981509f314625a9388 and still provides no reproduced external-write replay failure in this run; unknown-effect replay therefore remains candidate-generic-gap rather than promoted-invariant",
+        "logical-scope-without-technical-sandbox likewise remains candidate-generic-gap until real consumer evidence meets the cross-project promotion bar"
       ]
     },
     {
@@ -43,7 +46,8 @@
       "status": "proven",
       "evidence": [
         "full exact-head validation is still outstanding and is not represented as green",
-        "next validation work is dependency-closed targeted reconstruction of changed machine gates from one exact SHA, followed by full-repository execution only when a zero-cost archive-to-executor path exists"
+        "targeted exact-SHA validation has been decomposed into dependency-closed machine gates; project-completion benchmark validation is now the first finite gate to reconstruct and execute",
+        "candidate PR/merge/stable decisions remain downstream of acceptable validation closure"
       ]
     }
   ],
@@ -51,8 +55,13 @@
   "forbidden_events": [],
   "remaining_frontier": [
     {
-      "id": "targeted-exact-sha-validation",
-      "summary": "Reconstruct and execute the candidate's changed validators with only their exact-SHA file dependencies; record each gate independently rather than claiming whole-repo success",
+      "id": "execute-project-completion-targeted-gate",
+      "summary": "Reconstruct scripts/validate_project_completion_benchmark.py plus its exact-SHA scorer, README, case JSON, and fixture JSON dependencies through the GitHub connector, execute it locally, and persist stdout/stderr and SHA fidelity evidence",
+      "executable": true
+    },
+    {
+      "id": "targeted-exact-sha-validation-other-gates",
+      "summary": "Repeat dependency-closed exact-SHA reconstruction for each other changed machine validator, recording each gate independently rather than claiming whole-repo success",
       "executable": true
     },
     {
