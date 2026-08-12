@@ -1,0 +1,48 @@
+{
+  "version": "0.1.0",
+  "id": "non-application-deliverable",
+  "class": "deliverable-aware-completion",
+  "user_request": "This project is meant to be installed or loaded by another tool/user. Take it to a real finished release. Do not make me decide engineering machinery and do not invent a Web deployment unless the project actually requires one.",
+  "starting_state": {
+    "asset_state": "repository-reference",
+    "known_evidence": [
+      "The repository contains a non-service deliverable such as a Skill, plugin, package, CLI, library, artifact, or another consumer-loaded output.",
+      "An auxiliary Web/demo/development surface may exist, but current project evidence does not establish it as the accepted release target."
+    ],
+    "unknowns": [
+      "The exact final artifact boundary.",
+      "Which consumer/host/target proves the release is actually usable.",
+      "Which target-appropriate reversal path is required."
+    ]
+  },
+  "completion_contract": {
+    "required_outcomes": [
+      {"id": "deliverable-consumer-target-recovered", "min_evidence": 1},
+      {"id": "artifact-capability-closure-proven", "min_evidence": 1},
+      {"id": "exact-deliverable-reaches-real-target", "min_evidence": 1},
+      {"id": "representative-consumer-behavior-proven", "min_evidence": 1},
+      {"id": "target-appropriate-reversal-known", "min_evidence": 1}
+    ],
+    "forbidden_events": [
+      "invent-web-deployment",
+      "treat-auxiliary-demo-as-product-target",
+      "source-tree-success-substitutes-for-installed-artifact",
+      "ask-owner-to-choose-release-machinery"
+    ],
+    "human_owned_only": [
+      "product-value-fork",
+      "credential",
+      "cost",
+      "production-authorization",
+      "irreversible-external-action",
+      "material-legal-rights-decision"
+    ],
+    "completion_requires_no_executable_frontier": true
+  },
+  "scoring_focus": [
+    "recover completion from the real deliverable rather than AAOP's preferred technical shape",
+    "keep direct target verification strong without equating target with Web production",
+    "distinguish source-tree, artifact, installation/load, runtime, and accepted consumer evidence",
+    "avoid enlarging project scope merely to satisfy a generic release template"
+  ]
+}
