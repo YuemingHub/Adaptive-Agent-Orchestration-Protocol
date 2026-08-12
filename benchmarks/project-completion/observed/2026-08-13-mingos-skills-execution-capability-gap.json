@@ -1,0 +1,63 @@
+{
+  "case_id": "brownfield-rescue",
+  "run_id": "2026-08-13-mingos-skills-execution-capability-gap",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "existing-value-preserved",
+      "status": "proven",
+      "evidence": [
+        "The repair branch preserved the existing Skill/domain structure and changed only evidence, safety-routing, access-control, and installer paths backed by concrete defects."
+      ]
+    },
+    {
+      "id": "current-truth-recovered",
+      "status": "proven",
+      "evidence": [
+        "The historical green suite was decomposed into aggregate-runner integrity, evidence-target fidelity, production RiskDetector behavior, server auth-path behavior, and installer mutation behavior instead of being accepted as one green claim."
+      ]
+    },
+    {
+      "id": "high-value-path-repaired",
+      "status": "unknown",
+      "evidence": [
+        "A remote repair branch now contains bounded candidate fixes, but exact-head repository execution is not available in the current host, so implementation presence is not promoted into verified repair."
+      ]
+    },
+    {
+      "id": "repair-verified-on-real-path",
+      "status": "unknown",
+      "evidence": [
+        "Targeted logic candidates were exercised locally before remote mutation, but the exact remote branch cannot currently be cloned/executed in this host and GitHub-hosted Actions are intentionally not used because monetary cost is not authorized."
+      ]
+    },
+    {
+      "id": "frontier-recomputed-after-repair",
+      "status": "proven",
+      "evidence": [
+        "After each repair slice the project was rescanned: shadow tests exposed runtime behavior drift; safety routing exposed duplicate decision ownership; auth exposed fail-open runtime paths; installer exposed host guessing and destructive force semantics."
+      ]
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [],
+  "remaining_frontier": [
+    {
+      "id": "exact-head-repository-execution",
+      "summary": "Run the repaired branch's aggregate suite and representative Runtime/HTTP/installer checks in a real repository workspace without GitHub-hosted runner cost.",
+      "executable": false,
+      "blocker": "current host has GitHub read/write but no repository clone/execution workspace; hosted Actions are cost-gated"
+    },
+    {
+      "id": "continue-static-authority-and-contract-scan",
+      "summary": "Continue comparing SKILL/domain authority, executable Runtime mirrors, installer claims, and deployment documentation while execution evidence remains unavailable.",
+      "executable": true
+    },
+    {
+      "id": "resolve-zero-cost-execution-provider",
+      "summary": "Select an already-available local/workspace/self-hosted execution capability if one is present; do not ask the non-technical owner to choose a tool merely because the current host lacks it.",
+      "executable": true
+    }
+  ]
+}
