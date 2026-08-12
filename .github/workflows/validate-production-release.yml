@@ -18,5 +18,7 @@ jobs:
           python-version: "3.12"
       - name: Validate immutable CI dependency pins
         run: python scripts/validate_ci_supply_chain.py
+      - name: Validate real-project pressure semantics
+        run: python scripts/validate_pressure.py
       - name: Validate AAOP production release contract
         run: python scripts/validate_production_release.py
