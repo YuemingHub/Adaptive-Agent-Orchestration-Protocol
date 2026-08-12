@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0",
+  "id": "nontechnical-owner-messy-existing-project",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-13",
+    "privacy": "anonymized"
+  },
+  "developer_request": "I do not understand this codebase. I built it with AI over time and it may be very messy. Do not make me diagnose it; preserve what is valuable, recover what is real, and take responsibility for moving it forward.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The repository may contain duplicated implementations, stale documents, abandoned branches, weak tests, generated code, or contradictory architecture left by prior AI-assisted development.",
+    "The owner cannot reliably judge code quality or architecture but may know which real user behaviors, workflows, language, data, external commitments, and product outcomes matter.",
+    "Some apparently ugly implementation may encode already validated behavior or compatibility constraints.",
+    "A rewrite would be easy to propose before the system has reconstructed what value and evidence already exist."
+  ],
+  "expected_first_moves": [
+    "preserve the current repository and recover the smallest trustworthy picture of actual behavior, current users or acceptance paths, deployment/runtime facts, tests, contracts, data shapes, and active work topology",
+    "separate accidental technical debt from product behavior, domain rules, user evidence, external compatibility, and other value that should survive any repair",
+    "treat the owner's non-technical product/domain statements as evidence in their proper scope instead of asking them to explain the code",
+    "prefer a bounded repair or salvage path when it can prove the next outcome; consider replacement or rewrite only after evidence shows salvage is materially worse for outcome, risk, or reversibility",
+    "recompute the project frontier after each verified repair rather than stopping at a repository audit"
+  ],
+  "must_preserve": [
+    "working behavior that has real acceptance or usage evidence even when its implementation is unattractive",
+    "domain/product intent that the owner can establish without technical vocabulary",
+    "historical conflicts and unknowns until current authority justifies a resolution"
+  ],
+  "must_not": [
+    "treat messy code as permission for a whole-repository rewrite",
+    "ask the owner to choose architecture or explain technical internals they cannot know",
+    "delete historical or production-relevant behavior merely to make the codebase look coherent",
+    "stop after producing a cleanup plan while a safe executable project frontier remains"
+  ],
+  "required_guard_ids": [
+    "preserve-conflicting-evidence",
+    "prove-delta-before-mutation",
+    "default-autonomous-takeover",
+    "scoped-blocker-frontier-continuation"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Brownfield rescue begins by recovering value, not by judging code aesthetics.",
+    "A non-technical owner can delegate engineering while retaining authority over product/domain truth they actually know.",
+    "Rewrite is an evidence-backed option, not the default emotional reaction to technical mess."
+  ]
+}
