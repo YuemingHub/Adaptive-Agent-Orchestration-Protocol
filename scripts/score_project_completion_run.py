@@ -190,6 +190,8 @@ def score(case: dict[str, Any], run: dict[str, Any]) -> dict[str, Any]:
     score_value -= min(10, 2 * len(unnecessary_interruptions))
     if project_complete:
         score_value = max(score_value, 90)
+    else:
+        score_value = min(score_value, 89)
     score_value = max(0, min(100, score_value))
 
     return {
