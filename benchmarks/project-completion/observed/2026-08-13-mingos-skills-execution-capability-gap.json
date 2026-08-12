@@ -8,35 +8,35 @@
       "id": "existing-value-preserved",
       "status": "proven",
       "evidence": [
-        "The repair branch preserved the existing Skill/domain structure and changed only evidence, safety-routing, access-control, and installer paths backed by concrete defects."
+        "The repair branch preserves the existing Skill/domain structure and limits changes to evidence integrity, production safety routing, Web access control, installer safety, and documentation claims backed by concrete repository defects."
       ]
     },
     {
       "id": "current-truth-recovered",
       "status": "proven",
       "evidence": [
-        "The historical green suite was decomposed into aggregate-runner integrity, evidence-target fidelity, production RiskDetector behavior, server auth-path behavior, and installer mutation behavior instead of being accepted as one green claim."
+        "The historical green suite was decomposed into aggregate-runner integrity, evidence-target fidelity, production RiskDetector behavior, safety-route bypasses, server auth-path behavior, installer mutation behavior, and stale host/topology documentation instead of being accepted as one green claim."
       ]
     },
     {
       "id": "high-value-path-repaired",
       "status": "unknown",
       "evidence": [
-        "A remote repair branch now contains bounded candidate fixes, but exact-head repository execution is not available in the current host, so implementation presence is not promoted into verified repair."
+        "Repair branch agent/aaop-pressure-real-repair currently points at 1eec9128706c8723b02d274166c40588aa0672fa and contains bounded candidate fixes plus direct regressions, but exact-head repository execution is still unavailable in the current host. Implementation presence is therefore not promoted into verified repair."
       ]
     },
     {
       "id": "repair-verified-on-real-path",
       "status": "unknown",
       "evidence": [
-        "Targeted logic candidates were exercised locally before remote mutation, but the exact remote branch cannot currently be cloned/executed in this host and GitHub-hosted Actions are intentionally not used because monetary cost is not authorized."
+        "Targeted candidate logic was exercised before some remote mutations and the branch now contains runtime-sensitive safety, HTTP auth, and installer transaction regressions. The exact remote head has not yet run as a repository workspace, and GitHub-hosted Actions remain intentionally unused because monetary cost is not authorized."
       ]
     },
     {
       "id": "frontier-recomputed-after-repair",
       "status": "proven",
       "evidence": [
-        "After each repair slice the project was rescanned: shadow tests exposed runtime behavior drift; safety routing exposed duplicate decision ownership; auth exposed fail-open runtime paths; installer exposed host guessing and destructive force semantics."
+        "After each repair slice the project was rescanned. Shadow tests exposed Runtime drift; safety routing exposed explicit/direct-module bypasses; auth exposed fail-open paths; installer exposed host guessing and destructive force semantics; README recovery proved a documented cross-repository workflow topology had already disappeared on both sides. Dependent Runtime mutation was then bounded instead of being stacked indefinitely."
       ]
     }
   ],
@@ -45,18 +45,24 @@
   "remaining_frontier": [
     {
       "id": "exact-head-repository-execution",
-      "summary": "Run the repaired branch's aggregate suite and representative Runtime/HTTP/installer checks in a real repository workspace without GitHub-hosted runner cost.",
+      "summary": "Run branch 1eec9128706c8723b02d274166c40588aa0672fa aggregate suite and representative Runtime/HTTP/installer checks in a real repository workspace without GitHub-hosted runner cost.",
       "executable": false,
       "blocker": "current host has GitHub read/write but no repository clone/execution workspace; hosted Actions are cost-gated"
     },
     {
-      "id": "continue-static-authority-and-contract-scan",
-      "summary": "Continue comparing SKILL/domain authority, executable Runtime mirrors, installer claims, and deployment documentation while execution evidence remains unavailable.",
+      "id": "verification-debt-retirement",
+      "summary": "Do not merge or treat the Runtime/installer repair chain as a trusted baseline until exact-head execution retires the material verification debt.",
+      "executable": false,
+      "blocker": "depends on exact-head repository execution capability"
+    },
+    {
+      "id": "continue-independent-static-recovery",
+      "summary": "Continue only genuinely independent authority/topology/documentation recovery that does not depend on the unverified Runtime/installer candidate.",
       "executable": true
     },
     {
       "id": "resolve-zero-cost-execution-provider",
-      "summary": "Select an already-available local/workspace/self-hosted execution capability if one is present; do not ask the non-technical owner to choose a tool merely because the current host lacks it.",
+      "summary": "Use an already-available local/workspace/self-hosted execution capability if one becomes available; do not ask the non-technical owner to choose a tool merely because the current host lacks it.",
       "executable": true
     }
   ]
