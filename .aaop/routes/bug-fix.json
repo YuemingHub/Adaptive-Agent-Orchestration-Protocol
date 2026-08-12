@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "route_id": "bug-fix",
   "objective": "Turn an observed failure into a verified root-cause fix with the smallest durable change and explicit regression evidence.",
   "default_execution": "host-native",
@@ -25,7 +25,7 @@
       "purpose": "Apply the narrowest durable fix and prove the failure no longer reproduces on the strongest practical relevant environment without collateral regression.",
       "required_capabilities": ["targeted-implementation", "regression-testing"],
       "optional_capabilities": ["browser-e2e-testing", "cross-platform-validation"],
-      "evidence": ["passing regression check", "relevant surrounding tests", "before/after runtime evidence", "platform-specific compatibility evidence when exact reproduction is unavailable"],
+      "evidence": ["passing regression check", "relevant surrounding tests", "before/after runtime evidence", "platform-specific compatibility evidence when exact reproduction is unavailable", "verification-harness integrity evidence when a custom aggregator is material to the pass/fail claim"],
       "exit_when": "The original failure is fixed on a relevant baseline and regression evidence passes."
     }
   ],
@@ -37,6 +37,10 @@
     {
       "id": "reconcile-current-baseline-before-mutation",
       "rule": "Before the first material mutation in an existing project, reconcile the current implementation/runtime baseline with the project-defined authority and freshness of material state, specification, test, adapter, deployment, and historical evidence. A failing test can itself encode a stale historical assumption; classify that possibility before changing product behavior. Preserve material conflicts and keep unknown facts unknown rather than silently converting them to false/absent state."
+    },
+    {
+      "id": "verification-harness-integrity",
+      "rule": "When a custom test runner, CI wrapper, validation aggregator, generated report, or similar harness materially converts underlying checks into pass/fail acceptance evidence, do not trust a green aggregate merely because the wrapper exited successfully. Verify the smallest consequential integrity surface: intended checks are discovered distinctly, collisions/cached reuse/duplicate counting do not substitute one check for another, skipped/errored/unavailable work is represented honestly, and failures propagate through wrapper exit/status semantics. If harness integrity is unknown or disproven, downgrade the aggregate to provisional/unknown evidence and use direct underlying checks or repair the harness before relying on it for regression, completion, or release claims."
     },
     {
       "id": "discussion-is-hypothesis",
@@ -63,6 +67,12 @@
       "selection_rule": "Use Spec Kit's supported bug workflow when it materially improves traceability; do not initialize a full SDD system solely for a trivial one-line defect."
     }
   ],
-  "verification": ["the current baseline corresponding to the fix is explicit", "the original failure is no longer reproducible or the strongest equivalent compatibility evidence passes", "a regression check guards the fixed behavior when practical", "unrelated refactoring did not become the main change"],
+  "verification": [
+    "the current baseline corresponding to the fix is explicit",
+    "the original failure is no longer reproducible or the strongest equivalent compatibility evidence passes",
+    "a regression check guards the fixed behavior when practical",
+    "when a custom verification aggregator is material, its discovery/identity/failure-propagation integrity is credible enough for the acceptance claim rather than assumed from a green wrapper result",
+    "unrelated refactoring did not become the main change"
+  ],
   "reroute_signals": ["the failure is actually missing/changed product behavior -> feature-change", "the repository cannot be trusted enough to localize the issue -> repo-recovery", "production mitigation becomes primary -> release-operations"]
 }

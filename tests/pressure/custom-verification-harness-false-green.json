@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "id": "custom-verification-harness-false-green",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "commit 064dbab7d071a9bdb3e761981509f314625a9388; tests/framework/test_runner.py plus duplicate test_mode_selection.py basenames in two module directories",
+    "captured_at": "2026-08-12",
+    "privacy": "public"
+  },
+  "developer_request": "Take over this existing repository and continue development. The project memory says the full custom test suite is green; use current evidence rather than trusting the historical status claim.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The project declares a custom Python test runner as the full-suite validation entrypoint and a project-memory document records a prior all-green aggregate result.",
+    "The runner imports tests by bare module basename through importlib.import_module rather than by unique file identity.",
+    "Two different test directories both contain a file named test_mode_selection.py, and the full-suite execution order loads one before the other.",
+    "Python import caching can therefore return the already-loaded first module when the later directory asks for the same bare module name, so the later file may never execute during a full aggregate run.",
+    "The runner inserts two sys.path entries per test module but removes only one in its finally block, so module search paths can leak across later test groups.",
+    "The repository has no current GitHub Actions workflow proving the full suite on the captured commit, so the historical green claim has no independent current CI corroboration."
+  ],
+  "expected_first_moves": [
+    "treat the recorded all-green status as historical project self-report rather than current acceptance proof",
+    "inspect the custom runner because it is the layer that discovers and aggregates the checks used as the main validation claim",
+    "recognize the duplicate-basename import/cache collision and sys.path leakage as evidence that aggregate discovery identity is unsound",
+    "downgrade the aggregate green claim to provisional/unknown and prefer direct per-module checks or repair the runner before using the full-suite result as regression/completion evidence",
+    "reroute the concrete harness defect to bug-fix while preserving product/domain behavior unless separate evidence proves a product defect"
+  ],
+  "must_preserve": [
+    "the distinction between a verification-harness defect and the product behavior the tests are intended to verify",
+    "historical test counts/results as provenance rather than deleting or rewriting them into current truth",
+    "the repository's domain-specific safety and behavior contracts unless current product evidence independently requires a change"
+  ],
+  "must_not": [
+    "accept the aggregate green result solely because the custom runner exits zero",
+    "assume all intended tests executed merely because the reported pass count is large",
+    "change product behavior to satisfy or explain away a broken test aggregator",
+    "invent a second universal test framework when a bounded repair or direct underlying checks are sufficient",
+    "turn this repository-specific duplicate filename into an AAOP rule about exact paths, module names, Python, or this project"
+  ],
+  "required_guard_ids": [
+    "verification-harness-integrity"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A custom verification aggregator is part of the evidence chain when it decides which checks run and how failures become a green/red verdict.",
+    "Large pass counts and zero exit codes do not prove coverage if discovery identity, caching, skips, or failure propagation can silently substitute or omit checks.",
+    "When harness integrity is disproven, the correct response is to downgrade the aggregate evidence and repair or bypass the harness, not to mutate unrelated product behavior.",
+    "The generic invariant is verification-harness integrity; the consumer's Python import collision is only one concrete failure mechanism."
+  ]
+}
