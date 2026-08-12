@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "status": "canonical",
   "objective": "Take a novice developer from a rough idea or partial implementation to a real deployed application through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -23,7 +23,8 @@
     "single_blocker_cannot_block_project_when_other_executable_delta_exists": true,
     "project_pause_requires_no_meaningful_authorized_executable_frontier_or_bounded_run_end": true,
     "local_no_mutation_is_not_project_no_frontier": true,
-    "green_checks_are_not_project_completion": true
+    "green_checks_are_not_project_completion": true,
+    "green_aggregate_requires_trustworthy_verification_harness": true
   },
   "state_contract": {
     "runtime_file": ".aaop/runtime/journeys/idea-to-production.json",
@@ -50,6 +51,7 @@
     "technical discovery and stack decisions derived from constraints",
     "task decomposition and sequencing",
     "implementation and verification",
+    "verification-harness integrity when a custom aggregator materially determines acceptance, regression, completion, or release evidence",
     "scoped blocker handling and executable-frontier recomputation after every completed, blocked, or no-op delta",
     "journey checkpoint maintenance, resume reconciliation, and stale-write prevention",
     "release-cycle boundaries so old target verification cannot prove a later release",
@@ -90,6 +92,7 @@
       "exit_evidence": [
         "trusted project baseline",
         "known validation commands or equivalent evidence",
+        "verification-harness integrity status when a custom aggregator materially determines acceptance",
         "material current work topology/acceptance gaps when they affect the next goal",
         "known blockers",
         "saved Journey checkpoint reconciled with current evidence"
@@ -100,7 +103,7 @@
       "route_selection": "current-route",
       "applies_when": "A verified implementation, validation, review, candidate-convergence, or other accepted-outcome delta remains after intake/project discovery, whether that delta is on the current checkout or another project-declared current work target.",
       "possible_reroutes": ["bug-fix", "feature-change", "repo-recovery", "understand-review"],
-      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, recomputing the highest-value safe executable project frontier after every verified, blocked, or no-op delta. Green checks or no-local-mutation prove only their tested/scope claims. A human or external boundary blocks only the affected scope; continue independent authorized work on the correct current work target until intended release behavior is present or project-frontier reconciliation finds no meaningful executable frontier.",
+      "goal": "Iterate through the smallest coherent evidence-backed changes under the current Route, recomputing the highest-value safe executable project frontier after every verified, blocked, or no-op delta. Green checks or no-local-mutation prove only their tested/scope claims, and a custom aggregate is not strong acceptance evidence until the material harness discovery/identity/failure-propagation path is trustworthy. A human or external boundary blocks only the affected scope; continue independent authorized work on the correct current work target until intended release behavior is present or project-frontier reconciliation finds no meaningful executable frontier.",
       "exit_evidence": [
         "acceptance behavior",
         "regression evidence",
@@ -118,6 +121,7 @@
       "exit_evidence": [
         "relevant tests/build checks",
         "known CI or approved executable-gate state",
+        "verification-harness integrity status when a custom aggregate materially contributes to release eligibility",
         "current candidate/base/head/order evidence when material",
         "configuration requirements",
         "secret/sensitive-data review",
@@ -173,6 +177,7 @@
     "a route transition must be justified by materially new evidence or a changed blocker classification; lack of progress alone is not a reroute signal",
     "if routes begin to oscillate without new evidence, stop and reclassify the blocker instead of continuing to bounce",
     "route completion, verified no-op, green checks, or one blocked delta must trigger current-evidence project-frontier recomputation; none of them is project completion by itself",
+    "a green custom test/validation/CI aggregate that materially determines acceptance must remain provisional when its discovery/identity/failure-propagation integrity is unknown or disproven; repair the harness or use direct underlying evidence rather than promote a false-green result",
     "a local no-mutation result is scope-relative; before project pause/no-frontier, reconcile materially current work topology and unmet accepted-outcome evidence that can change the next goal",
     "a human, credential, production, safety, environment, or external-dependency blocker applies only to the delta whose required precondition it covers; unrelated authorized deltas remain executable",
     "surface a human unblock request as a project-level pause only when current evidence and project-frontier reconciliation prove no other meaningful authorized executable delta remains",
@@ -200,6 +205,7 @@
     "material residual risks are visible",
     "the next product decision can be based on real evidence rather than speculative architecture",
     "green checks or local-no-mutation do not prove project completion while materially current accepted-outcome work remains",
+    "a green custom verification aggregate does not become completion/release proof while its material harness integrity is unknown or disproven",
     "a blocked delta does not make the project blocked while another meaningful authorized executable delta remains",
     "if direct target verification is blocked, the Journey remains blocked/not-complete and records the exact unblock condition only after the remaining executable project frontier has been reconciled and exhausted"
   ]
