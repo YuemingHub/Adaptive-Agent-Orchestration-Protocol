@@ -12,6 +12,7 @@ from score_project_completion_run import score
 
 CASE_DIR = "benchmarks/project-completion/cases"
 FIXTURE_DIR = "benchmarks/project-completion/fixtures"
+README = "benchmarks/project-completion/README.md"
 
 
 def load(path: Path):
@@ -23,8 +24,8 @@ def main() -> int:
     errors: list[str] = []
 
     cases = sorted((root / CASE_DIR).glob("*.json"))
-    if len(cases) < 5:
-        errors.append(f"{CASE_DIR}: expected at least 5 benchmark cases")
+    if len(cases) < 7:
+        errors.append(f"{CASE_DIR}: expected at least 7 benchmark cases including balanced controls")
 
     case_ids = set()
     classes = set()
@@ -61,10 +62,34 @@ def main() -> int:
         "frontier-continuation",
         "capability-fabric",
         "deliverable-aware-completion",
+        "human-boundary",
     }
     missing_classes = expected_classes - classes
     if missing_classes:
         errors.append(f"{CASE_DIR}: missing benchmark classes {sorted(missing_classes)}")
+
+    required_balanced_cases = {
+        "capability-fabric",
+        "capability-fabric-native-closure",
+        "human-boundary-stop-correctly",
+    }
+    missing_balanced = required_balanced_cases - case_ids
+    if missing_balanced:
+        errors.append(f"{CASE_DIR}: missing balanced/control cases {sorted(missing_balanced)}")
+
+    readme_path = root / README
+    readme = readme_path.read_text(encoding="utf-8")
+    for phrase in (
+        "A run record is not a fact verifier",
+        "One run is pressure evidence, not reliability",
+        "Trials must be independent enough to mean something",
+        "Balance trigger and non-trigger behavior",
+        "Agent narration",
+        "contract scorer",
+        "historical evaluation evidence",
+    ):
+        if phrase not in readme:
+            errors.append(f"{readme_path}: missing benchmark evaluation boundary {phrase!r}")
 
     good_case = load(root / CASE_DIR / "greenfield-human-forward.json")
     good_run = load(root / FIXTURE_DIR / "greenfield-complete-run.json")
@@ -103,6 +128,32 @@ def main() -> int:
     if invented["project_complete"]:
         errors.append(f"invented Web-deployment fixture incorrectly scored complete: {invented}")
 
+    human_case = load(root / CASE_DIR / "human-boundary-stop-correctly.json")
+    human_run = load(root / FIXTURE_DIR / "human-boundary-correct-blocked-run.json")
+    human = score(human_case, human_run)
+    if human["false_completion"]:
+        errors.append(f"correct human-boundary stop was incorrectly marked false completion: {human}")
+    if human["wrong_stop"]:
+        errors.append(f"correct human-boundary stop was incorrectly marked wrong stop: {human}")
+    if not human["outcome_contract_met"]:
+        errors.append(f"correct human-boundary fixture lost its outcome contract: {human}")
+    if human["unnecessary_human_interruptions"]:
+        errors.append(f"necessary human boundary was incorrectly penalized: {human}")
+    if human["project_complete"]:
+        errors.append(f"blocked/not-complete human boundary must not become project complete: {human}")
+
+    capability_gap = load(root / CASE_DIR / "capability-fabric.json")
+    capability_native = load(root / CASE_DIR / "capability-fabric-native-closure.json")
+    gap_forbidden = set(capability_gap["completion_contract"]["forbidden_events"])
+    native_forbidden = set(capability_native["completion_contract"]["forbidden_events"])
+    if "provider-installed-equals-success" not in gap_forbidden:
+        errors.append("capability-fabric case must reject provider installation as task success")
+    if "provider-added-without-gap" not in native_forbidden:
+        errors.append("native capability control must reject provider escalation without a proven gap")
+    native_state = "\n".join(capability_native["starting_state"].get("known_evidence", []))
+    if "project-native browser acceptance harness" not in native_state:
+        errors.append("native capability control must prove an existing project-native acceptance provider")
+
     if errors:
         print("AAOP project completion benchmark validation failed:", file=sys.stderr)
         for item in errors:
@@ -112,7 +163,8 @@ def main() -> int:
     print(
         "AAOP project completion benchmark validation passed "
         f"({len(cases)} cases; classes={','.join(sorted(classes))}; "
-        "false completion detects both unfinished brownfield work and invented deliverable targets)"
+        "balanced controls cover provider escalation/non-escalation and correct human-boundary stopping; "
+        "false completion detects unfinished brownfield work and invented deliverable targets)"
     )
     return 0
 
