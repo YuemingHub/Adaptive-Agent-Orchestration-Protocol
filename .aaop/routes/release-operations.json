@@ -1,32 +1,32 @@
 {
-  "version": "0.20.0",
+  "version": "0.21.0",
   "route_id": "release-operations",
-  "objective": "Move software toward or through an operational change safely, with environment evidence, explicit rollback, authorization-aware execution, and write-time target revalidation.",
+  "objective": "Move software toward or through an operational or distribution change safely, with environment evidence, explicit rollback, authorization-aware execution, write-time target revalidation, and outbound-rights evidence when third-party reuse/redistribution is part of the release outcome.",
   "default_execution": "host-native",
   "stages": [
     {
       "id": "environment-truth",
-      "purpose": "Identify the target environment, current deployed/runtime state and revision, CI/CD path, configuration, dependencies, authorization boundary, and whether the current execution environment can actually reach the authorized target.",
+      "purpose": "Identify the target environment or distribution target, current deployed/runtime state and revision, CI/CD or publication path, configuration, dependencies, authorization boundary, and whether the current execution environment can actually reach the authorized target.",
       "required_capabilities": ["environment-inspection", "ci-cd-inspection", "permission-awareness", "reachability-check", "blocker-classification"],
       "optional_capabilities": ["runtime-observability"],
-      "evidence": ["deployment configuration", "CI status/logs", "runtime/version/revision evidence", "target environment identity", "authorized access path", "reachability result", "explicit unknown state when direct evidence cannot be obtained"],
-      "exit_when": "The system knows the target environment, the allowed access path, the current material target revision/state, whether that path is usable from the current execution context, and which facts remain unknown."
+      "evidence": ["deployment/publication configuration", "CI status/logs when applicable", "runtime/version/revision evidence", "target environment or distribution identity", "authorized access path", "reachability result", "explicit unknown state when direct evidence cannot be obtained"],
+      "exit_when": "The system knows the target environment/distribution target, the allowed access path, the current material target revision/state, whether that path is usable from the current execution context, and which facts remain unknown."
     },
     {
       "id": "preflight-and-rollback",
-      "purpose": "If execution is actually reachable and authorized, define preflight checks, expected target revision/preconditions, failure thresholds, rollback or restore path, and any required user authorization before writes; otherwise record the blocker and minimal unblock condition without widening access.",
+      "purpose": "If execution/publication is actually reachable and authorized, define preflight checks, expected target revision/preconditions, failure thresholds, rollback or restore path, and any required user authorization before writes. When the accepted outcome includes third-party installation, reuse, modification, or redistribution, also establish the current outbound license/terms/notice evidence and relevant bundled third-party redistribution obligations; keep them unknown rather than infer permission from public visibility. Otherwise record the blocker and minimal unblock condition without widening access or rights.",
       "required_capabilities": ["release-validation", "rollback-planning", "risk-classification"],
-      "optional_capabilities": ["migration-analysis", "smoke-test-design"],
-      "evidence": ["preflight results", "expected target revision/resource version when supported", "backup/rollback path", "migration reversibility", "explicit authorization when required", "or a bounded blocker record when the route cannot proceed"],
-      "exit_when": "The change can be attempted against an explicit current target/precondition with bounded blast radius and recovery, or the exact blocker/minimal unblock is recorded and execution stops safely."
+      "optional_capabilities": ["migration-analysis", "smoke-test-design", "license-and-distribution-review"],
+      "evidence": ["preflight results", "expected target revision/resource version when supported", "backup/rollback path", "migration reversibility", "explicit authorization when required", "for third-party reuse/redistribution outcomes: current project LICENSE/NOTICE/terms or explicit unknown, plus material bundled third-party redistribution constraints when applicable", "or a bounded blocker record when the route cannot proceed"],
+      "exit_when": "The change can be attempted against an explicit current target/precondition with bounded blast radius and recovery; any public reuse/redistribution claim is backed by current outbound-rights evidence; or the exact operational/distribution blocker and minimal unblock are recorded and execution stops safely for that slice."
     },
     {
       "id": "execute-and-observe",
-      "purpose": "Revalidate the material target precondition immediately before the authorized operational write, reconcile or stop if the target moved, then perform only the authorized change/read-only verification and validate target behavior against acceptance and rollback thresholds. Never infer production facts from repository/local evidence when target evidence is unavailable.",
+      "purpose": "Revalidate the material target precondition immediately before the authorized operational/publication write, reconcile or stop if the target moved, then perform only the authorized change/read-only verification and validate target behavior against acceptance and rollback thresholds. Never infer production facts from repository/local evidence when target evidence is unavailable, and never infer redistribution permission from repository visibility when rights evidence is unavailable.",
       "required_capabilities": ["controlled-execution", "post-change-validation"],
       "optional_capabilities": ["browser-smoke-testing", "observability-query"],
-      "evidence": ["pre-write target revision/precondition result", "deployment/migration output", "health/smoke checks", "version/state confirmation", "post-change error signals", "or explicit not-executed/revalidation-required status when blocked or moved"],
-      "exit_when": "The operational objective is reached and healthy, rollback restored a known-good state, or execution stopped/replanned safely because authorization, reachability, or the validated target baseline no longer held."
+      "evidence": ["pre-write target revision/precondition result", "deployment/migration/publication output", "health/smoke checks", "version/state confirmation", "post-change error signals", "distribution artifact/terms evidence when redistribution is part of the outcome", "or explicit not-executed/revalidation-required status when blocked or moved"],
+      "exit_when": "The operational/distribution objective is reached and healthy with required rights evidence, rollback restored a known-good state, or execution/publication stopped/replanned safely because authorization, reachability, rights, or the validated target baseline no longer held."
     }
   ],
   "pressure_guards": [
@@ -39,16 +39,20 @@
       "rule": "When a custom test runner, CI wrapper, validation aggregator, generated report, or similar harness materially converts underlying checks into pass/fail acceptance evidence, do not trust a green aggregate merely because the wrapper exited successfully. Verify the smallest consequential integrity surface: intended checks are discovered distinctly, collisions/cached reuse/duplicate counting do not substitute one check for another, skipped/errored/unavailable work is represented honestly, and failures propagate through wrapper exit/status semantics. If harness integrity is unknown or disproven, downgrade the aggregate to provisional/unknown evidence and use direct underlying checks or repair the harness before relying on it for regression, completion, or release claims."
     },
     {
+      "id": "distribution-rights-before-public-release",
+      "rule": "When the accepted release outcome explicitly includes third-party installation, use, modification, redistribution, sublicensing, or similar external reuse, public repository/package visibility is access evidence only and must not be treated as permission evidence. Inspect the current project-declared LICENSE/NOTICE/terms and material bundled third-party redistribution obligations. If outbound rights are absent, conflicting, or unclear, keep the reuse/redistribution claim unknown and scope a human/legal/product decision; do not silently choose a popular license or publish a claim that others are authorized to reuse. This blocker applies only to the affected distribution/reuse outcome while independent engineering work may continue."
+    },
+    {
       "id": "blocker-not-capability-gap",
-      "rule": "A network policy, missing authorization, absent credential, inaccessible external system, required product decision, or stale/moved target precondition is a blocker/revalidation condition—not automatically a missing technical capability. Do not search for/install providers to bypass it unless an authorized capability gap genuinely exists."
+      "rule": "A network policy, missing authorization, absent credential, inaccessible external system, required product/legal decision, or stale/moved target precondition is a blocker/revalidation condition—not automatically a missing technical capability. Do not search for/install providers to bypass it unless an authorized capability gap genuinely exists."
     },
     {
       "id": "preserve-unknown-operational-state",
-      "rule": "When direct target evidence cannot be obtained, keep deployment/runtime facts unknown. Git state, CI success, local health, or guessed public behavior must not be promoted into verified target-environment facts."
+      "rule": "When direct target evidence cannot be obtained, keep deployment/runtime/publication facts unknown. Git state, CI success, local health, repository visibility, or guessed public behavior must not be promoted into verified target-environment or distribution-rights facts."
     },
     {
       "id": "revalidate-write-precondition",
-      "rule": "Before a consequential merge, deployment, migration, configuration, data, or other operational write, revalidate the target revision/resource version/precondition used by preflight and use native conditional-write semantics when available. If the target moved, treat it as new evidence: do not force through the stale plan; re-read target state, preserve concurrent changes, recompute the operational delta and rollback/risk assumptions, re-check authorization if material, and execute only against the newly validated baseline."
+      "rule": "Before a consequential merge, deployment, migration, configuration, data, publication, or other operational write, revalidate the target revision/resource version/precondition used by preflight and use native conditional-write semantics when available. If the target moved, treat it as new evidence: do not force through the stale plan; re-read target state, preserve concurrent changes, recompute the operational delta and rollback/risk assumptions, re-check authorization if material, and execute only against the newly validated baseline."
     }
   ],
   "escalations": [
@@ -78,14 +82,24 @@
     }
   ],
   "verification": [
-    "target environment identity and final state are explicit or intentionally unknown when direct evidence is blocked",
-    "preflight and post-change evidence are recorded when execution occurred",
+    "target environment/distribution identity and final state are explicit or intentionally unknown when direct evidence is blocked",
+    "preflight and post-change evidence are recorded when execution/publication occurred",
     "when a custom verification aggregator is material to release eligibility, its discovery/identity/failure-propagation integrity is credible enough for the release claim rather than assumed from a green wrapper result",
+    "when the accepted outcome includes third-party reuse/redistribution, current outbound LICENSE/NOTICE/terms and material bundled third-party redistribution obligations are established or the affected distribution claim remains explicitly blocked/unknown",
+    "public repository or package visibility was not treated as evidence that others have permission to reuse, modify, or redistribute",
+    "a missing/ambiguous outbound-rights decision was not silently resolved by choosing a license without established project authority",
     "rollback was defined before consequential writes",
-    "the material target revision/precondition was revalidated immediately before the operational write when practical",
+    "the material target revision/precondition was revalidated immediately before the operational/publication write when practical",
     "a moved target caused reconciliation/replanning rather than stale force execution",
-    "no production write exceeded the granted authorization scope",
-    "environment/authorization/concurrency blockers were not bypassed by unauthorized provider, network, force, or alternate write workarounds"
+    "no production/publication write exceeded the granted authorization scope",
+    "environment/authorization/concurrency/rights blockers were not bypassed by unauthorized provider, network, force, alternate write, or invented legal assumptions"
   ],
-  "reroute_signals": ["a code defect is blocking release -> bug-fix", "a product behavior must change before release -> feature-change", "the deployment repository/configuration is too contradictory to trust -> repo-recovery", "a green release/CI aggregate is materially authoritative but its harness integrity is disproven -> repair the verification harness under bug-fix or use direct underlying checks before release", "the target changed materially since preflight -> re-read/replan the current release delta before executing"]
+  "reroute_signals": [
+    "a code defect is blocking release -> bug-fix",
+    "a product behavior must change before release -> feature-change",
+    "the deployment/publication repository or configuration is too contradictory to trust -> repo-recovery",
+    "a green release/CI aggregate is materially authoritative but its harness integrity is disproven -> repair the verification harness under bug-fix or use direct underlying checks before release",
+    "the target changed materially since preflight -> re-read/replan the current release delta before executing",
+    "public reuse/redistribution is required but outbound terms are missing/ambiguous -> keep that release slice human/legal/product blocked while continuing independent authorized frontier"
+  ]
 }
