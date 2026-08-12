@@ -1,0 +1,49 @@
+{
+  "version": "0.1.0",
+  "id": "declared-critical-control-not-on-active-path",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "commit 064dbab7d071a9bdb3e761981509f314625a9388; runtime/server.py, runtime/static/login.html, runtime/README.md",
+    "captured_at": "2026-08-12",
+    "privacy": "public"
+  },
+  "developer_request": "Take over this existing repository and continue toward a trustworthy web-accessible runtime. Recover current behavior before assuming the declared access control is effective.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The runtime documentation describes a web service that can be made externally reachable and says cloud deployment is supported through the HTTP service.",
+    "The server defines an invite-code authentication helper and identifies public paths that should not require authentication.",
+    "The GET and POST request handlers dispatch protected-looking application/API routes without invoking the authentication helper before serving them.",
+    "The login page writes the authentication cookie after a successful login response, but its network-error fallback also writes the submitted code into the cookie and redirects without server validation.",
+    "When a cloud platform supplies PORT, the server chooses 0.0.0.0 by default, so the missing enforcement can matter beyond localhost rather than remaining a dead demo-only helper."
+  ],
+  "expected_first_moves": [
+    "treat the existence of an authentication helper, login page, and public-path list as implementation evidence rather than proof that access control is enforced",
+    "trace representative protected HTTP entrypoints through the actual request-dispatch path to determine whether the control decision is reached before protected behavior is served",
+    "classify the current protected-state claim as defective when the active request path bypasses the declared control and the client fallback can fail open",
+    "reroute the concrete enforcement defect to bug-fix while preserving intentionally public endpoints and unrelated product behavior",
+    "after a repair, verify denied and allowed behavior at the authoritative enforcement boundary rather than merely asserting that the helper function exists"
+  ],
+  "must_preserve": [
+    "the distinction between a declared control and effective runtime enforcement",
+    "intentionally public paths that the project explicitly exempts from authentication",
+    "the project's own decision about which routes/data actually require protection"
+  ],
+  "must_not": [
+    "declare the runtime protected merely because authentication code, a login UI, or an invite-code environment variable exists",
+    "require authentication, rate limiting, or any specific security product for every AAOP consumer regardless of project contract",
+    "promote this consumer's invite-code mechanism, route names, cookie name, host/port convention, or domain behavior into AAOP Core",
+    "treat a client-side redirect or cookie as authoritative enforcement when the protected server path does not validate it",
+    "expand into an exhaustive security audit when the bounded active-path defect is already sufficient to determine the next delta"
+  ],
+  "required_guard_ids": [
+    "reconcile-current-baseline-before-mutation"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "A critical control is effective only if representative protected operations actually traverse its authoritative decision point before the protected action or data is available.",
+    "Helper functions, configuration keys, UI gates, redirects, and tests of isolated guards do not by themselves prove runtime enforcement.",
+    "Fail-open error or fallback paths invalidate a fail-closed protection claim when the project contract requires protection.",
+    "AAOP should scale enforcement-path verification to material declared controls rather than imposing a universal security checklist."
+  ]
+}

@@ -35,6 +35,25 @@ Do not inventory the whole repository merely to satisfy this policy. Stop when t
 - `unknown` is a first-class state. Do not silently convert unknown into `false`, absent, disabled, unused, non-production, or any other negative assertion.
 - Newest timestamp, default branch, merged status, or most detailed document does not automatically win an authority conflict.
 
+## Effective critical-control enforcement
+
+A project may declare authentication, authorization, safety, privacy, consent, isolation, rate/budget, destructive-action, or another critical control in documentation, configuration, UI, tests, helper functions, middleware, policies, or generated plans.
+
+The **presence** of that control is not evidence that the protected operation is actually governed by it. When a material current claim depends on a critical control being effective, verify the smallest representative active path from entrypoint to control decision and protected action before treating the claim as true.
+
+Check, where relevant, that:
+
+1. a representative protected entrypoint actually reaches the intended control before the protected action or data becomes available;
+2. deny/unauthorized/unsafe input is rejected on the authoritative enforcement side rather than only hidden or discouraged in client/UI code;
+3. allow/authorized input reaches the intended operation without relying on a different shadow path;
+4. error, timeout, missing dependency, malformed state, or fallback behavior does not silently fail open when the contract requires fail-closed behavior;
+5. alternate routes, direct APIs, background jobs, generated calls, or other materially equivalent entrypoints do not bypass the declared control;
+6. tests or runtime probes exercise enforcement at the boundary that owns the decision, not merely the existence of a guard function, config key, button, redirect, or policy document.
+
+Scale this check to consequence and declared contract. AAOP does not mandate authentication, rate limiting, privacy gates, or any specific control for every project. It requires **effective-path evidence only when the project or current outcome claims such a control is material**.
+
+If a declared material control exists but is unreachable, client-only, bypassed, or fail-open on the active path, classify the protection claim as false/defective rather than green. If active-path evidence cannot currently be obtained, keep the control status unknown and scope the blocker; do not infer protection from the control's mere presence.
+
 ## Verification harness integrity
 
 A project may have a custom test runner, CI wrapper, validation aggregator, generated report, coverage collector, smoke-test dispatcher, model-based evaluator, or similar **verification harness** that turns many underlying checks into one pass/fail or readiness claim.
