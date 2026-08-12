@@ -22,7 +22,7 @@ def main() -> int:
     policy = policy_path.read_text(encoding="utf-8")
     for phrase in (
         "## Effective critical-control enforcement",
-        "presence of that control is not evidence",
+        "**presence** of that control is not evidence",
         "representative protected entrypoint actually reaches the intended control",
         "does not silently fail open",
         "keep the control status unknown",
