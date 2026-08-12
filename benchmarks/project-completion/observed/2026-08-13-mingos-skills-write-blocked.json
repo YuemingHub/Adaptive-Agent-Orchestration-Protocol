@@ -1,0 +1,47 @@
+{
+  "case_id": "brownfield-rescue",
+  "run_id": "2026-08-13-mingos-skills-write-blocked",
+  "final_status": "blocked",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "existing-value-preserved",
+      "status": "proven",
+      "evidence": [
+        "No rewrite or destructive cleanup was performed; product and safety semantics were treated as evidence before mutation."
+      ]
+    },
+    {
+      "id": "current-truth-recovered",
+      "status": "proven",
+      "evidence": [
+        "The custom test runner can reuse same-named modules through importlib/sys.modules and leaks sys.path entries, so the historical all-green aggregate is not trustworthy completion evidence."
+      ]
+    },
+    {
+      "id": "high-value-path-repaired",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "repair-verified-on-real-path",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "frontier-recomputed-after-repair",
+      "status": "unknown",
+      "evidence": []
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [],
+  "remaining_frontier": [
+    {
+      "id": "repair-test-runner",
+      "summary": "Load test files by unique path/module identity, restore sys.path exactly, and add a regression proving same-named tests both execute.",
+      "executable": false,
+      "blocker": "repository write/ref creation denied by GitHub integration (403)"
+    }
+  ]
+}

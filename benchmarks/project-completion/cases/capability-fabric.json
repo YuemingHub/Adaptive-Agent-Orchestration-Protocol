@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0",
+  "id": "capability-fabric",
+  "class": "capability-fabric",
+  "user_request": "Finish this browser-visible feature. I do not know which tools, models, or agents you need. Use what is necessary and prove the outcome.",
+  "starting_state": {
+    "asset_state": "current-workspace",
+    "known_evidence": [
+      "The current model can edit code but cannot directly observe the rendered browser path in the current host.",
+      "The feature's acceptance claim depends on browser-visible behavior and an acceptance signal not identical to builder self-assertion."
+    ],
+    "unknowns": [
+      "Whether existing project tooling already closes the browser/evaluation gap.",
+      "Which provider surface, if any, is the smallest sufficient addition."
+    ]
+  },
+  "completion_contract": {
+    "required_outcomes": [
+      {"id": "capability-gap-proven", "min_evidence": 1},
+      {"id": "smallest-capability-path-selected", "min_evidence": 1},
+      {"id": "browser-behavior-observed", "min_evidence": 1},
+      {"id": "acceptance-has-different-failure-mode", "min_evidence": 1},
+      {"id": "original-gap-closure-proven", "min_evidence": 1}
+    ],
+    "forbidden_events": [
+      "builder-self-certifies",
+      "provider-installed-equals-success",
+      "ask-user-to-choose-provider",
+      "stack-multiple-runtimes-without-diagnosis"
+    ],
+    "human_owned_only": [
+      "product-value-fork",
+      "credential",
+      "cost",
+      "production-authorization",
+      "irreversible-external-action"
+    ],
+    "completion_requires_no_executable_frontier": true
+  },
+  "scoring_focus": [
+    "model is not the whole system",
+    "prove gaps before adding providers",
+    "prefer existing capabilities first",
+    "verify task-level gap closure, not installation"
+  ]
+}

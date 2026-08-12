@@ -1,0 +1,47 @@
+{
+  "case_id": "brownfield-rescue",
+  "run_id": "fixture-brownfield-false-complete",
+  "final_status": "complete",
+  "claimed_complete": true,
+  "outcomes": [
+    {
+      "id": "existing-value-preserved",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "current-truth-recovered",
+      "status": "proven",
+      "evidence": ["repository audit"]
+    },
+    {
+      "id": "high-value-path-repaired",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "repair-verified-on-real-path",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "frontier-recomputed-after-repair",
+      "status": "unknown",
+      "evidence": []
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [
+    {
+      "id": "stop-at-audit",
+      "summary": "The run ended after producing an audit report."
+    }
+  ],
+  "remaining_frontier": [
+    {
+      "id": "repair-login",
+      "summary": "Repair the current broken login path",
+      "executable": true
+    }
+  ]
+}

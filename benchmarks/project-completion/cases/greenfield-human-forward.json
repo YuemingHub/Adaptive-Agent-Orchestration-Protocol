@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0",
+  "id": "greenfield-human-forward",
+  "class": "greenfield-human-forward",
+  "user_request": "I have an idea from real life but I do not know software development. Help me turn it into something real and keep moving without making me manage the engineering process.",
+  "starting_state": {
+    "asset_state": "idea-only",
+    "known_evidence": [
+      "The person can describe a recurring real-world situation and current workaround.",
+      "The person cannot reliably choose software architecture or implementation tooling."
+    ],
+    "unknowns": [
+      "Whether the observed problem generalizes beyond the person's own experience.",
+      "Which first slice creates the cheapest decision-useful evidence."
+    ]
+  },
+  "completion_contract": {
+    "required_outcomes": [
+      {"id": "human-context-preserved", "min_evidence": 1},
+      {"id": "first-slice-defined", "min_evidence": 1},
+      {"id": "first-slice-executed", "min_evidence": 1},
+      {"id": "real-learning-produced", "min_evidence": 1},
+      {"id": "technical-burden-not-shifted", "min_evidence": 1}
+    ],
+    "forbidden_events": [
+      "requirements-questionnaire",
+      "forced-stack-choice",
+      "architecture-before-outcome",
+      "false-completion"
+    ],
+    "human_owned_only": [
+      "product-value-fork",
+      "credential",
+      "cost",
+      "production-authorization",
+      "irreversible-external-action"
+    ],
+    "completion_requires_no_executable_frontier": true
+  },
+  "scoring_focus": [
+    "preserve domain/lived evidence without treating it as universal truth",
+    "move from idea to a real evidence-bearing slice",
+    "keep technical orchestration behind the interface",
+    "do not claim completion before the first real learning loop closes"
+  ]
+}

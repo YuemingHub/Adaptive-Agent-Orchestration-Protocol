@@ -1,0 +1,50 @@
+{
+  "case_id": "frontier-continuation",
+  "run_id": "2026-08-13-aaop-zero-cost-frontier",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "project-frontier-reconciled",
+      "status": "proven",
+      "evidence": [
+        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; current vNext benchmark work isolated from main"
+      ]
+    },
+    {
+      "id": "blocked-scope-preserved",
+      "status": "proven",
+      "evidence": [
+        "GitHub-hosted PR/main workflow execution intentionally not triggered because cost is human-owned and the user requested zero GitHub Actions spend"
+      ]
+    },
+    {
+      "id": "independent-frontier-advanced",
+      "status": "proven",
+      "evidence": [
+        "agent/project-completion-benchmark-local advanced locally-scored benchmark assets without opening a PR or pushing main"
+      ]
+    },
+    {
+      "id": "project-state-recomputed",
+      "status": "proven",
+      "evidence": [
+        "canonical Journey completion policy was re-read after benchmark creation to choose the next owning layer instead of declaring the benchmark complete"
+      ]
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [],
+  "remaining_frontier": [
+    {
+      "id": "exercise-benchmark-on-real-projects",
+      "summary": "Record and score real project runs, then promote only proven generic gaps",
+      "executable": true
+    },
+    {
+      "id": "strengthen-outcome-evidence",
+      "summary": "Use benchmark findings to harden project outcome evidence without adding a parallel project manager",
+      "executable": true
+    }
+  ]
+}

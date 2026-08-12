@@ -1,0 +1,42 @@
+{
+  "case_id": "greenfield-human-forward",
+  "run_id": "fixture-greenfield-complete",
+  "final_status": "complete",
+  "claimed_complete": true,
+  "outcomes": [
+    {
+      "id": "human-context-preserved",
+      "status": "proven",
+      "evidence": ["intake notes distinguish observed workflow from hypotheses"]
+    },
+    {
+      "id": "first-slice-defined",
+      "status": "proven",
+      "evidence": ["one actor/situation/outcome acceptance contract"]
+    },
+    {
+      "id": "first-slice-executed",
+      "status": "proven",
+      "evidence": ["working local slice exercised"]
+    },
+    {
+      "id": "real-learning-produced",
+      "status": "proven",
+      "evidence": ["real use disproved one assumption and informed next decision"]
+    },
+    {
+      "id": "technical-burden-not-shifted",
+      "status": "proven",
+      "evidence": ["stack/provider choices were agent-owned"]
+    }
+  ],
+  "human_interruptions": [
+    {
+      "reason_class": "product-value-fork",
+      "necessary": true,
+      "summary": "Two materially different user outcomes could not be inferred from evidence."
+    }
+  ],
+  "forbidden_events": [],
+  "remaining_frontier": []
+}

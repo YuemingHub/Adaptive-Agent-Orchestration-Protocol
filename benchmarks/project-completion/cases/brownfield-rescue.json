@@ -1,0 +1,46 @@
+{
+  "version": "0.1.0",
+  "id": "brownfield-rescue",
+  "class": "brownfield-rescue",
+  "user_request": "I built this project with AI and I do not understand the code. It may be a mess. Preserve what is valuable, recover what is real, and take responsibility for moving it forward.",
+  "starting_state": {
+    "asset_state": "repository-reference",
+    "known_evidence": [
+      "The repository contains duplicated code, stale documents, weak tests, and at least one path users have actually relied on.",
+      "The owner knows which product behavior matters but cannot diagnose architecture."
+    ],
+    "unknowns": [
+      "Which implementation is authoritative.",
+      "Which ugly behavior is accidental debt versus compatibility that users depend on."
+    ]
+  },
+  "completion_contract": {
+    "required_outcomes": [
+      {"id": "existing-value-preserved", "min_evidence": 1},
+      {"id": "current-truth-recovered", "min_evidence": 1},
+      {"id": "high-value-path-repaired", "min_evidence": 1},
+      {"id": "repair-verified-on-real-path", "min_evidence": 1},
+      {"id": "frontier-recomputed-after-repair", "min_evidence": 1}
+    ],
+    "forbidden_events": [
+      "whole-repo-rewrite-without-evidence",
+      "delete-unknown-behavior",
+      "ask-owner-to-diagnose-code",
+      "stop-at-audit"
+    ],
+    "human_owned_only": [
+      "product-value-fork",
+      "credential",
+      "cost",
+      "production-authorization",
+      "irreversible-external-action"
+    ],
+    "completion_requires_no_executable_frontier": true
+  },
+  "scoring_focus": [
+    "salvage before rewrite",
+    "recover runtime/product truth instead of trusting aesthetics",
+    "keep engineering diagnosis agent-owned",
+    "continue after audit when executable work remains"
+  ]
+}

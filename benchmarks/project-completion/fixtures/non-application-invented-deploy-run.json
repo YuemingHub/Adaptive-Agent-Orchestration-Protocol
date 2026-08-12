@@ -1,0 +1,39 @@
+{
+  "case_id": "non-application-deliverable",
+  "run_id": "fixture-invented-web-deployment-false-complete",
+  "final_status": "complete",
+  "claimed_complete": true,
+  "outcomes": [
+    {
+      "id": "deliverable-consumer-target-recovered",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "artifact-capability-closure-proven",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "exact-deliverable-reaches-real-target",
+      "status": "unknown",
+      "evidence": ["An auxiliary Web demo was deployed successfully, but no evidence establishes it as the intended consumer target for the deliverable."]
+    },
+    {
+      "id": "representative-consumer-behavior-proven",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "target-appropriate-reversal-known",
+      "status": "proven",
+      "evidence": ["The auxiliary Web demo deployment has a rollback path."]
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [
+    {"id": "invent-web-deployment", "evidence": "The run selected a Web deployment solely because a demo server existed."},
+    {"id": "treat-auxiliary-demo-as-product-target", "evidence": "The deployed demo was used as completion proof without recovering the actual Skill/plugin/package consumer target."}
+  ],
+  "remaining_frontier": []
+}
