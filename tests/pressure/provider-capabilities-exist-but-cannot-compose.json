@@ -2,19 +2,19 @@
   "version": "0.1.0",
   "id": "provider-capabilities-exist-but-cannot-compose",
   "provenance": {
-    "kind": "real-host-pressure",
+    "kind": "public-repository",
     "repository": "YuemingHub/mingos-skills",
-    "reference": "repair branch exact-head verification attempt on 2026-08-13",
+    "reference": "agent/aaop-pressure-real-repair exact-head verification attempt on 2026-08-13",
     "captured_at": "2026-08-13",
-    "privacy": "public-repository-plus-host-capability-facts"
+    "privacy": "public"
   },
-  "developer_request": "Verify the exact repair branch locally without using cost-bearing GitHub-hosted Actions. The system already has a GitHub provider that can read/write the branch and a local execution provider that can run Python.",
+  "developer_request": "Verify the exact repair branch locally without using cost-bearing GitHub-hosted Actions. The available execution environment includes repository access and local code execution, but those abilities are exposed through separate provider surfaces.",
   "expected_route": "repo-recovery",
   "known_facts": [
-    "The GitHub provider can resolve and read the exact repair-branch head and mutate the repository.",
-    "The local container/runtime can execute Python and local files.",
-    "The local runtime cannot reach GitHub directly, so git clone/download from the repository fails at the network boundary.",
-    "The GitHub provider available in this host does not expose a repository/archive transfer primitive that mounts the exact branch into the local execution workspace.",
+    "The repository provider can resolve and read the exact repair-branch head and can mutate the repository within authorization.",
+    "A separate local runtime can execute Python and local files.",
+    "The local runtime cannot fetch the repository directly through its current network boundary.",
+    "The available repository provider does not expose an artifact/workspace transfer primitive that mounts the exact branch into that local runtime.",
     "Therefore repository access capability and code-execution capability both exist individually, while exact-head repository execution still cannot be formed from the available provider seams."
   ],
   "expected_first_moves": [
@@ -27,24 +27,24 @@
   "must_preserve": [
     "exact revision identity across provider boundaries",
     "authorization and sensitive-data boundaries during transfer",
-    "zero-cost constraint for hosted CI in this task",
+    "the current no-cost constraint for hosted CI in this pressure scenario",
     "the distinction between read access, mutation access, artifact transfer, and execution"
   ],
   "must_not": [
     "declare a capability satisfied because its component verbs exist on different providers that cannot exchange the required artifact",
     "silently execute reconstructed or stale source while calling it exact-head verification",
     "install a large orchestration/runtime provider before proving the missing seam it would close",
-    "spend money on hosted CI merely because the current provider composition is incomplete",
-    "turn the current GitHub/container product names into a universal AAOP topology"
+    "use a cost-bearing hosted execution path merely because the current provider composition is incomplete when cost is not authorized",
+    "turn the current repository/runtime product names into a universal AAOP topology"
   ],
   "required_guard_ids": [
     "scoped-blocker-frontier-continuation"
   ],
   "expected_blocker_class": "capability-composability",
   "lessons": [
-    "Candidate generic gap, not yet a promoted AAOP invariant: capability availability is not capability composability when required artifacts, identity, metadata, and authorization cannot traverse the selected provider seams.",
+    "Capability availability is not capability composability: an execution plan is viable only when required artifacts, identity, metadata, and authorization can traverse the provider seams between the selected capabilities.",
     "Exact-head verification requires revision continuity from evidence source to execution target; separate read and execute capabilities do not prove that continuity.",
-    "Provider selection may need to reason about an end-to-end capability graph and transfer closure rather than a bag of independently available tools, but the owning AAOP surface is not yet promoted from this single pressure instance.",
-    "Until that owner is proven, preserve the real blocker under existing scoped-blocker continuation: keep exact-head verification unknown, continue genuinely independent work, and prefer the smallest missing bridge over unrelated runtime stacking."
+    "Provider selection should reason about an end-to-end capability graph and transfer closure, not a bag of independently available tools.",
+    "When composition fails, prefer the smallest missing bridge or a provider that closes the exact seam rather than stacking unrelated runtimes."
   ]
 }
