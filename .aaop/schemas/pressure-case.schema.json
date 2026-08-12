@@ -47,7 +47,16 @@
     },
     "expected_blocker_class": {
       "type": ["string", "null"],
-      "enum": [null, "missing-evidence", "environment", "authorization", "credential", "external-dependency", "product-decision"]
+      "enum": [
+        null,
+        "missing-evidence",
+        "environment",
+        "authorization",
+        "credential",
+        "external-dependency",
+        "product-decision",
+        "capability-composability"
+      ]
     },
     "lessons": {"type": "array", "items": {"type": "string"}, "minItems": 1}
   },
