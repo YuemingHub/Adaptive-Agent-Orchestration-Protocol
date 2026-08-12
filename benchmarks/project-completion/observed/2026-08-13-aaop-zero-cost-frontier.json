@@ -8,46 +8,50 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reconciled at 81d1777cf09a71fd05a4d9ae97900778eef6674c before this evidence update",
-        "candidate branch was 44 commits ahead of main and 0 behind before this evidence update; no merge or stable promotion was attempted"
+        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reconciled at 75aba02bb63cba6f26104432b654277c2099383e before this evidence update",
+        "candidate branch was 45 commits ahead of main and 0 behind before this evidence update; no merge or stable promotion was attempted",
+        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388, so no newer consumer delta was inferred from prior conversation state"
       ]
     },
     {
       "id": "blocked-scope-preserved",
       "status": "proven",
       "evidence": [
-        "GitHub-hosted PR/main workflow execution intentionally not triggered because cost is human-owned and the user requested zero GitHub Actions spend",
-        "the local execution container was re-probed on 2026-08-13 and still could not resolve github.com or api.github.com; therefore direct clone/archive execution remains unavailable in this run",
-        "the GitHub connector can read exact-SHA repository content but still does not mount an arbitrary repository revision archive into the local executor; full exact-head repository execution remains unproven"
+        "GitHub-hosted PR/main workflow execution was not triggered because cost is human-owned and the current loop requires zero hosted Actions spend",
+        "the local execution container was re-probed on 2026-08-13: DNS resolution for github.com/api.github.com/raw.githubusercontent.com failed, and direct HTTPS attempts to public IP addresses also failed, establishing that the blocker is broader than DNS",
+        "the GitHub connector can read exact-SHA files and the complete git tree, but its repository tarball fetch returned no mounted/downloadable bytes and its only explicit archive-download primitive is for existing GitHub Actions artifacts; arbitrary repository-revision archive-to-executor transfer remains unavailable",
+        "therefore exact-head byte execution is still unproven and remains scoped to the repository-transfer-to-executor seam rather than being generalized into a project-wide blocker"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "the exact candidate head and main/head comparison were re-read from GitHub rather than inferred from prior automation state",
-        "scripts/validate_project_completion_benchmark.py and scripts/score_project_completion_run.py were re-read at exact candidate SHA 81d1777cf09a71fd05a4d9ae97900778eef6674c",
-        "the benchmark validator dependency closure was narrowed to its scorer module, benchmarks/project-completion/README.md, all case JSON files, and four fixture JSON files; this is a finite connector-reconstructable targeted gate rather than a whole-repository requirement"
+        "the exact candidate tree c77a2f5112a1a95e3291dfc006a42997d3376412 was read recursively through GitHub and the first targeted validator dependency closure was enumerated with Git blob identities",
+        "project-completion targeted closure is exactly scripts/validate_project_completion_benchmark.py (blob d3afa564cdf0bb26f6628637c3c46964da5518aa), scripts/score_project_completion_run.py (blob a3d1a46c61f80335b9303dc4168abc00ea044b08), benchmarks/project-completion/README.md (blob 25d987a0d9fcd7525699004ef38723b5d659d4cb), 11 case JSON files, and 4 fixture JSON files",
+        "all 11 case paths and all 4 fixture paths were confirmed in the exact candidate tree; the validator itself was re-read at the same candidate SHA and its required class/control/candidate and fixture assertions were reconciled against that dependency manifest",
+        "the existing pressure case tests/pressure/provider-capabilities-exist-but-cannot-compose.json was re-read and already models this exact failure: repository read and local execution exist separately but cannot exchange the exact revision, so no duplicate AAOP mechanism is warranted"
       ]
     },
     {
       "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "AWS Durable Execution current guidance states replay/retry may run a side-effecting operation more than once and requires stable idempotency keys or an appropriate at-most-once boundary for non-idempotent effects",
-        "LangGraph current durable-execution guidance requires API calls and side effects to be idempotent or to verify existing results because interrupted tasks may be re-executed",
-        "OpenAI current Codex safety guidance uses sandboxed workspace-write/read-only modes and constrained outbound network access as technical controls rather than treating a logical working directory as isolation",
-        "mingos-skills remains at 064dbab7d071a9bdb3e761981509f314625a9388 and still provides no reproduced external-write replay failure in this run; unknown-effect replay therefore remains candidate-generic-gap rather than promoted-invariant",
-        "logical-scope-without-technical-sandbox likewise remains candidate-generic-gap until real consumer evidence meets the cross-project promotion bar"
+        "GitHub artifact-attestation guidance states that useful provenance binds an artifact to repository/workflow/commit identity and that verification, not merely attestation generation, provides the security value",
+        "SLSA v1.2 defines provenance as verifiable information tracing an artifact back through the supply chain to where and how it was produced; this supports exact artifact/revision continuity as verification evidence rather than builder narration",
+        "AWS Durable Execution current guidance states replay/retry may run side-effecting operations more than once and distinguishes at-least-once from at-most-once semantics; unknown external-effect replay therefore remains a credible candidate-generic-gap",
+        "OpenAI current Codex safety guidance uses read-only/workspace-write sandbox modes and constrained outbound network access as technical controls rather than treating a logical working directory as isolation; logical-scope-without-technical-sandbox remains a credible candidate-generic-gap",
+        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss in this run, so neither candidate-generic-gap was promoted to a Core invariant"
       ]
     },
     {
       "id": "verification-debt-bounded",
       "status": "proven",
       "evidence": [
-        "full exact-head validation is still outstanding and is not represented as green",
-        "targeted exact-SHA validation has been decomposed into dependency-closed machine gates; project-completion benchmark validation is now the first finite gate to reconstruct and execute",
-        "candidate PR/merge/stable decisions remain downstream of acceptable validation closure"
+        "full exact-head validation remains outstanding and is not represented as green",
+        "the first targeted gate now has a complete exact-SHA dependency manifest with blob identities, but no claim is made that those bytes were executed because the provider seam cannot currently deliver arbitrary repository revision bytes into the local executor",
+        "candidate PR/merge/SemVer/stable decisions remain downstream of acceptable executable validation closure",
+        "research and static reconciliation can continue independently while byte-execution validation is blocked, preventing one provider seam from stopping the whole project or causing unbounded speculative Core growth"
       ]
     }
   ],
@@ -55,28 +59,38 @@
   "forbidden_events": [],
   "remaining_frontier": [
     {
-      "id": "execute-project-completion-targeted-gate",
-      "summary": "Reconstruct scripts/validate_project_completion_benchmark.py plus its exact-SHA scorer, README, case JSON, and fixture JSON dependencies through the GitHub connector, execute it locally, and persist stdout/stderr and SHA fidelity evidence",
-      "executable": true
-    },
-    {
-      "id": "targeted-exact-sha-validation-other-gates",
-      "summary": "Repeat dependency-closed exact-SHA reconstruction for each other changed machine validator, recording each gate independently rather than claiming whole-repo success",
+      "id": "map-other-changed-validator-dependency-closures",
+      "summary": "Continue zero-cost connector-native work by mapping the exact-SHA dependency closure and blob identities of the remaining changed machine validators; prioritize gates whose closure can later be reconstructed without the whole repository.",
       "executable": true
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Record and score additional real project runs; promote unknown-effect or isolation semantics only after cross-project evidence meets the generic-gap bar",
+      "summary": "Record and score additional real project runs when fresh consumer evidence exists; keep unknown-effect replay and logical-scope-vs-sandbox as candidate-generic-gaps until cross-project evidence meets the promotion bar.",
       "executable": true
     },
     {
+      "id": "exact-revision-byte-transfer-to-executor",
+      "summary": "Obtain an already-authorized zero-cost path that transfers the exact candidate revision bytes into a local/self-hosted executor while preserving revision identity; do not add a broad runtime merely to work around this seam.",
+      "executable": false
+    },
+    {
+      "id": "execute-project-completion-targeted-gate",
+      "summary": "Once exact-revision byte transfer exists, reconstruct the proven dependency manifest, verify each file against its Git blob identity, execute scripts/validate_project_completion_benchmark.py locally, and persist stdout/stderr plus SHA fidelity evidence.",
+      "executable": false
+    },
+    {
+      "id": "targeted-exact-sha-validation-other-gates",
+      "summary": "Execute each mapped changed validator against its dependency-closed exact-SHA reconstruction after byte-transfer closure, recording gates independently rather than claiming whole-repo success.",
+      "executable": false
+    },
+    {
       "id": "full-exact-head-validation",
-      "summary": "Run the complete candidate validation suite against one exact repository revision once a zero-cost repository-archive-to-executor path is available",
+      "summary": "Run the complete candidate validation suite against one exact repository revision once a zero-cost repository-archive-to-executor path is available.",
       "executable": false
     },
     {
       "id": "candidate-pr-decision",
-      "summary": "Open a candidate PR only after validation debt is acceptably closed; do not merge or promote stable from partial evidence",
+      "summary": "Open a candidate PR only after validation debt is acceptably closed; do not merge or promote stable from partial evidence.",
       "executable": false
     }
   ]
