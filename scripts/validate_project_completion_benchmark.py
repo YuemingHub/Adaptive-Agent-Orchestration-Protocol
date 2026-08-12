@@ -23,8 +23,8 @@ def main() -> int:
     errors: list[str] = []
 
     cases = sorted((root / CASE_DIR).glob("*.json"))
-    if len(cases) < 4:
-        errors.append(f"{CASE_DIR}: expected at least 4 benchmark cases")
+    if len(cases) < 5:
+        errors.append(f"{CASE_DIR}: expected at least 5 benchmark cases")
 
     case_ids = set()
     classes = set()
@@ -60,6 +60,7 @@ def main() -> int:
         "brownfield-rescue",
         "frontier-continuation",
         "capability-fabric",
+        "deliverable-aware-completion",
     }
     missing_classes = expected_classes - classes
     if missing_classes:
@@ -81,6 +82,27 @@ def main() -> int:
     if not bad["executable_frontier_left"]:
         errors.append(f"wrong-stop fixture lost executable frontier evidence: {bad}")
 
+    deliverable_case = load(root / CASE_DIR / "non-application-deliverable.json")
+    invented_deploy_run = load(root / FIXTURE_DIR / "non-application-invented-deploy-run.json")
+    invented = score(deliverable_case, invented_deploy_run)
+    if not invented["false_completion"]:
+        errors.append(
+            "invented Web-deployment fixture was not detected as false completion: "
+            f"{invented}"
+        )
+    expected_forbidden = {
+        "invent-web-deployment",
+        "treat-auxiliary-demo-as-product-target",
+    }
+    actual_forbidden = set(invented["forbidden_violations"])
+    if not expected_forbidden <= actual_forbidden:
+        errors.append(
+            "invented Web-deployment fixture did not preserve deliverable-target violations: "
+            f"expected={sorted(expected_forbidden)} actual={sorted(actual_forbidden)}"
+        )
+    if invented["project_complete"]:
+        errors.append(f"invented Web-deployment fixture incorrectly scored complete: {invented}")
+
     if errors:
         print("AAOP project completion benchmark validation failed:", file=sys.stderr)
         for item in errors:
@@ -89,7 +111,8 @@ def main() -> int:
 
     print(
         "AAOP project completion benchmark validation passed "
-        f"({len(cases)} cases; classes={','.join(sorted(classes))})"
+        f"({len(cases)} cases; classes={','.join(sorted(classes))}; "
+        "false completion detects both unfinished brownfield work and invented deliverable targets)"
     )
     return 0
 
