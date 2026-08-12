@@ -1,0 +1,47 @@
+{
+  "version": "0.1.0",
+  "id": "nontechnical-domain-owner-greenfield",
+  "provenance": {
+    "kind": "anonymized-real-project",
+    "captured_at": "2026-08-13",
+    "privacy": "anonymized"
+  },
+  "developer_request": "I have an idea from years of real-world experience, but I do not know software development. Take responsibility for turning it into something real without making me choose the technology.",
+  "expected_route": "idea-to-build",
+  "known_facts": [
+    "The person cannot reliably specify frameworks, databases, agent runtimes, deployment architecture, or software requirements jargon.",
+    "The person may nevertheless have strong lived/domain experience, observed recurring problems, existing workarounds, stakes, relationships, and constraints that materially define product value.",
+    "Some of that experience may be transferable product evidence while other parts may be local anecdotes that still need testing.",
+    "There is no trustworthy implementation yet."
+  ],
+  "expected_first_moves": [
+    "treat technical unfamiliarity and domain/product authority as separate dimensions rather than classifying the person as globally low-capability",
+    "extract the concrete situation, current workaround, desired observable change, stakes, constraints, and what the person has directly observed",
+    "separate directly known domain evidence from assumptions that need a reversible real-world test",
+    "define one evidence-bearing first slice and choose the minimum technical shape without asking the person to select a stack or agent ecosystem",
+    "ask at most one concrete human-owned question only if a material value fork still blocks the first slice"
+  ],
+  "must_preserve": [
+    "the person's domain/lived evidence without converting every anecdote into universal truth",
+    "the person's ownership of value, meaning, material domain truth, and irreversible choices",
+    "unknowns that require learning rather than confident invention"
+  ],
+  "must_not": [
+    "send a requirements questionnaire merely because the person is non-technical",
+    "ask the person to choose frameworks, databases, MCP servers, agents, or orchestration runtimes",
+    "dismiss domain experience because it is not expressed as a software specification",
+    "build a large architecture before one real product assumption can be tested"
+  ],
+  "required_guard_ids": [
+    "outcome-before-architecture",
+    "human-context-is-product-evidence",
+    "user-does-not-own-stack-choice",
+    "one-question-only-when-outcome-blocked"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Technical fluency is not a proxy for domain authority or human capability.",
+    "Good intake converts lived evidence into testable product hypotheses instead of converting the person into a requirements engineer.",
+    "A first slice should move the person forward while keeping technical machinery behind the interface."
+  ]
+}
