@@ -80,6 +80,24 @@ A shadow implementation or mirrored constant can still be useful as a specificat
 
 If harness integrity, evaluator validity, or evidence-target fidelity is materially unknown or disproven, downgrade the affected green result to provisional/unknown evidence. Prefer direct underlying checks where practical, repair the harness when it owns the defect, and re-establish only the affected acceptance evidence. Do not change product behavior merely to satisfy an unsound verification harness.
 
+## Verification debt containment
+
+A scoped verification blocker must not be promoted into project-wide paralysis, but autonomous continuation also must not turn an **unverified mutation** into the trusted baseline for an indefinitely growing chain of dependent changes.
+
+When a material delta has been implemented but the evidence required to verify it is unavailable, cost-gated, environment-blocked, credential-blocked, or otherwise still unknown:
+
+1. keep the delta's acceptance state explicitly **unverified/unknown**; implementation presence, code review, static plausibility, or an earlier non-exact candidate check does not make the current head verified;
+2. record the affected surface and the missing evidence capability/precondition at the smallest useful scope;
+3. treat a later delta that depends on that unverified surface as inheriting the unresolved verification debt; do not silently use the unverified head as a fully trusted baseline;
+4. continue genuinely independent authorized frontier whose correctness does not depend on the blocked evidence, including static authority repair, documentation that reflects known facts, independent components, or capability-resolution work;
+5. keep the dependent unverified chain **bounded**. As consequence, shared-surface coupling, number of dependent mutations, or failure-localization cost grows, prioritize restoring the missing verification capability or split/reduce the candidate instead of stacking more dependent mutations merely to remain busy;
+6. critical-control, migration, release, deployment, shared-runtime, and other high-consequence surfaces require a stricter bound: do not keep compounding dependent unverified mutations when a representative executable check is unavailable;
+7. before merge, release, deployment, stable promotion, or project-completion claims, retire all material verification debt required by the acceptance contract on the exact candidate/baseline being accepted.
+
+A verification blocker therefore has **dependency-aware scope**: it does not automatically stop unrelated work, but it propagates to later work whose validity depends on the unverified delta. This preserves both sides of AAOP autonomy: do not stop too early, and do not create a large opaque candidate that can only be debugged after many unverified assumptions have accumulated.
+
+Monetary cost remains an authorization boundary. If the preferred verification path would incur unauthorized cost, seek an already-available local, project-native, self-hosted, or otherwise authorized equivalent first. If no equivalent is currently available, keep the required evidence unknown and contain the affected verification debt; do not spend by default and do not lower the acceptance standard to compensate.
+
 ## Derived control surface truth boundary
 
 A project may contain local orchestration/readiness scripts, CI helpers, release-status commands, generated bridges, dashboards, Agent bootstrap files, or other **derived control surfaces** that summarize project or operational state for automation.
