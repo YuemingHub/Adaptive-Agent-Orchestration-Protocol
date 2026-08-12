@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "id": "public-distribution-without-outbound-license",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "main at 064dbab7d071a9bdb3e761981509f314625a9388; README distribution claims; GitHub repository license endpoint returned 404 on 2026-08-13",
+    "captured_at": "2026-08-13",
+    "privacy": "public"
+  },
+  "developer_request": "Prepare this public Skill repository so other people can install, use, copy, or redistribute it. Do not assume that public GitHub visibility itself grants redistribution rights, and do not choose a legal license on behalf of the project owner when the intended grant is not already established.",
+  "expected_route": "release-operations",
+  "known_facts": [
+    "The repository README explicitly describes direct directory distribution, zip distribution, and use by other people.",
+    "The repository is publicly readable on GitHub.",
+    "GitHub's repository license endpoint returns 404, so no repository-level outbound license is currently established through a recognized LICENSE file.",
+    "Technical downloadability does not itself establish the project's intended permission to use, modify, redistribute, sublicense, or commercially reuse the work.",
+    "Selecting a license can materially change legal/commercial rights and is not an ordinary engineering default when project intent is unknown."
+  ],
+  "expected_first_moves": [
+    "classify public redistribution/reuse as part of the release outcome rather than treating repository visibility as permission evidence",
+    "inspect current project-declared LICENSE/NOTICE/terms and any material third-party redistribution constraints",
+    "keep outbound reuse/redistribution rights unknown when the project has not established them",
+    "surface the smallest owner/legal decision needed to choose or confirm terms only when public reuse/redistribution is actually part of the requested release",
+    "continue unrelated engineering/recovery work while the distribution-rights slice is human-gated"
+  ],
+  "must_preserve": [
+    "ordinary private/internal development when public distribution is not the current outcome",
+    "the project owner's authority over the intended rights grant and commercial restrictions",
+    "third-party license/notice obligations that may constrain outbound packaging",
+    "the distinction between repository access and permission to reuse/redistribute"
+  ],
+  "must_not": [
+    "infer an open-source license from a public GitHub repository",
+    "silently add MIT, Apache-2.0, GPL, proprietary, or another license merely because one is common",
+    "claim third-party reuse/redistribution readiness while outbound terms are unknown",
+    "block unrelated code work solely because a public-distribution decision is pending",
+    "turn this repository's brand/domain content into AAOP legal policy"
+  ],
+  "required_guard_ids": [
+    "distribution-rights-before-public-release"
+  ],
+  "expected_blocker_class": "human-legal-product-boundary",
+  "lessons": [
+    "Public visibility is an access fact, not evidence of outbound reuse or redistribution rights.",
+    "When third-party installation, reuse, or redistribution is part of the accepted outcome, release readiness includes current outbound licensing/terms evidence and relevant bundled third-party obligations.",
+    "License selection is a material rights/product decision when project intent is not already established; AAOP should discover and scope the decision, not silently pick a popular license.",
+    "A missing outbound-rights decision blocks only the affected publication/distribution claim while independent engineering frontier continues."
+  ]
+}
