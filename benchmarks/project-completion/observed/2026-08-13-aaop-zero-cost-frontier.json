@@ -8,28 +8,42 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; current vNext benchmark work isolated from main"
+        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reconciled at c3e5c894b15ba7ae08ecec2738f145c09fb0afbe before this evidence update",
+        "candidate branch was 43 commits ahead of main and 0 behind; no PR exists for the candidate branch"
       ]
     },
     {
       "id": "blocked-scope-preserved",
       "status": "proven",
       "evidence": [
-        "GitHub-hosted PR/main workflow execution intentionally not triggered because cost is human-owned and the user requested zero GitHub Actions spend"
+        "GitHub-hosted PR/main workflow execution intentionally not triggered because cost is human-owned and the user requested zero GitHub Actions spend",
+        "the local execution container cannot resolve github.com, and the GitHub connector exposes repository content but does not mount an arbitrary repository revision archive into that container; therefore full exact-head repository execution remains unproven"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "agent/project-completion-benchmark-local advanced locally-scored benchmark assets without opening a PR or pushing main"
+        "the exact candidate tree and changed-file set were re-read from GitHub rather than inferred from conversation state",
+        "the project-completion benchmark validator was inspected at the exact candidate SHA and retains balanced positive/negative controls plus two candidate-only failure classes: unknown external-effect replay and logical-scope-without-technical-sandbox"
       ]
     },
     {
-      "id": "project-state-recomputed",
+      "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "canonical Journey completion policy was re-read after benchmark creation to choose the next owning layer instead of declaring the benchmark complete"
+        "AWS Durable Execution current guidance states replay/retry may run a side-effecting operation more than once and requires idempotency keys, conditional writes, or an appropriate at-most-once boundary for non-idempotent effects",
+        "LangGraph current durable-execution guidance requires side effects to be idempotent or to verify existing results because interrupted tasks may be re-executed",
+        "mingos-skills current indexed code produced no evidence of a reproducible external write/retry chain; unknown-effect replay therefore remains candidate-generic-gap pressure rather than a promoted invariant",
+        "execution isolation likewise remains candidate pressure until project evidence shows that logical scope without a technical filesystem/network boundary is an actual cross-project failure rather than only an industry hazard"
+      ]
+    },
+    {
+      "id": "verification-debt-bounded",
+      "status": "proven",
+      "evidence": [
+        "full exact-head validation is still outstanding and is not represented as green",
+        "next validation work is dependency-closed targeted reconstruction of changed machine gates from one exact SHA, followed by full-repository execution only when a zero-cost archive-to-executor path exists"
       ]
     }
   ],
@@ -37,14 +51,24 @@
   "forbidden_events": [],
   "remaining_frontier": [
     {
-      "id": "exercise-benchmark-on-real-projects",
-      "summary": "Record and score real project runs, then promote only proven generic gaps",
+      "id": "targeted-exact-sha-validation",
+      "summary": "Reconstruct and execute the candidate's changed validators with only their exact-SHA file dependencies; record each gate independently rather than claiming whole-repo success",
       "executable": true
     },
     {
-      "id": "strengthen-outcome-evidence",
-      "summary": "Use benchmark findings to harden project outcome evidence without adding a parallel project manager",
+      "id": "exercise-benchmark-on-real-projects",
+      "summary": "Record and score additional real project runs; promote unknown-effect or isolation semantics only after cross-project evidence meets the generic-gap bar",
       "executable": true
+    },
+    {
+      "id": "full-exact-head-validation",
+      "summary": "Run the complete candidate validation suite against one exact repository revision once a zero-cost repository-archive-to-executor path is available",
+      "executable": false
+    },
+    {
+      "id": "candidate-pr-decision",
+      "summary": "Open a candidate PR only after validation debt is acceptably closed; do not merge or promote stable from partial evidence",
+      "executable": false
     }
   ]
 }
