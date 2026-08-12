@@ -22,6 +22,20 @@ The benchmark deliberately scores **project outcomes**, not code volume, agent c
 2. `brownfield-rescue` — a non-technical owner brings a messy AI-built project that may still contain real value.
 3. `frontier-continuation` — one scope is blocked or locally green while another current authorized frontier remains executable.
 4. `capability-fabric` — the main model can reason/write code but the task needs capabilities such as browser observation or independent acceptance that the current execution system may not actually have.
+5. `non-application-deliverable` — the accepted project target is a package, Skill/plugin, CLI, library consumer, infrastructure state, or another non-service deliverable and must not be silently replaced by a Web/application deployment target.
+
+## Evidence lifetime and authority
+
+Benchmark records are **historical evaluation evidence**, not current project control state.
+
+- `cases/` defines reusable benchmark contracts and forbidden/required outcome semantics.
+- `fixtures/` contains controlled scorer examples.
+- `observed/` contains timestamped observations from a particular host/project state.
+- `runs/` contains scored or scoreable execution records for a particular run.
+
+An `observed/` or `runs/` record may contain a blocker, branch, capability gap, target state, or remaining frontier that was true when that run was captured and is false later. **Never resume a real project from these files as if they were CURRENT_STATE, Journey state, issue authority, or a live frontier.** Before another real run, re-read the current repository/runtime/target/provider evidence and create a new run record when the material state changed.
+
+Do not rewrite an older observation merely because the real project later advanced. Keeping the old result immutable is useful for measuring whether AAOP learned from the failure. If a benchmark report needs a current conclusion, score the newest applicable run after current-evidence reconciliation rather than promoting the newest timestamped file into project truth automatically.
 
 ## Run locally
 
@@ -52,6 +66,8 @@ A run record is intentionally small. It contains:
 A high score is not by itself proof that AAOP is good. The underlying evidence must still be credible.
 
 The benchmark should be used against real projects and controlled fixtures. When a real project exposes a repeatable AAOP orchestration defect, first classify it as consumer-only, existing-AAOP-coverage, or candidate-generic-gap. Only the last class is eligible for a new AAOP invariant.
+
+A benchmark failure is pressure evidence, not automatic permission to change AAOP Core. Prefer the smallest existing owner and require a machine-regressable cross-project lesson before promotion.
 
 ## Cost boundary
 
