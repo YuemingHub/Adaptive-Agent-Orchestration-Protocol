@@ -10,6 +10,7 @@ from pathlib import Path
 GREENFIELD_CASE = "tests/pressure/nontechnical-domain-owner-greenfield.json"
 BROWNFIELD_CASE = "tests/pressure/nontechnical-owner-messy-existing-project.json"
 CAPABILITY_CASE = "tests/pressure/single-model-is-not-the-execution-system.json"
+COMPOSITION_CASE = "tests/pressure/provider-capabilities-exist-but-cannot-compose.json"
 
 
 def load(path: Path) -> object:
@@ -65,11 +66,51 @@ def main() -> int:
         ):
             require_text(errors, policy, phrase, str(capabilities_path))
 
+    planning_path = root / ".aaop/skills/capability-planning/SKILL.md"
+    planning_text = planning_path.read_text(encoding="utf-8")
+    for phrase in (
+        "Close the composition path, not only the capability list.",
+        "Capability composability and transfer closure",
+        "exact-head repository execution is still partial/missing",
+        "revision continuity",
+        "composition_edges",
+        "Do not install an orchestration framework merely because two existing tools cannot exchange one artifact.",
+    ):
+        require_text(errors, planning_text, phrase, str(planning_path))
+
+    matrix_path = root / ".aaop/schemas/capability-matrix.schema.json"
+    matrix = load(matrix_path)
+    if not isinstance(matrix, dict):
+        errors.append(f"{matrix_path}: expected object")
+    else:
+        properties = matrix.get("properties", {})
+        if not isinstance(properties, dict) or "composition_edges" not in properties:
+            errors.append(f"{matrix_path}: missing composition_edges")
+        else:
+            edges = properties.get("composition_edges")
+            items = edges.get("items", {}) if isinstance(edges, dict) else {}
+            required = set(items.get("required", [])) if isinstance(items, dict) else set()
+            if not {"from", "to", "status", "transfer"} <= required:
+                errors.append(f"{matrix_path}: composition_edges must require from/to/status/transfer")
+            edge_props = items.get("properties", {}) if isinstance(items, dict) else {}
+            for field in (
+                "identity_requirement",
+                "provenance_requirement",
+                "authorization_requirement",
+                "evidence",
+                "gap_resolution",
+            ):
+                if not isinstance(edge_props, dict) or field not in edge_props:
+                    errors.append(f"{matrix_path}: composition_edges missing {field!r}")
+
     provider_path = root / ".aaop/skills/provider-selection/SKILL.md"
     provider_text = provider_path.read_text(encoding="utf-8")
     for phrase in (
         "If no gap is proven, select **no additional provider**.",
         "current host native capability",
+        "Composition closure before provider escalation",
+        "exact-head execution remains partial",
+        "smallest compatible bridge/shared workspace/provider-native transfer",
         "verify the original capability gap is actually closed",
     ):
         require_text(errors, provider_text, phrase, str(provider_path))
@@ -100,6 +141,11 @@ def main() -> int:
             "guards": {"reconcile-current-baseline-before-mutation", "verification-harness-integrity"},
             "facts": ["browser-visible behavior", "builder model judging its own"],
         },
+        COMPOSITION_CASE: {
+            "route": "repo-recovery",
+            "guards": {"scoped-blocker-frontier-continuation"},
+            "facts": ["repository provider", "local runtime", "exact-head repository execution"],
+        },
     }
 
     for rel, expected in cases.items():
@@ -117,6 +163,19 @@ def main() -> int:
         facts = "\n".join(payload.get("known_facts", []))
         for phrase in expected["facts"]:
             require_text(errors, facts, phrase, str(path))
+
+    composition = load(root / COMPOSITION_CASE)
+    if isinstance(composition, dict):
+        lessons = "\n".join(composition.get("lessons", []))
+        for phrase in (
+            "Capability availability is not capability composability",
+            "revision continuity",
+            "end-to-end capability graph",
+            "smallest missing bridge",
+        ):
+            require_text(errors, lessons, phrase, COMPOSITION_CASE)
+        if composition.get("expected_blocker_class") != "capability-composability":
+            errors.append(f"{COMPOSITION_CASE}: expected_blocker_class must be 'capability-composability'")
 
     recovery_path = root / ".aaop/routes/repo-recovery.json"
     recovery = load(recovery_path)
