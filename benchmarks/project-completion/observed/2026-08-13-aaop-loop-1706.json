@@ -1,0 +1,106 @@
+{
+  "case_id": "frontier-continuation",
+  "run_id": "2026-08-13-aaop-loop-1706",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "evidence_target": {
+    "candidate_branch_before_write": "agent/evidence-target-fidelity",
+    "candidate_head_before_write": "a6fb90378dcd7888b895021907e99f828e76252c",
+    "main": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
+    "compare": {
+      "ahead_by": 62,
+      "behind_by": 0
+    },
+    "targeted_validator_revision": "46bee1738a08cc18ac476ad09a69ef0b2124fb8d"
+  },
+  "outcomes": [
+    {
+      "id": "project-frontier-reconciled",
+      "status": "proven",
+      "evidence": [
+        "AAOP candidate head was re-read from GitHub before mutation and remained a6fb90378dcd7888b895021907e99f828e76252c.",
+        "GitHub compare against main 7c5fa4bb65afb6a249f9501176fbfe531e354e77 reports ahead_by=62 and behind_by=0; this corrects the previous observed frontier's stale ahead_by=61 count.",
+        "mingos-skills main was re-read and remains 064dbab7d071a9bdb3e761981509f314625a9388, so no fresh consumer commit was manufactured into new pressure.",
+        "Family-Space production was re-read and remains caf763f37ee817ba86f39e7ce82a55a8e00c9d17; no second independent repair-path/acceptance-control failure appeared in this run."
+      ]
+    },
+    {
+      "id": "exact-target-closure-readable",
+      "status": "proven",
+      "evidence": [
+        "The exact targeted validator source at 46bee1738a08cc18ac476ad09a69ef0b2124fb8d remains scripts/validate_project_frontier_reconciliation.py with Git blob 7830f920434293c9c3789743d84057a00d1c57d8.",
+        "Its exact dependency objects remain .aaop/routes/repo-recovery.json=f6d335d1986458acfef220e4d3a7ff83104439c2, .aaop/journeys/idea-to-production.json=c2f3cfa472461573bee39cd57f287994f75dca72, .aaop/policies/pre-mutation-reconciliation.md=641a2c513b046f512c97535021381ccda29c1c4b, tests/pressure/green-local-checkout-with-active-project-frontier.json=3b8c7f78df38688d3061b2764c4e4e4cc819c445, and tests/pressure/verification-debt-must-not-compound-unbounded.json=f8c0c1840324b355c5ad11c6a9c62ef751c047ea.",
+        "GitHub connector exact-ref reads returned the validator and every dependency surface needed for its semantic assertions with immutable blob identities; repository-byte discovery/readability is therefore not the remaining blocker.",
+        "The local executor was probed again and direct raw.githubusercontent.com retrieval still fails with temporary DNS resolution failure."
+      ]
+    },
+    {
+      "id": "verification-claim-bounded",
+      "status": "proven",
+      "evidence": [
+        "No semantic PASS is claimed for validate_project_frontier_reconciliation.py because connector output still cannot be programmatically materialized into the local executor as an identity-preserving workspace in this host.",
+        "Connector readability, immutable blob identity, source syntax/compile evidence from earlier runs, manifest closure, and gate reachability remain narrower evidence classes and are not promoted into whole-validator or whole-repository green.",
+        "Candidate implementation expansion remains frozen while executable verification debt is outstanding; this run added evidence only."
+      ]
+    },
+    {
+      "id": "pressure-classification-current",
+      "status": "proven",
+      "evidence": [
+        "Current AWS Durable Execution guidance continues to state that replay and retry can each execute side effects more than once; at-least-once is suitable only for idempotent operations and at-most-once per retry does not imply workflow exactly-once.",
+        "Current OpenAI Codex safety guidance continues to define sandbox write roots/network policy as technical enforcement boundaries rather than relying on logical project scope.",
+        "Current GitHub ruleset guidance continues to require configured required status checks before merge enforcement exists; repository governance was not changed in this implementation loop.",
+        "A fresh GitHub code search across mingos-skills, Family-Space, MingOS, and mingos-foundation for retry/idempotency/webhook/POST/duplicate patterns returned no new concrete cross-project replay failure evidence."
+      ]
+    }
+  ],
+  "classification": {
+    "consumer-only": [
+      "mingos-skills product/runtime/Render/routing facts",
+      "Family-Space lifecycle-hook and control-plane implementation details",
+      "MingOS and mingos-foundation project-local validation/governance facts"
+    ],
+    "existing-AAOP-coverage": [
+      "project-frontier reconciliation",
+      "scoped-blocker continuation",
+      "verification-debt containment",
+      "capability composability and exact Git-object transfer reasoning",
+      "evidence-target fidelity",
+      "critical-control reachability"
+    ],
+    "candidate-generic-gap": [
+      "unknown external-effect outcome before replay/retry",
+      "logical project scope is not a technical sandbox boundary"
+    ],
+    "promoted-invariant": []
+  },
+  "remaining_frontier": [
+    {
+      "id": "materialize-exact-validator-closure",
+      "summary": "Reuse an already-authorized zero-cost bridge, if one becomes available in-host, to materialize the six exact Git objects for revision 46bee1738a08cc18ac476ad09a69ef0b2124fb8d into one executor workspace; recompute every Git blob identity before executing the original validator and preserve stdout/stderr. Reject any mismatch as non-evidence.",
+      "executable": true
+    },
+    {
+      "id": "execute-remaining-mapped-targeted-gates",
+      "summary": "After one identity-proven semantic validator run succeeds, repeat the same exact-object method for the remaining mapped changed validators. Do not build a second verification runtime or use hosted GitHub Actions without monetary authorization.",
+      "executable": true
+    },
+    {
+      "id": "fresh-consumer-pressure",
+      "summary": "Continue checking only fresh independent real-project evidence for replay/idempotency, sandbox-boundary, and repair-path/authoritative-acceptance failures. Promote no Core invariant without cross-project evidence and a machine-regressable owner.",
+      "executable": true
+    },
+    {
+      "id": "branch-gate-enforcement-governance",
+      "summary": "Required-check/branch-ruleset enforcement remains a human repository-governance decision and must not be silently changed by this implementation loop.",
+      "executable": false
+    },
+    {
+      "id": "candidate-pr-decision",
+      "summary": "PR/merge/SemVer/stable decisions remain downstream of acceptable exact-candidate executable verification closure.",
+      "executable": false
+    }
+  ],
+  "forbidden_events": [],
+  "human_interruptions": []
+}
