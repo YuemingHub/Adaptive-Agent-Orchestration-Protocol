@@ -20,5 +20,13 @@ jobs:
         run: python scripts/validate_ci_supply_chain.py
       - name: Validate real-project pressure semantics
         run: python scripts/validate_pressure.py
+      - name: Validate project completion benchmark
+        run: python scripts/validate_project_completion_benchmark.py
+      - name: Validate project frontier reconciliation
+        run: python scripts/validate_project_frontier_reconciliation.py
+      - name: Validate verification harness integrity
+        run: python scripts/validate_verification_harness_integrity.py
+      - name: Validate human-forward capability fabric
+        run: python scripts/validate_human_forward_capability_fabric.py
       - name: Validate AAOP production release contract
         run: python scripts/validate_production_release.py
