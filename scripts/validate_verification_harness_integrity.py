@@ -14,6 +14,13 @@ PRESSURE_CASES = (
     "tests/pressure/self-judging-behavioral-eval-is-provisional.json",
     "tests/pressure/verification-target-shadow-implementation.json",
 )
+RELEASE_GATE_PATH = ".github/workflows/validate-production-release.yml"
+REQUIRED_RELEASE_GATE_COMMANDS = (
+    "python scripts/validate_project_completion_benchmark.py",
+    "python scripts/validate_project_frontier_reconciliation.py",
+    "python scripts/validate_verification_harness_integrity.py",
+    "python scripts/validate_human_forward_capability_fabric.py",
+)
 
 
 def load(path: Path) -> object:
@@ -82,6 +89,17 @@ def main() -> int:
             errors.append(
                 f"{journey_path}: route transitions must keep untrusted green aggregates provisional"
             )
+
+    release_gate_path = root / RELEASE_GATE_PATH
+    if not release_gate_path.is_file():
+        errors.append(f"{release_gate_path}: missing owning production-release machine gate")
+    else:
+        release_gate = release_gate_path.read_text(encoding="utf-8")
+        for command in REQUIRED_RELEASE_GATE_COMMANDS:
+            if command not in release_gate:
+                errors.append(
+                    f"{release_gate_path}: critical validator is orphaned from the owning release gate: {command!r}"
+                )
 
     runner_case_path = root / PRESSURE_CASES[0]
     runner_case = load(runner_case_path)
