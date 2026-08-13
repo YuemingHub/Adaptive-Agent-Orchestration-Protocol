@@ -8,9 +8,9 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity is 7adc8ed660fc8eb70fb76572b27c0e22d87ef651 before this evidence update",
-        "candidate is ahead of main by 57 commits and behind by 0; no merge or stable promotion was attempted",
-        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388; Family-Space production remains caf763f37ee817ba86f39e7ce82a55a8e00c9d17; MingOS main remains c355f2b1fdbe067eb66fbd622dec372b5b12b27d; mingos-foundation main remains 7eb33ffc806db1da2fde488a617860ca34b76c0e"
+        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity is b1dfa39211a6a036792ada398b4c81f21a3c61be before this evidence update",
+        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388; no fresh consumer commit was available to manufacture new pressure from",
+        "no merge, stable promotion, production mutation, or repository-governance mutation was attempted"
       ]
     },
     {
@@ -18,20 +18,19 @@
       "status": "proven",
       "evidence": [
         "no candidate PR, merge, stable promotion, hosted workflow dispatch, production mutation, or repository-governance mutation was needed in this run",
-        "a whole-repository archive-to-executor seam remains unavailable, but the narrower exact-file transfer assumption was disproved: connector-fetched exact-SHA text can be reconstructed locally and independently checked against its Git blob identity",
+        "a whole-repository archive-to-executor seam remains unavailable, but exact UTF-8 text-file transfer through connector reconstruction is now independently proven on both workflow YAML and Python validator source",
         "AAOP main currently lacks required-check enforcement; changing branch/ruleset governance remains an external repository-policy decision",
-        "whole-repository exact-head execution remains unproven, while dependency-closed per-file targeted execution is now an executable frontier rather than a global blocker"
+        "whole-repository exact-head execution remains unproven, while dependency-closed per-file targeted execution remains executable"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "Family-Space production@caf763f37ee817ba86f39e7ce82a55a8e00c9d17 still supplies the current repair-path pressure: lifecycle drift detection is repairable while authoritative fail-closed acceptance remains unproven",
-        "MingOS main has one pull-request/main validation owner (npm run check), and mingos-foundation main has a repository-validation owner that runs scripts/validate_all.py; neither inspection supplied a second independent repair-path/acceptance failure in this run",
-        "the exact candidate .github/workflows/validate-production-release.yml was fetched at blob 36a479d1f7d2335a88c13b4469b74d1621d778cc, reconstructed in the local executor, and independently reproduced the same Git blob SHA from 1214 bytes",
-        "a local targeted assertion over that exact reconstructed blob confirmed all four critical validator commands are present: project-completion, project-frontier-reconciliation, verification-harness-integrity, and human-forward-capability-fabric",
-        "this proves a bounded connector -> exact-file -> executor composition path without introducing another runtime, scheduler, state model, permission plane, or hosted CI dependency"
+        "the exact candidate scripts/validate_project_frontier_reconciliation.py was fetched at blob 7830f920434293c9c3789743d84057a00d1c57d8",
+        "the first local reconstruction did not match the connector-reported blob and was rejected rather than treated as evidence; after restoring the omitted source comments the reconstructed bytes independently reproduced Git blob 7830f920434293c9c3789743d84057a00d1c57d8",
+        "the exact reconstructed validator then passed Python bytecode compilation locally, proving parser/syntax viability for the exact Git object while not claiming its dependency-based semantic assertions have run",
+        "this extends the bounded connector -> exact-file -> executor composition proof from workflow YAML to executable Python source without adding another runtime, scheduler, state model, permission plane, or hosted CI dependency"
       ]
     },
     {
@@ -39,18 +38,18 @@
       "status": "proven",
       "evidence": [
         "GitHub current secure-use guidance continues to recommend full-length commit SHA pinning as the immutable Action reference, matching AAOP's existing CI supply-chain gate",
-        "GitHub current protected-branch guidance continues to distinguish workflow presence from enforced required status checks, so missing merge enforcement remains governance state rather than justification for a second AAOP control plane",
         "AWS current durable-execution guidance continues to confirm replay/retry can repeat side effects and neither per-attempt semantic guarantees workflow exactly-once; unknown-external-effect replay therefore remains a candidate-generic-gap",
-        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss, and no second independent repair-path acceptance failure was found, so no candidate was promoted to a new Core invariant"
+        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss, so no candidate was promoted to a new Core invariant",
+        "no new policy, route, scheduler, runtime, state model, or permission surface was introduced in this run"
       ]
     },
     {
       "id": "verification-debt-bounded",
       "status": "proven",
       "evidence": [
-        "the former exact-revision transfer blocker is narrowed rather than erased: exact text-file transfer plus Git-blob fidelity is proven for one candidate file, while arbitrary binary/full-tree transfer remains unproven",
-        "the targeted gate assertion is explicitly scoped to release-gate reachability and is not represented as the full verification-harness validator or whole-repository suite passing",
-        "the next executable verification frontier is to reconstruct each already-mapped dependency closure from exact-SHA files, verify every local blob identity, and execute the owning validator locally",
+        "exact-file fidelity is now proven for the project-frontier validator itself, but its semantic PASS remains unproven until repo-recovery route, canonical Journey, pre-mutation policy, and the two pressure-case dependencies are reconstructed at the same candidate SHA and identity-verified",
+        "py_compile is recorded only as exact-source syntax/parser evidence and is not represented as validator PASS or whole-repository suite PASS",
+        "the next executable verification frontier is the dependency closure of validate_project_frontier_reconciliation.py because its exact validator source has already crossed the seam and compiled",
         "candidate PR/merge/SemVer/stable decisions remain downstream of acceptable executable validation closure"
       ]
     }
@@ -70,12 +69,17 @@
     },
     {
       "id": "exact-file-transfer-to-executor",
-      "summary": "Use the now-proven zero-cost connector-mediated exact-text-file transfer path for dependency-closed targeted gates: fetch each file at one exact candidate SHA, reconstruct locally, and require its computed Git blob SHA to match the connector-reported blob before execution. Keep binary/arbitrary-full-tree transfer unknown.",
+      "summary": "Continue using connector-mediated exact-text-file transfer: fetch at one exact candidate SHA, reconstruct locally, require computed Git blob SHA to equal connector-reported blob before execution, and reject any mismatched reconstruction as non-evidence. Keep binary/arbitrary-full-tree transfer unknown.",
       "executable": true
     },
     {
-      "id": "execute-mapped-targeted-gates",
-      "summary": "Reconstruct already-mapped validator dependency closures from exact-SHA files, verify every Git blob identity locally, execute each targeted gate, and persist stdout/stderr plus fidelity evidence. Start with verification-harness integrity because its release-gate dependency has already crossed and verified the seam.",
+      "id": "execute-project-frontier-validator",
+      "summary": "Complete the exact-SHA dependency closure for scripts/validate_project_frontier_reconciliation.py: repo-recovery route, canonical Journey, pre-mutation policy, green-local-checkout-with-active-project-frontier pressure case, and verification-debt-must-not-compound-unbounded pressure case. Verify every local Git blob identity, then execute the original validator and persist stdout/stderr.",
+      "executable": true
+    },
+    {
+      "id": "execute-remaining-mapped-targeted-gates",
+      "summary": "After the project-frontier validator runs on an identity-proven closure, repeat the same method for the other already-mapped changed validators without inventing another verification system.",
       "executable": true
     },
     {
