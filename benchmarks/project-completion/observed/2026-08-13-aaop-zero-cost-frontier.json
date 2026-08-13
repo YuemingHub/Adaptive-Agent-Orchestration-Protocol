@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "ffbf68ecbf83712e134043003d26e576e5d5a147",
-    "ahead_by_before_this_update": 70,
+    "candidate_head_before_this_update": "c9205f671f7543294232983522ad40ec4980097d",
+    "ahead_by_before_this_update": 71,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "caf763f37ee817ba86f39e7ce82a55a8e00c9d17",
@@ -20,7 +20,7 @@
       "status": "proven",
       "evidence": [
         "AAOP candidate and mingos-skills heads were re-read from GitHub before this update; no fresh mingos-skills consumer revision appeared.",
-        "The candidate is 70 commits ahead of main and 0 behind before this update.",
+        "The candidate is 71 commits ahead of main and 0 behind before this update.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -46,11 +46,22 @@
       ]
     },
     {
+      "id": "project-completion-benchmark-exact-closure-semantic-validation",
+      "status": "proven",
+      "evidence_target": "c9205f671f7543294232983522ad40ec4980097d",
+      "evidence": [
+        "The original scripts/validate_project_completion_benchmark.py, scorer, benchmark README, all 12 current case JSON files, and all four fixtures were materialized from one fixed candidate revision.",
+        "All 19 materialized Git objects independently reproduced the immutable blob identities published by the fixed candidate tree before execution; mismatches would have been rejected as non-evidence.",
+        "The original validator exited successfully and reported: AAOP project completion benchmark validation passed (12 cases), including balanced provider escalation/non-escalation, correct human-boundary stopping, instruction-authority adversarial/control coverage, retained replay/idempotency and sandbox candidate pressure, and false-completion detection for unfinished brownfield work and invented deliverable targets.",
+        "This is a dependency-closed exact-object semantic PASS for the benchmark contract/scorer at the fixed evidence target; it is not a whole-repository exact-head green claim."
+      ]
+    },
+    {
       "id": "recurring-evidence-debt-contained",
       "status": "proven",
       "evidence": [
         "Routine loops update this rolling frontier instead of creating a standalone evidence file unless materially new project pressure or validation evidence warrants one.",
-        "This update corrects stale canonical recovery state so a completed semantic gate is not repeated as unfinished work."
+        "This update advances the canonical recovery state after a newly completed semantic gate so future loops do not repeat finished work."
       ]
     }
   ],
@@ -65,7 +76,8 @@
       "evidence-target fidelity",
       "capability composability and exact-object transfer",
       "critical-control reachability",
-      "verification-harness integrity"
+      "verification-harness integrity",
+      "project-completion benchmark contract and scorer integrity"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -80,13 +92,8 @@
   ],
   "remaining_frontier": [
     {
-      "id": "execute-project-completion-benchmark",
-      "summary": "Reconstruct scripts/validate_project_completion_benchmark.py, its scorer, benchmark README, all current case JSON files, and four fixtures from one fixed candidate revision; verify every Git object identity before executing the original validator and preserve stdout/stderr.",
-      "executable": true
-    },
-    {
       "id": "execute-human-forward-capability-fabric-validator",
-      "summary": "Reconstruct the 12-object dependency closure for scripts/validate_human_forward_capability_fabric.py from one fixed revision, verify every Git identity, execute the original validator, and preserve stdout/stderr.",
+      "summary": "Reconstruct the fixed-revision dependency closure for scripts/validate_human_forward_capability_fabric.py, verify every Git identity, execute the original validator, and preserve stdout/stderr. Several exact objects have already been re-read; do not claim the gate until the complete closure is identity-verified and executed.",
       "executable": true
     },
     {
