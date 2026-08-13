@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "d0d005d8455c93605e9a87989047e32e0eb2d793",
-    "ahead_by_before_this_update": 68,
+    "candidate_head_before_this_update": "ffbf68ecbf83712e134043003d26e576e5d5a147",
+    "ahead_by_before_this_update": 70,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "caf763f37ee817ba86f39e7ce82a55a8e00c9d17",
@@ -19,9 +19,8 @@
       "id": "frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "AAOP candidate, mingos-skills, Family-Space, MingOS, and mingos-foundation heads were re-read from GitHub before this update.",
-        "The candidate is 68 commits ahead of main and 0 behind before this update.",
-        "No fresh consumer revision was found, so prior observations were not relabeled as new pressure.",
+        "AAOP candidate and mingos-skills heads were re-read from GitHub before this update; no fresh mingos-skills consumer revision appeared.",
+        "The candidate is 70 commits ahead of main and 0 behind before this update.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -31,18 +30,27 @@
       "evidence_target": "46bee1738a08cc18ac476ad09a69ef0b2124fb8d",
       "evidence": [
         "The original scripts/validate_project_frontier_reconciliation.py and its five semantic dependencies were materialized into one local workspace from the fixed evidence target.",
-        "All six local files independently reproduced their expected immutable Git blob identities before execution: validator 7830f920434293c9c3789743d84057a00d1c57d8; repo-recovery f6d335d1986458acfef220e4d3a7ff83104439c2; Journey c2f3cfa472461573bee39cd57f287994f75dca72; pre-mutation policy 641a2c513b046f512c97535021381ccda29c1c4b; project-frontier pressure 3b8c7f78df38688d3061b2764c4e4e4cc819c445; verification-debt pressure f8c0c1840324b355c5ad11c6a9c62ef751c047ea.",
-        "A first reconstruction of the project-frontier pressure fixture failed Git identity because a trailing newline was introduced; it was rejected as non-evidence, corrected to the exact bytes, and only then admitted to execution.",
-        "Running the original validator on the fully identity-verified dependency closure exited successfully and printed its PASS project frontier reconciliation message.",
-        "A compare from 46bee1738a08cc18ac476ad09a69ef0b2124fb8d to d0d005d8455c93605e9a87989047e32e0eb2d793 shows only observed-evidence files changed after the validated code target, so this gate's owned implementation surfaces did not drift after the fixed target."
+        "All six files independently reproduced their expected immutable Git blob identities before execution.",
+        "A reconstruction with a trailing-newline identity mismatch was rejected as non-evidence and corrected before execution.",
+        "The original validator exited successfully with PASS project frontier reconciliation."
+      ]
+    },
+    {
+      "id": "verification-harness-exact-closure-semantic-validation",
+      "status": "proven",
+      "evidence_target": "7b9dde91a64be7b593c780aa2176bb9d8bd43bc9",
+      "evidence": [
+        "The verification-harness-integrity validator and its exact dependency closure were reconstructed from the fixed evidence target.",
+        "Eleven Git objects reproduced their expected identities before execution.",
+        "The original validator exited successfully with AAOP verification-harness integrity validation passed."
       ]
     },
     {
       "id": "recurring-evidence-debt-contained",
       "status": "proven",
       "evidence": [
-        "Routine loops continue updating this rolling frontier instead of creating a standalone evidence file unless materially new project pressure or validation evidence warrants one.",
-        "This update is justified by materially new executable semantic evidence rather than a heartbeat-only commit."
+        "Routine loops update this rolling frontier instead of creating a standalone evidence file unless materially new project pressure or validation evidence warrants one.",
+        "This update corrects stale canonical recovery state so a completed semantic gate is not repeated as unfinished work."
       ]
     }
   ],
@@ -56,7 +64,8 @@
       "verification-debt containment",
       "evidence-target fidelity",
       "capability composability and exact-object transfer",
-      "critical-control reachability"
+      "critical-control reachability",
+      "verification-harness integrity"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -65,19 +74,24 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "AWS durable-execution guidance continues to show that replay/retry can repeat side effects and that default at-least-once semantics require idempotent business logic; retained as candidate pressure because no new independent consumer failure appeared this run.",
+    "AWS durable-execution guidance continues to show that replay/retry can repeat side effects and default at-least-once steps require idempotent business logic; retained as candidate pressure because no new independent consumer failure appeared this run.",
     "OpenAI Codex safety guidance continues to use enforced sandbox writable roots and managed network policy rather than treating logical project scope as a security boundary; retained as candidate pressure without promotion.",
     "GitHub required-check guidance continues to require latest-SHA success plus repository governance configuration before checks become merge enforcement; branch/ruleset changes remain a human governance boundary."
   ],
   "remaining_frontier": [
     {
-      "id": "execute-verification-harness-integrity-validator",
-      "summary": "Reconstruct the exact dependency closure for scripts/validate_verification_harness_integrity.py, independently verify every Git object identity, execute the original validator, and preserve real stdout/stderr.",
+      "id": "execute-project-completion-benchmark",
+      "summary": "Reconstruct scripts/validate_project_completion_benchmark.py, its scorer, benchmark README, all current case JSON files, and four fixtures from one fixed candidate revision; verify every Git object identity before executing the original validator and preserve stdout/stderr.",
       "executable": true
     },
     {
-      "id": "execute-remaining-mapped-validators",
-      "summary": "Continue exact-object semantic execution across the remaining changed validators, prioritizing release/gate ownership and evidence-target fidelity before any PR decision.",
+      "id": "execute-human-forward-capability-fabric-validator",
+      "summary": "Reconstruct the 12-object dependency closure for scripts/validate_human_forward_capability_fabric.py from one fixed revision, verify every Git identity, execute the original validator, and preserve stdout/stderr.",
+      "executable": true
+    },
+    {
+      "id": "execute-journey-validator",
+      "summary": "Run scripts/validate_journey.py using the same exact-object semantic-validation method after its fixed-revision dependency closure is materialized and identity-verified.",
       "executable": true
     },
     {
@@ -87,7 +101,7 @@
     },
     {
       "id": "branch-gate-enforcement-governance",
-      "summary": "Repository merge-enforcement policy remains a separate governance decision before release promotion.",
+      "summary": "Repository merge-enforcement policy remains a separate human governance decision before release promotion.",
       "executable": false
     }
   ]
