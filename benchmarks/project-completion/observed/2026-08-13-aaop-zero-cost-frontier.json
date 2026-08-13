@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "34cf379fe82bbd04668d3d2c62055a2a03966b2e",
-    "ahead_by_before_this_update": 73,
+    "candidate_head_before_this_update": "875517b68ed6779a6dd5c8a52266cadf92144894",
+    "ahead_by_before_this_update": 74,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -20,8 +20,8 @@
       "status": "proven",
       "evidence": [
         "AAOP candidate, main, mingos-skills, and Family-Space production heads were re-read from GitHub before this update.",
-        "The candidate is 73 commits ahead of main and 0 behind before this update.",
-        "mingos-skills has no fresh consumer revision; Family-Space production has fresh deployment-history evidence.",
+        "The candidate is 74 commits ahead of main and 0 behind before this update.",
+        "mingos-skills and Family-Space production have no revision newer than the last recorded pressure evidence.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -67,6 +67,19 @@
       ]
     },
     {
+      "id": "journey-source-side-semantic-closure",
+      "status": "proven-partial",
+      "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
+      "evidence": [
+        "The original scripts/validate_journey.py was re-read at the fixed revision with immutable blob 9d2c070222be272ccc03b5e4bfffe235622420c8.",
+        "The canonical idea-to-production Journey at immutable blob c2f3cfa472461573bee39cd57f287994f75dca72 preserves deliverable-aware completion, current-route selection, scoped blockers, verification-debt containment, explicit release-cycle isolation, and exact target evidence requirements asserted by the validator.",
+        "developer-intake and end-to-end-delivery preserve cross-session continuation, current-evidence precedence, expected-revision CAS, explicit next-cycle boundaries, and the rule that Journey coordination is not a second planner/workflow engine/state database/default Provider.",
+        "journey.py at immutable blob fc09c8fc6a6dac55d8cd0319a2e680cfb54442b9 implements checkpoint_lock, expected-revision stale-write rejection, explicit --start-next-cycle, release_history archival, target-evidence reset between cycles, and Gate/Route compatibility checks.",
+        "journey-state.schema at immutable blob d742263c96478bb748e8a0a6cdd2ec49c029ffe2 requires revision/cycle/target evidence/route history/release history/completed_at and explicitly documents compare-and-swap semantics; agent-bundles detection remains empty at immutable blob aaf3fb04e92b8e26e20ca8c7c4e724cf8931fa80.",
+        "This is source-side semantic closure only. It does not claim original-validator executor PASS until the fixed-revision seven-file dependency closure is identity-preserving materialized into one workspace and the original validator exits successfully."
+      ]
+    },
+    {
       "id": "family-space-deployment-history-divergence-pressure",
       "status": "proven",
       "consumer_revision": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -99,6 +112,7 @@
       "verification-harness integrity",
       "project-completion benchmark contract and scorer integrity",
       "human-forward capability-fabric contract",
+      "Journey continuation/CAS/release-cycle isolation contract",
       "pre-mutation reconciliation for divergent deployment and repository histories"
     ],
     "candidate-generic-gap": [
@@ -108,11 +122,10 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "GitHub Deployments records a deployment against a specific ref and resolved SHA, supporting exact deployed-revision evidence rather than treating a mutable branch name as sufficient production identity.",
-    "GitHub Git-reference updates default to non-forced fast-forward behavior so history is not silently overwritten; Family-Space's divergent production lineage should therefore be reconciled explicitly rather than force-overwritten by an autonomous loop.",
-    "AWS durable-execution guidance continues to state that replay/retry can repeat side effects and default at-least-once steps require idempotent business logic; retained as candidate pressure because no new independent consumer failure appeared this run.",
+    "AWS durable-execution guidance says steps are at-least-once by default and replay/retry can repeat unfinished side effects; stable execution/idempotency identity remains candidate pressure because no new independent consumer duplicate-effect failure appeared this run.",
+    "AWS also recommends pinning long-running durable executions to function versions or aliases and maintaining replay compatibility across code versions; AAOP maps this to existing evidence-target/revision fidelity rather than adding another workflow runtime.",
     "OpenAI Codex safety guidance continues to use enforced sandbox writable roots and managed network policy rather than treating logical project scope as a security boundary; retained as candidate pressure without promotion.",
-    "Repository branch/ruleset enforcement remains a human governance boundary rather than an autonomous implementation delta."
+    "GitHub ruleset guidance confirms status checks become merge constraints only when explicitly required; repository branch/ruleset enforcement remains a human governance boundary rather than an autonomous implementation delta."
   ],
   "remaining_frontier": [
     {
@@ -122,12 +135,12 @@
     },
     {
       "id": "execute-journey-validator",
-      "summary": "Run scripts/validate_journey.py using the same exact-object semantic-validation method after its fixed-revision dependency closure is materialized and identity-verified; proceed independently if Human-forward materialization remains the larger-object bottleneck.",
+      "summary": "Materialize the fixed 875517b revision Journey validator plus its seven required files into one workspace, recompute every Git object identity, run the original validator, and preserve stdout/stderr. Source-side semantic closure is now checked; do not repeat source inspection unless the evidence target moves.",
       "executable": true
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Use the fresh Family-Space deployment-history divergence as an existing-coverage pressure run, and continue collecting only fresh independent project evidence before promoting either retained generic candidate into Core.",
+      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current mingos-skills and Family-Space heads do not add a new independent failure this run.",
       "executable": true
     },
     {
