@@ -8,49 +8,49 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reached 27c3bc7f7efd08593058fb06c1f4c0fca4725ac9 before this evidence update",
-        "candidate is ahead of main by 56 commits and behind by 0; no merge or stable promotion was attempted",
-        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388; Family-Space production is caf763f37ee817ba86f39e7ce82a55a8e00c9d17; MingOS main is c355f2b1fdbe067eb66fbd622dec372b5b12b27d"
+        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity is 7adc8ed660fc8eb70fb76572b27c0e22d87ef651 before this evidence update",
+        "candidate is ahead of main by 57 commits and behind by 0; no merge or stable promotion was attempted",
+        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388; Family-Space production remains caf763f37ee817ba86f39e7ce82a55a8e00c9d17; MingOS main remains c355f2b1fdbe067eb66fbd622dec372b5b12b27d; mingos-foundation main remains 7eb33ffc806db1da2fde488a617860ca34b76c0e"
       ]
     },
     {
       "id": "blocked-scope-preserved",
       "status": "proven",
       "evidence": [
-        "no candidate PR, merge, stable promotion, hosted workflow dispatch, production mutation, or repository-governance mutation was needed to collect this pressure evidence",
-        "the local executor still lacks an already-authorized path that transfers arbitrary exact-revision repository bytes from the GitHub provider into the executor while preserving revision identity",
+        "no candidate PR, merge, stable promotion, hosted workflow dispatch, production mutation, or repository-governance mutation was needed in this run",
+        "a whole-repository archive-to-executor seam remains unavailable, but the narrower exact-file transfer assumption was disproved: connector-fetched exact-SHA text can be reconstructed locally and independently checked against its Git blob identity",
         "AAOP main currently lacks required-check enforcement; changing branch/ruleset governance remains an external repository-policy decision",
-        "exact-head byte execution remains unproven and each blocker remains scoped to its own transfer or governance surface"
+        "whole-repository exact-head execution remains unproven, while dependency-closed per-file targeted execution is now an executable frontier rather than a global blocker"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "Family-Space production@caf763f37ee817ba86f39e7ce82a55a8e00c9d17 supplied fresh consumer pressure: the control-plane drift detector was made advisory in agent lifecycle hooks so the same agent can repair detected drift",
-        "static inspection then found that scripts/aaop-family.cjs ready does not invoke scripts/check-agent-control-plane.js and the inspected Family-Space workflows do not invoke it either, so repairability improved while fail-closed acceptance of the same material drift is not yet proven",
-        "commit 626c7f67acd8f01c98134317e220d9c1ce8a298f added repair-path-preserving-validation as a Project Completion Benchmark pressure case rather than creating a new Core policy, scheduler, state model, or permission surface",
-        "commit 27c3bc7f7efd08593058fb06c1f4c0fca4725ac9 recorded the Family-Space run as in-progress with the missing authoritative acceptance outcome explicitly failed and a concrete executable consumer frontier retained",
-        "MingOS main also contains a current coordination rule requiring independent current evidence before guard activation, reinforcing evidence-gated control behavior without proving that repair-path preservation needs a new cross-project invariant"
+        "Family-Space production@caf763f37ee817ba86f39e7ce82a55a8e00c9d17 still supplies the current repair-path pressure: lifecycle drift detection is repairable while authoritative fail-closed acceptance remains unproven",
+        "MingOS main has one pull-request/main validation owner (npm run check), and mingos-foundation main has a repository-validation owner that runs scripts/validate_all.py; neither inspection supplied a second independent repair-path/acceptance failure in this run",
+        "the exact candidate .github/workflows/validate-production-release.yml was fetched at blob 36a479d1f7d2335a88c13b4469b74d1621d778cc, reconstructed in the local executor, and independently reproduced the same Git blob SHA from 1214 bytes",
+        "a local targeted assertion over that exact reconstructed blob confirmed all four critical validator commands are present: project-completion, project-frontier-reconciliation, verification-harness-integrity, and human-forward-capability-fabric",
+        "this proves a bounded connector -> exact-file -> executor composition path without introducing another runtime, scheduler, state model, permission plane, or hosted CI dependency"
       ]
     },
     {
       "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "Git documentation confirms local pre-commit hooks can abort work but are bypassable with --no-verify, while GitHub documentation distinguishes protected-branch required status checks as merge enforcement; repair-time diagnostics and authoritative acceptance are therefore different control points",
-        "the Family-Space finding is classified under existing AAOP verification-harness/control-path and scoped-blocker coverage: an advisory repair hook must not be mistaken for authoritative acceptance, but no second gate system is justified",
-        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss, so unknown-external-effect replay and logical-scope-without-technical-sandbox remain candidate-generic-gaps and were not promoted",
-        "repair-path-preserving-validation remains benchmark pressure, not a promoted Core invariant, until independent cross-project failure evidence proves a missing generic responsibility rather than an implementation defect under existing coverage"
+        "GitHub current secure-use guidance continues to recommend full-length commit SHA pinning as the immutable Action reference, matching AAOP's existing CI supply-chain gate",
+        "GitHub current protected-branch guidance continues to distinguish workflow presence from enforced required status checks, so missing merge enforcement remains governance state rather than justification for a second AAOP control plane",
+        "AWS current durable-execution guidance continues to confirm replay/retry can repeat side effects and neither per-attempt semantic guarantees workflow exactly-once; unknown-external-effect replay therefore remains a candidate-generic-gap",
+        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss, and no second independent repair-path acceptance failure was found, so no candidate was promoted to a new Core invariant"
       ]
     },
     {
       "id": "verification-debt-bounded",
       "status": "proven",
       "evidence": [
-        "the new Family-Space pressure case and observed run are structured JSON persisted on the exact candidate branch and were re-read by GitHub after commit",
-        "no claim is made that the full candidate benchmark suite passed execution because the exact-revision repository-byte transfer seam is still unavailable",
-        "the added pressure did not expand AAOP Core and did not create a new workflow, runtime, scheduler, permission model, or hosted CI requirement",
+        "the former exact-revision transfer blocker is narrowed rather than erased: exact text-file transfer plus Git-blob fidelity is proven for one candidate file, while arbitrary binary/full-tree transfer remains unproven",
+        "the targeted gate assertion is explicitly scoped to release-gate reachability and is not represented as the full verification-harness validator or whole-repository suite passing",
+        "the next executable verification frontier is to reconstruct each already-mapped dependency closure from exact-SHA files, verify every local blob identity, and execute the owning validator locally",
         "candidate PR/merge/SemVer/stable decisions remain downstream of acceptable executable validation closure"
       ]
     }
@@ -65,22 +65,22 @@
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue recording fresh independent real-project pressure when it exists. Specifically look for a second repair-path/acceptance-control failure before considering any new invariant, and continue looking for real replay/idempotency or sandbox-boundary failures before promoting those retained candidates.",
+      "summary": "Continue recording fresh independent real-project pressure when it exists. Specifically look for a second repair-path/acceptance-control failure before considering any new invariant, and continue looking for real replay/idempotency or sandbox-boundary failures before promoting retained candidates.",
       "executable": true
     },
     {
-      "id": "exact-revision-byte-transfer-to-executor",
-      "summary": "Obtain an already-authorized zero-cost path that transfers the exact candidate revision bytes into a local/self-hosted executor while preserving revision identity; do not add a broad runtime merely to work around this seam.",
-      "executable": false
+      "id": "exact-file-transfer-to-executor",
+      "summary": "Use the now-proven zero-cost connector-mediated exact-text-file transfer path for dependency-closed targeted gates: fetch each file at one exact candidate SHA, reconstruct locally, and require its computed Git blob SHA to match the connector-reported blob before execution. Keep binary/arbitrary-full-tree transfer unknown.",
+      "executable": true
     },
     {
       "id": "execute-mapped-targeted-gates",
-      "summary": "Once exact-revision byte transfer exists, verify reconstructed files against Git blob identity and execute mapped targeted gates locally, persisting stdout/stderr and SHA fidelity evidence.",
-      "executable": false
+      "summary": "Reconstruct already-mapped validator dependency closures from exact-SHA files, verify every Git blob identity locally, execute each targeted gate, and persist stdout/stderr plus fidelity evidence. Start with verification-harness integrity because its release-gate dependency has already crossed and verified the seam.",
+      "executable": true
     },
     {
       "id": "full-exact-head-validation",
-      "summary": "Run the complete candidate validation suite against one exact repository revision once a zero-cost repository-archive-to-executor path is available.",
+      "summary": "Run the complete candidate validation suite against one exact repository revision once an acceptable zero-cost whole-tree/archive path exists or all required dependency closures have been equivalently reconstructed with identity proof.",
       "executable": false
     },
     {
