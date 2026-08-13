@@ -8,8 +8,8 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reached 1dd9f84f9ce7cb717ed41aa485f174379b70d8fe before this evidence update",
-        "candidate is ahead of main by 50 commits and behind by 0 after the release-gate wiring fix; no merge or stable promotion was attempted",
+        "main reconciled at 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity reached 1dd9f84f9ce7cb717ed41aa485f174379b70d8fe before the first evidence update in this frontier",
+        "candidate was ahead of main by 50 commits and behind by 0 after the release-gate wiring fix; no merge or stable promotion was attempted",
         "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388, so no newer consumer delta was inferred from prior conversation state"
       ]
     },
@@ -17,9 +17,11 @@
       "id": "blocked-scope-preserved",
       "status": "proven",
       "evidence": [
-        "no open PR exists for agent/evidence-target-fidelity and no pull-request workflow run exists for candidate commit 1dd9f84f9ce7cb717ed41aa485f174379b70d8fe, so this loop did not trigger hosted GitHub Actions spend",
+        "no open PR existed for agent/evidence-target-fidelity and no pull-request workflow run existed for candidate commit 1dd9f84f9ce7cb717ed41aa485f174379b70d8fe, so this loop did not trigger hosted GitHub Actions spend",
         "the local executor still lacks an already-authorized path that transfers arbitrary exact-revision repository bytes from the GitHub provider into the executor while preserving revision identity",
-        "therefore exact-head byte execution remains unproven and the blocker remains scoped to the repository-transfer-to-executor seam rather than being generalized into a project-wide blocker"
+        "main currently reports protected=false with required status-check enforcement off, and the repository rulesets endpoint returns an empty set; therefore workflow presence is not currently backed by a GitHub merge-control enforcement boundary",
+        "changing repository branch/ruleset governance was not attempted because that is an external repository-policy decision rather than a code-local validation repair",
+        "exact-head byte execution remains unproven and each blocker remains scoped to its own transfer or governance surface rather than being generalized into a project-wide stop"
       ]
     },
     {
@@ -30,24 +32,27 @@
         "validate_journey.py was already correctly owned by .github/workflows/validate-journey.yml and was not duplicated into a second Journey gate",
         "the four orphan validators were wired into the existing .github/workflows/validate-production-release.yml rather than creating another workflow, scheduler, state model, or permission surface; commit 1dd9f84f9ce7cb717ed41aa485f174379b70d8fe changed only that existing gate topology",
         "score_project_completion_run.py and summarize_project_completion_benchmark.py remain benchmark helpers rather than standalone release gates; no false requirement was added that every changed script must be a top-level workflow command",
-        "the release workflow retains contents: read and its existing pinned checkout/setup-python dependencies; the delta adds only four Python validator steps"
+        "the release workflow retains contents: read and its existing pinned checkout/setup-python dependencies; the delta adds only four Python validator steps",
+        "a second control-layer audit then proved a separate repository-governance gap: code-level gates exist, but main has neither classic branch protection nor a repository ruleset requiring their status checks"
       ]
     },
     {
       "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "industry guidance continues to support replay/idempotency risk for non-idempotent external effects and OS-enforced sandbox boundaries for autonomous coding agents",
-        "provenance guidance continues to support binding verification evidence to an exact source/artifact identity rather than accepting self-reported completion",
+        "fresh GitHub guidance states required status checks must pass before collaborators can merge changes into a protected branch, and checks must correspond to the latest relevant commit rather than stale prior evidence",
+        "fresh OpenAI Codex safety guidance continues to require OS-enforced sandbox modes and constrained outbound network access rather than treating logical project scope as isolation",
         "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss in this run, so unknown-external-effect replay and logical-scope-without-technical-sandbox remain candidate-generic-gaps and were not promoted",
-        "the orphan-validator defect is classified as an implementation defect under existing AAOP verification/control-path coverage, not as a new Core invariant"
+        "the orphan-validator defect is classified as an implementation defect under existing AAOP verification/control-path coverage, not as a new Core invariant",
+        "the missing branch/ruleset enforcement is classified as repository-governance state, not as justification for a second AAOP permission/control plane"
       ]
     },
     {
       "id": "verification-debt-bounded",
       "status": "proven",
       "evidence": [
-        "static gate reachability debt for the intended changed validators is now closed: Journey remains on its existing Journey gate and the four previously orphaned candidate validators are attached to the existing production-release gate",
+        "static code-level gate reachability debt for the intended changed validators is now closed: Journey remains on its existing Journey gate and the four previously orphaned candidate validators are attached to the existing production-release gate",
+        "merge-control enforcement is separately unproven because GitHub main branch protection/ruleset enforcement is currently absent",
         "full exact-head executable validation remains outstanding and is not represented as green",
         "no claim is made that the newly wired commands passed execution because the provider seam cannot currently deliver arbitrary repository revision bytes into the local executor",
         "candidate PR/merge/SemVer/stable decisions remain downstream of acceptable executable validation closure"
@@ -61,6 +66,11 @@
       "id": "prove-gate-reachability-regression-ownership",
       "summary": "Inspect existing release-contract and verification-integrity ownership to determine whether future orphan critical validators are already machine-detectable; strengthen only the existing owner if a regression gap remains, without creating a second gate topology.",
       "executable": true
+    },
+    {
+      "id": "branch-gate-enforcement-governance",
+      "summary": "Before release promotion, an authorized repository-governance decision must establish and verify the intended required-check enforcement on main (branch protection or ruleset) so code-level gates cannot be bypassed by merge/push policy. Do not silently change repository governance from an implementation loop.",
+      "executable": false
     },
     {
       "id": "exercise-benchmark-on-real-projects",
