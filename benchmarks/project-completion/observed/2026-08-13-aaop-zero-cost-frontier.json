@@ -6,11 +6,11 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "5c36fa59cda7a4dc6dcd42effea0bac1ee479123",
-    "ahead_by_before_this_update": 72,
+    "candidate_head_before_this_update": "34cf379fe82bbd04668d3d2c62055a2a03966b2e",
+    "ahead_by_before_this_update": 73,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
-    "family_space_production_sha": "caf763f37ee817ba86f39e7ce82a55a8e00c9d17",
+    "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
     "mingos_main_sha": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
     "mingos_foundation_main_sha": "7eb33ffc806db1da2fde488a617860ca34b76c0e"
   },
@@ -19,8 +19,9 @@
       "id": "frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "AAOP candidate, main, and mingos-skills heads were re-read from GitHub before this update; no fresh mingos-skills consumer revision appeared.",
-        "The candidate is 72 commits ahead of main and 0 behind before this update.",
+        "AAOP candidate, main, mingos-skills, and Family-Space production heads were re-read from GitHub before this update.",
+        "The candidate is 73 commits ahead of main and 0 behind before this update.",
+        "mingos-skills has no fresh consumer revision; Family-Space production has fresh deployment-history evidence.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -66,6 +67,16 @@
       ]
     },
     {
+      "id": "family-space-deployment-history-divergence-pressure",
+      "status": "proven",
+      "consumer_revision": "9c44822836eba8fc08234f9bf7471172e70b7101",
+      "evidence": [
+        "Family-Space CURRENT_STATE records a successful production deployment candidate cd7d89ef derived from server baseline 7f4b4148, while repository production contains the product fix but remains on a history that is not fast-forward compatible with the deployed production lineage.",
+        "Family-Space explicitly marks production-history convergence as required before the next release and forbids blindly overwriting deployment state.",
+        "This is fresh real-project pressure for existing AAOP evidence-target fidelity, pre-mutation reconciliation, deliverable-target verification, and project-frontier recovery; it does not justify a second deployment state machine or a new Core invariant."
+      ]
+    },
+    {
       "id": "recurring-evidence-debt-contained",
       "status": "proven",
       "evidence": [
@@ -75,7 +86,8 @@
   ],
   "classification": {
     "consumer-only": [
-      "project-specific runtime, deployment, routing, lifecycle, and conformance facts"
+      "project-specific runtime, deployment, routing, lifecycle, and conformance facts",
+      "Family-Space server/repository production history and deployment lineage"
     ],
     "existing-AAOP-coverage": [
       "project-frontier reconciliation",
@@ -86,7 +98,8 @@
       "critical-control reachability",
       "verification-harness integrity",
       "project-completion benchmark contract and scorer integrity",
-      "human-forward capability-fabric contract"
+      "human-forward capability-fabric contract",
+      "pre-mutation reconciliation for divergent deployment and repository histories"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -95,9 +108,10 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
+    "GitHub Deployments records a deployment against a specific ref and resolved SHA, supporting exact deployed-revision evidence rather than treating a mutable branch name as sufficient production identity.",
+    "GitHub Git-reference updates default to non-forced fast-forward behavior so history is not silently overwritten; Family-Space's divergent production lineage should therefore be reconciled explicitly rather than force-overwritten by an autonomous loop.",
     "AWS durable-execution guidance continues to state that replay/retry can repeat side effects and default at-least-once steps require idempotent business logic; retained as candidate pressure because no new independent consumer failure appeared this run.",
     "OpenAI Codex safety guidance continues to use enforced sandbox writable roots and managed network policy rather than treating logical project scope as a security boundary; retained as candidate pressure without promotion.",
-    "GitHub secure-use guidance continues to recommend full-length commit-SHA pinning for immutable Action references; existing AAOP workflow pinning remains aligned.",
     "Repository branch/ruleset enforcement remains a human governance boundary rather than an autonomous implementation delta."
   ],
   "remaining_frontier": [
@@ -113,7 +127,7 @@
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue collecting only fresh independent project evidence before promoting either retained generic candidate into Core.",
+      "summary": "Use the fresh Family-Space deployment-history divergence as an existing-coverage pressure run, and continue collecting only fresh independent project evidence before promoting either retained generic candidate into Core.",
       "executable": true
     },
     {
