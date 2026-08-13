@@ -1,0 +1,96 @@
+{
+  "case_id": "frontier-continuation",
+  "run_id": "2026-08-13-aaop-loop-2011",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "project-frontier-reconciled",
+      "status": "proven",
+      "evidence": [
+        "agent/evidence-target-fidelity was re-read at 2e0f7843b484aeee0d313ceeccaba899c56f7ba9 before this evidence update; the branch remains unprotected with required status-check enforcement off",
+        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77",
+        "the candidate is ahead by 65 commits and behind by 0 before this evidence commit; implementation expansion remains frozen while executable verification debt is open",
+        "mingos-skills main remains 064dbab7d071a9bdb3e761981509f314625a9388",
+        "Family-Space production remains caf763f37ee817ba86f39e7ce82a55a8e00c9d17",
+        "MingOS main remains c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
+        "mingos-foundation main remains 7eb33ffc806db1da2fde488a617860ca34b76c0e"
+      ]
+    },
+    {
+      "id": "fresh-pressure-classified",
+      "status": "proven",
+      "evidence": [
+        "a fresh cross-repository code search for retry, idempotency, webhook, callback, duplicate, and POST patterns returned no new concrete cross-project replay failure evidence",
+        "no fresh independent repair-path versus authoritative-acceptance failure was found beyond the already-recorded Family-Space pressure",
+        "no fresh consumer evidence justified promoting logical project scope versus technical sandbox boundary into a new Core invariant"
+      ]
+    },
+    {
+      "id": "external-practice-reconciled",
+      "status": "proven",
+      "evidence": [
+        "AWS current Durable Execution guidance states replay and retry can each run the same side effect more than once; at-least-once is safe only for idempotent operations and even at-most-once per retry is not workflow exactly-once",
+        "OpenAI current Codex safety guidance treats sandbox write roots and managed network policy as technical enforcement boundaries rather than relying on logical project scope",
+        "GitHub current ruleset guidance states required status checks constrain merging only when configured as required, and required checks must succeed against the latest commit SHA"
+      ]
+    },
+    {
+      "id": "verification-debt-bounded",
+      "status": "proven",
+      "evidence": [
+        "the exact dependency-closed project-frontier validator semantic PASS remains unproven because connector-returned exact bytes still cannot be programmatically materialized into the local executor with identity preservation in the current tool surface",
+        "source readability, Git object identity, compileability, and gate reachability are not represented as semantic validator PASS or whole-repository PASS",
+        "no new policy, route, runtime, scheduler, state model, permission plane, or hosted CI dependency was introduced in this run"
+      ]
+    }
+  ],
+  "classification": {
+    "consumer-only": [
+      "mingos-skills product/runtime/Render/routing facts",
+      "Family-Space lifecycle-hook and control-plane implementation details",
+      "MingOS project-local validator and coordination facts",
+      "mingos-foundation lifecycle and conformance implementation facts"
+    ],
+    "existing-AAOP-coverage": [
+      "project-frontier reconciliation",
+      "scoped-blocker continuation",
+      "verification-debt containment",
+      "capability composability and exact Git-object evidence-target fidelity",
+      "critical-control reachability",
+      "instruction/evidence/authorization authority separation"
+    ],
+    "candidate-generic-gap": [
+      "unknown external-effect outcome before replay/retry",
+      "logical project scope is not a technical sandbox boundary"
+    ],
+    "promoted-invariant": []
+  },
+  "remaining_frontier": [
+    {
+      "id": "execute-project-frontier-validator",
+      "summary": "Find or reuse an approved zero-cost connector-response-to-executor materialization primitive; then materialize the fixed exact-SHA six-blob closure, recompute every Git blob identity, execute the original validator, and persist stdout/stderr. Reject any byte mismatch as non-evidence.",
+      "executable": true
+    },
+    {
+      "id": "execute-remaining-mapped-targeted-gates",
+      "summary": "After one identity-proven semantic validator execution succeeds, repeat the same method for the remaining already-mapped changed validators without creating another verification system.",
+      "executable": true
+    },
+    {
+      "id": "exercise-benchmark-on-real-projects",
+      "summary": "Continue collecting only fresh independent consumer pressure. Do not promote replay/idempotency, sandbox-boundary, or repair-path acceptance controls without cross-project evidence.",
+      "executable": true
+    },
+    {
+      "id": "branch-gate-enforcement-governance",
+      "summary": "Before release promotion, an authorized repository-governance decision must establish intended required-check enforcement on main. Do not silently mutate branch protection or rulesets from this implementation loop.",
+      "executable": false
+    },
+    {
+      "id": "candidate-pr-decision",
+      "summary": "Open a candidate PR only after executable verification debt is acceptably closed; do not merge, SemVer-promote, or move stable from partial evidence.",
+      "executable": false
+    }
+  ]
+}
