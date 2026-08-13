@@ -8,38 +8,41 @@
       "id": "project-frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "main remains 7c5fa4bb65afb6a249f9501176fbfe531e354e77; agent/evidence-target-fidelity is b1dfa39211a6a036792ada398b4c81f21a3c61be before this evidence update",
-        "mingos-skills was re-read and remains at 064dbab7d071a9bdb3e761981509f314625a9388; no fresh consumer commit was available to manufacture new pressure from",
-        "no merge, stable promotion, production mutation, or repository-governance mutation was attempted"
+        "agent/evidence-target-fidelity was re-read at 46bee1738a08cc18ac476ad09a69ef0b2124fb8d before this evidence update; the branch remained unprotected with required status-check enforcement off",
+        "mingos-skills main was re-read and remains 064dbab7d071a9bdb3e761981509f314625a9388; no fresh consumer commit was available to manufacture new pressure from",
+        "Family-Space production was re-read and remains caf763f37ee817ba86f39e7ce82a55a8e00c9d17; no second independent repair-path/acceptance-control failure appeared",
+        "no merge, stable promotion, production mutation, hosted workflow dispatch, license decision, or repository-governance mutation was attempted"
       ]
     },
     {
       "id": "blocked-scope-preserved",
       "status": "proven",
       "evidence": [
-        "no candidate PR, merge, stable promotion, hosted workflow dispatch, production mutation, or repository-governance mutation was needed in this run",
-        "a whole-repository archive-to-executor seam remains unavailable, but exact UTF-8 text-file transfer through connector reconstruction is now independently proven on both workflow YAML and Python validator source",
-        "AAOP main currently lacks required-check enforcement; changing branch/ruleset governance remains an external repository-policy decision",
-        "whole-repository exact-head execution remains unproven, while dependency-closed per-file targeted execution remains executable"
+        "whole-repository archive-to-executor transfer remains unavailable, but this blocks only aggregate whole-tree execution",
+        "connector-mediated exact UTF-8 text-file transfer remains the active zero-cost path for dependency-closed targeted gates",
+        "AAOP repository governance still does not enforce required status checks; changing branch protection/rulesets remains outside the implementation loop",
+        "candidate PR, merge, SemVer, and stable promotion remain downstream of acceptable executable verification closure"
       ]
     },
     {
       "id": "independent-frontier-advanced",
       "status": "proven",
       "evidence": [
-        "the exact candidate scripts/validate_project_frontier_reconciliation.py was fetched at blob 7830f920434293c9c3789743d84057a00d1c57d8",
-        "the first local reconstruction did not match the connector-reported blob and was rejected rather than treated as evidence; after restoring the omitted source comments the reconstructed bytes independently reproduced Git blob 7830f920434293c9c3789743d84057a00d1c57d8",
-        "the exact reconstructed validator then passed Python bytecode compilation locally, proving parser/syntax viability for the exact Git object while not claiming its dependency-based semantic assertions have run",
-        "this extends the bounded connector -> exact-file -> executor composition proof from workflow YAML to executable Python source without adding another runtime, scheduler, state model, permission plane, or hosted CI dependency"
+        "the exact candidate validator scripts/validate_project_frontier_reconciliation.py remains Git blob 7830f920434293c9c3789743d84057a00d1c57d8",
+        "the exact candidate repository tree establishes its dependency closure as .aaop/routes/repo-recovery.json=f6d335d1986458acfef220e4d3a7ff83104439c2, .aaop/journeys/idea-to-production.json=c2f3cfa472461573bee39cd57f287994f75dca72, .aaop/policies/pre-mutation-reconciliation.md=641a2c513b046f512c97535021381ccda29c1c4b, tests/pressure/green-local-checkout-with-active-project-frontier.json=3b8c7f78df38688d3061b2764c4e4e4cc819c445, and tests/pressure/verification-debt-must-not-compound-unbounded.json=f8c0c1840324b355c5ad11c6a9c62ef751c047ea",
+        "a zero-cost local manifest-integrity check passed: six dependency-closure paths have six unique well-formed 40-hex Git blob identities",
+        "repo-recovery was re-read at the same candidate SHA and still contains project-frontier-before-project-noop plus scoped-blocker-frontier-continuation, confirming the targeted gate is pointed at the intended active control surface",
+        "this advances verification debt without adding another runtime, scheduler, state model, permission plane, validator owner, or hosted CI dependency"
       ]
     },
     {
       "id": "candidate-promotion-discipline-preserved",
       "status": "proven",
       "evidence": [
-        "GitHub current secure-use guidance continues to recommend full-length commit SHA pinning as the immutable Action reference, matching AAOP's existing CI supply-chain gate",
-        "AWS current durable-execution guidance continues to confirm replay/retry can repeat side effects and neither per-attempt semantic guarantees workflow exactly-once; unknown-external-effect replay therefore remains a candidate-generic-gap",
-        "mingos-skills still provides no newly reproduced external-write replay failure or sandbox-escape near miss, so no candidate was promoted to a new Core invariant",
+        "AWS current Durable Execution guidance still states replay and retry may run the same side effect more than once and neither retry semantic guarantees workflow exactly-once; unknown-external-effect replay/idempotency remains a candidate-generic-gap",
+        "OpenAI current Codex safety guidance still treats sandbox write roots and network policy as technical enforcement boundaries; logical project scope without technical sandbox remains a candidate-generic-gap",
+        "GitHub current required-status-check guidance still requires checks to succeed against the latest commit SHA for protected-branch enforcement; AAOP governance remains an explicit human/repository-policy frontier",
+        "no fresh real consumer failure justified promoting either retained candidate into a new Core invariant",
         "no new policy, route, scheduler, runtime, state model, or permission surface was introduced in this run"
       ]
     },
@@ -47,15 +50,34 @@
       "id": "verification-debt-bounded",
       "status": "proven",
       "evidence": [
-        "exact-file fidelity is now proven for the project-frontier validator itself, but its semantic PASS remains unproven until repo-recovery route, canonical Journey, pre-mutation policy, and the two pressure-case dependencies are reconstructed at the same candidate SHA and identity-verified",
-        "py_compile is recorded only as exact-source syntax/parser evidence and is not represented as validator PASS or whole-repository suite PASS",
-        "the next executable verification frontier is the dependency closure of validate_project_frontier_reconciliation.py because its exact validator source has already crossed the seam and compiled",
-        "candidate PR/merge/SemVer/stable decisions remain downstream of acceptable executable validation closure"
+        "the project-frontier validator semantic PASS remains unproven: dependency identities are locked, but all five dependency bytes have not yet been reconstructed and identity-verified inside the executor in this run",
+        "the local manifest PASS is recorded only as closure/identity-shape evidence and is not represented as validator PASS or whole-repository suite PASS",
+        "the next executable verification frontier is now strictly mechanical: reconstruct the five exact dependency blobs, verify each Git blob identity, run the original validator, and persist stdout/stderr",
+        "verification debt is therefore reduced from unknown closure to one exact six-blob targeted gate without compounding further implementation deltas"
       ]
     }
   ],
   "human_interruptions": [],
   "forbidden_events": [],
+  "classification": {
+    "consumer-only": [
+      "mingos-skills product/runtime/Render/routing facts",
+      "Family-Space lifecycle-hook and control-plane implementation details"
+    ],
+    "existing-AAOP-coverage": [
+      "project-frontier reconciliation",
+      "scoped-blocker continuation",
+      "verification-debt containment",
+      "capability composability and exact-file transfer",
+      "evidence-target fidelity",
+      "critical-control reachability"
+    ],
+    "candidate-generic-gap": [
+      "unknown external-effect outcome before replay/retry",
+      "logical project scope is not a technical sandbox boundary"
+    ],
+    "promoted-invariant": []
+  },
   "remaining_frontier": [
     {
       "id": "branch-gate-enforcement-governance",
@@ -64,22 +86,17 @@
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue recording fresh independent real-project pressure when it exists. Specifically look for a second repair-path/acceptance-control failure before considering any new invariant, and continue looking for real replay/idempotency or sandbox-boundary failures before promoting retained candidates.",
-      "executable": true
-    },
-    {
-      "id": "exact-file-transfer-to-executor",
-      "summary": "Continue using connector-mediated exact-text-file transfer: fetch at one exact candidate SHA, reconstruct locally, require computed Git blob SHA to equal connector-reported blob before execution, and reject any mismatched reconstruction as non-evidence. Keep binary/arbitrary-full-tree transfer unknown.",
+      "summary": "Continue recording only fresh independent real-project pressure. Require a second independent repair-path/acceptance-control failure before considering promotion, and continue seeking real replay/idempotency or sandbox-boundary near misses before promoting retained candidates.",
       "executable": true
     },
     {
       "id": "execute-project-frontier-validator",
-      "summary": "Complete the exact-SHA dependency closure for scripts/validate_project_frontier_reconciliation.py: repo-recovery route, canonical Journey, pre-mutation policy, green-local-checkout-with-active-project-frontier pressure case, and verification-debt-must-not-compound-unbounded pressure case. Verify every local Git blob identity, then execute the original validator and persist stdout/stderr.",
+      "summary": "Using candidate SHA 46bee1738a08cc18ac476ad09a69ef0b2124fb8d as the evidence target, reconstruct the five dependency blobs already locked in this record, independently recompute each Git blob identity, then execute the original scripts/validate_project_frontier_reconciliation.py and persist exact stdout/stderr. Reject any byte mismatch as non-evidence.",
       "executable": true
     },
     {
       "id": "execute-remaining-mapped-targeted-gates",
-      "summary": "After the project-frontier validator runs on an identity-proven closure, repeat the same method for the other already-mapped changed validators without inventing another verification system.",
+      "summary": "After the project-frontier validator runs on an identity-proven closure, repeat the exact-file method for the other already-mapped changed validators without inventing another verification system.",
       "executable": true
     },
     {
