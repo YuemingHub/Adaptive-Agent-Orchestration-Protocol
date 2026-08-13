@@ -1,0 +1,50 @@
+{
+  "case_id": "frontier-continuation",
+  "run_id": "2026-08-14-exact-transfer-blocker",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "evidence_target": "5139f893b4874bf79be4d7507419c76de48e61e8",
+  "state": {
+    "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
+    "candidate_head_before_update": "5139f893b4874bf79be4d7507419c76de48e61e8",
+    "ahead_by": 75,
+    "behind_by": 0,
+    "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
+    "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
+    "mingos_main_sha": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
+    "mingos_foundation_main_sha": "7eb33ffc806db1da2fde488a617860ca34b76c0e"
+  },
+  "evidence": [
+    "GitHub connector can read scripts/validate_journey.py at the exact immutable candidate revision.",
+    "A direct local container download of the same exact raw GitHub URL was attempted in this run.",
+    "The local download path requires the URL to be admitted through the web cache first; the web fetch returned cache miss for the exact raw URL, so no identity-preserving programmatic materialization bridge was established.",
+    "This is a scoped executor-transfer blocker only. It does not invalidate the three already-proven exact semantic gates or the Human-forward/Journey source-side semantic closures.",
+    "No pressure consumer advanced to a new revision in this run, so no generic invariant is promoted."
+  ],
+  "classification": {
+    "consumer-only": [
+      "project-specific runtime, deployment, routing, lifecycle, and conformance facts"
+    ],
+    "existing-AAOP-coverage": [
+      "verification-debt containment",
+      "evidence-target fidelity",
+      "capability composability and exact-object transfer",
+      "scoped-blocker continuation"
+    ],
+    "candidate-generic-gap": [
+      "unknown external-effect outcome before replay or retry",
+      "logical project scope is not a technical sandbox boundary"
+    ],
+    "promoted-invariant": []
+  },
+  "best_practice_reconciliation": [
+    "AWS durable execution documents at-least-once step semantics and requires idempotent business logic for retryable side effects; at-most-once applies per retry attempt rather than guaranteeing whole-workflow exactly-once.",
+    "OpenAI Codex safety guidance treats sandbox writable roots and managed network policy as technical boundaries rather than relying on logical project scope.",
+    "GitHub rulesets make status checks merge constraints only when explicitly required; governance activation remains a human-authorized frontier."
+  ],
+  "next_frontier": [
+    "Prefer an existing zero-cost identity-preserving transfer primitive to materialize the fixed Human-forward or Journey dependency closure into one executor workspace; do not create a second Provider/runtime for the current host cache restriction.",
+    "If that transfer remains blocked, continue independent fresh real-project pressure collection without expanding AAOP Core.",
+    "Keep PR, merge, SemVer, stable promotion, branch protection, and production authorization behind executable verification and human governance boundaries."
+  ]
+}
