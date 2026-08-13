@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "875517b68ed6779a6dd5c8a52266cadf92144894",
-    "ahead_by_before_this_update": 74,
+    "candidate_head_before_this_update": "2c16ba35a491f8e95c164896e738c1eafe123d24",
+    "ahead_by_before_this_update": 76,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -19,9 +19,9 @@
       "id": "frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "AAOP candidate, main, mingos-skills, and Family-Space production heads were re-read from GitHub before this update.",
-        "The candidate is 74 commits ahead of main and 0 behind before this update.",
-        "mingos-skills and Family-Space production have no revision newer than the last recorded pressure evidence.",
+        "AAOP candidate and main plus mingos-skills main were re-read from GitHub before this update.",
+        "The candidate is 76 commits ahead of main and 0 behind before this update.",
+        "mingos-skills has no revision newer than the last recorded pressure evidence.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -30,9 +30,9 @@
       "status": "proven",
       "evidence_target": "46bee1738a08cc18ac476ad09a69ef0b2124fb8d",
       "evidence": [
-        "The original scripts/validate_project_frontier_reconciliation.py and its five semantic dependencies were materialized into one local workspace from the fixed evidence target.",
+        "The original project-frontier validator and five semantic dependencies were materialized into one local workspace from the fixed evidence target.",
         "All six files independently reproduced their expected immutable Git blob identities before execution.",
-        "The original validator exited successfully with PASS project frontier reconciliation."
+        "The original validator exited successfully."
       ]
     },
     {
@@ -40,9 +40,9 @@
       "status": "proven",
       "evidence_target": "7b9dde91a64be7b593c780aa2176bb9d8bd43bc9",
       "evidence": [
-        "The verification-harness-integrity validator and its exact dependency closure were reconstructed from the fixed evidence target.",
+        "The verification-harness-integrity validator and exact dependency closure were reconstructed from the fixed evidence target.",
         "Eleven Git objects reproduced their expected identities before execution.",
-        "The original validator exited successfully with AAOP verification-harness integrity validation passed."
+        "The original validator exited successfully."
       ]
     },
     {
@@ -50,9 +50,9 @@
       "status": "proven",
       "evidence_target": "c9205f671f7543294232983522ad40ec4980097d",
       "evidence": [
-        "The original project-completion validator, scorer, README, all 12 current cases, and four fixtures were materialized from one fixed candidate revision.",
+        "The original benchmark validator, scorer, README, all 12 current cases, and four fixtures were materialized from one fixed candidate revision.",
         "All 19 Git objects reproduced their immutable identities before execution.",
-        "The original validator exited successfully and reported AAOP project completion benchmark validation passed (12 cases)."
+        "The original validator exited successfully and reported 12 cases passing."
       ]
     },
     {
@@ -60,10 +60,9 @@
       "status": "proven-partial",
       "evidence_target": "5c36fa59cda7a4dc6dcd42effea0bac1ee479123",
       "evidence": [
-        "The original scripts/validate_human_forward_capability_fabric.py was re-read at the fixed revision with immutable blob b244de12697c2e440a36e8adae90bc00b05ae79a.",
-        "All eleven semantic dependency paths were re-read from the same fixed revision, including idea-to-build, capability registry/matrix, capability-planning, provider-selection, ORCHESTRATOR, repo-recovery, and four pressure cases.",
-        "Direct source-side audit confirms the exact fixed-revision sources contain the phrases, routes, guard IDs, composition-edge fields, case facts, blocker class, and recovery-stage semantics asserted by the original validator.",
-        "This does not claim original-validator executor PASS: large exact objects such as ORCHESTRATOR.md and repo-recovery.json still require identity-preserving materialization into one local workspace before that stronger claim is valid."
+        "The original Human-forward validator and all eleven semantic dependency paths were re-read from one fixed revision.",
+        "Source-side audit matches the original validator assertions.",
+        "Original-validator executor PASS remains unproven until the exact dependency closure is identity-preserving materialized into one workspace."
       ]
     },
     {
@@ -71,12 +70,9 @@
       "status": "proven-partial",
       "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
       "evidence": [
-        "The original scripts/validate_journey.py was re-read at the fixed revision with immutable blob 9d2c070222be272ccc03b5e4bfffe235622420c8.",
-        "The canonical idea-to-production Journey at immutable blob c2f3cfa472461573bee39cd57f287994f75dca72 preserves deliverable-aware completion, current-route selection, scoped blockers, verification-debt containment, explicit release-cycle isolation, and exact target evidence requirements asserted by the validator.",
-        "developer-intake and end-to-end-delivery preserve cross-session continuation, current-evidence precedence, expected-revision CAS, explicit next-cycle boundaries, and the rule that Journey coordination is not a second planner/workflow engine/state database/default Provider.",
-        "journey.py at immutable blob fc09c8fc6a6dac55d8cd0319a2e680cfb54442b9 implements checkpoint_lock, expected-revision stale-write rejection, explicit --start-next-cycle, release_history archival, target-evidence reset between cycles, and Gate/Route compatibility checks.",
-        "journey-state.schema at immutable blob d742263c96478bb748e8a0a6cdd2ec49c029ffe2 requires revision/cycle/target evidence/route history/release history/completed_at and explicitly documents compare-and-swap semantics; agent-bundles detection remains empty at immutable blob aaf3fb04e92b8e26e20ca8c7c4e724cf8931fa80.",
-        "This is source-side semantic closure only. It does not claim original-validator executor PASS until the fixed-revision seven-file dependency closure is identity-preserving materialized into one workspace and the original validator exits successfully."
+        "The original Journey validator and seven required dependency paths were recovered at one fixed revision.",
+        "Source-side audit confirms deliverable-aware completion, scoped blockers, verification-debt containment, CAS continuation, and release-cycle isolation semantics.",
+        "Original-validator executor PASS remains unproven until the fixed-revision closure is identity-preserving materialized into one workspace."
       ]
     },
     {
@@ -84,9 +80,19 @@
       "status": "proven",
       "consumer_revision": "9c44822836eba8fc08234f9bf7471172e70b7101",
       "evidence": [
-        "Family-Space CURRENT_STATE records a successful production deployment candidate cd7d89ef derived from server baseline 7f4b4148, while repository production contains the product fix but remains on a history that is not fast-forward compatible with the deployed production lineage.",
-        "Family-Space explicitly marks production-history convergence as required before the next release and forbids blindly overwriting deployment state.",
-        "This is fresh real-project pressure for existing AAOP evidence-target fidelity, pre-mutation reconciliation, deliverable-target verification, and project-frontier recovery; it does not justify a second deployment state machine or a new Core invariant."
+        "Family-Space records deployed production lineage that is not fast-forward compatible with repository production history.",
+        "The project requires history convergence before the next release instead of blindly overwriting deployment state.",
+        "This remains real-project pressure for existing evidence-target fidelity and pre-mutation reconciliation, not a new deployment state machine."
+      ]
+    },
+    {
+      "id": "exact-transfer-seam",
+      "status": "blocked-partial",
+      "evidence": [
+        "Exact Git object discovery and connector-side content reads are available.",
+        "The local executor remains unable to resolve github.com, raw.githubusercontent.com, or api.github.com directly.",
+        "No zero-cost programmatic connector-response-to-executor materialization primitive has been proven for the remaining large closures.",
+        "This blocker is scoped to original-validator exact-object execution and does not block independent real-project pressure reconciliation."
       ]
     },
     {
@@ -122,25 +128,25 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "AWS durable-execution guidance says steps are at-least-once by default and replay/retry can repeat unfinished side effects; stable execution/idempotency identity remains candidate pressure because no new independent consumer duplicate-effect failure appeared this run.",
-    "AWS also recommends pinning long-running durable executions to function versions or aliases and maintaining replay compatibility across code versions; AAOP maps this to existing evidence-target/revision fidelity rather than adding another workflow runtime.",
-    "OpenAI Codex safety guidance continues to use enforced sandbox writable roots and managed network policy rather than treating logical project scope as a security boundary; retained as candidate pressure without promotion.",
-    "GitHub ruleset guidance confirms status checks become merge constraints only when explicitly required; repository branch/ruleset enforcement remains a human governance boundary rather than an autonomous implementation delta."
+    "AWS Lambda Durable Functions documents at-least-once step execution and requires idempotent business logic for operations that may retry; this remains candidate pressure because no new independent consumer duplicate-effect failure appeared in this run.",
+    "AWS durable-function guidance recommends pinning long-running executions to versions or aliases and retaining replay compatibility; AAOP maps this to existing revision/evidence-target fidelity rather than adding a second workflow runtime.",
+    "OpenAI Codex safety guidance treats enforced sandbox writable roots and managed network policy as technical boundaries; logical project scope remains candidate pressure without promotion.",
+    "GitHub ruleset guidance confirms required status checks become merge constraints only when explicitly configured and must pass on the latest commit SHA; branch/ruleset enforcement remains a human governance boundary."
   ],
   "remaining_frontier": [
     {
       "id": "execute-human-forward-capability-fabric-validator",
-      "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies into one executor workspace, recompute each Git object identity, execute the original validator, and preserve stdout/stderr. Source-side semantic closure is already checked; do not repeat it unless the evidence target moves.",
+      "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies into one executor workspace, recompute each Git object identity, execute the original validator, and preserve stdout/stderr. Do not repeat source-side semantic inspection unless the evidence target moves.",
       "executable": true
     },
     {
       "id": "execute-journey-validator",
-      "summary": "Materialize the fixed 875517b revision Journey validator plus its seven required files into one workspace, recompute every Git object identity, run the original validator, and preserve stdout/stderr. Source-side semantic closure is now checked; do not repeat source inspection unless the evidence target moves.",
+      "summary": "Materialize the fixed-revision Journey validator plus seven required dependency files into one workspace, recompute every Git object identity, run the original validator, and preserve stdout/stderr. Do not repeat source inspection unless the evidence target moves.",
       "executable": true
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current mingos-skills and Family-Space heads do not add a new independent failure this run.",
+      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current mingos-skills head does not add a new independent failure this run.",
       "executable": true
     },
     {
