@@ -325,7 +325,7 @@ AAOP reuses mature upstream layers instead of recreating them. It does not try t
 - an organizational control plane;
 - a system that installs more tooling whenever work is blocked.
 
-Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, and optional specialist/delegated sources such as agent-bundles, agency-agents-zh, and agency-orchestrator, but only a proven capability or responsibility gap should justify adoption.
+Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, plus optional current specialist/delegated sources such as `agency-agents-zh` and `agency-orchestrator`, but only a proven capability or responsibility gap should justify adoption. `agent-bundles` remains retired compatibility lineage only and is not a current provider for new specialist composition.
 
 ## Project principles that matter in practice
 
