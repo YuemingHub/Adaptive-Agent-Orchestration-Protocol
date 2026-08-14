@@ -135,6 +135,13 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         if not isinstance(value, str) or not value.strip():
             fail(errors, f"{path}: {field} must be a non-empty string")
 
+    objective = str(payload.get("objective") or "").lower()
+    for phrase in ("accepted deliverable", "intended consumer"):
+        if phrase not in objective:
+            fail(errors, f"{path}: objective must preserve deliverable-aware completion phrase {phrase!r}")
+    if "real deployed application" in objective:
+        fail(errors, f"{path}: objective must not force every project into a deployed-application target")
+
     routing = payload.get("routing_policy")
     required_routing = {
         "intake_selects_current_route": True,
@@ -143,6 +150,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         "stale_checkpoint_never_overrides_current_evidence": True,
         "completed_cycle_must_reopen_explicitly": True,
         "autonomous_takeover_reconstructs_intent_and_selects_current_goal": True,
+        "deliverable_target_recovered_before_completion": True,
     }
     if not isinstance(routing, dict):
         fail(errors, f"{path}: routing_policy must be an object")
@@ -157,6 +165,7 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         "target_verification_required": True,
         "target_verification_is_cycle_scoped": True,
         "local_or_ci_evidence_cannot_substitute_for_target_evidence": True,
+        "completion_contract_is_deliverable_target_aware": True,
     }
     if not isinstance(completion_policy, dict):
         fail(errors, f"{path}: completion_policy must be an object")
@@ -185,6 +194,43 @@ def validate_journey(root: Path, errors: list[str]) -> None:
 
     for field in ("entry_conditions", "user_owns", "system_owns", "route_transition_rules", "completion"):
         nonempty_string_list(path, field, payload.get(field), errors)
+
+    transition_text = "\n".join(str(item) for item in payload.get("route_transition_rules", [])).lower()
+    for phrase in (
+        "actual deliverable, intended consumer, and observable completion target",
+        "auxiliary application/demo",
+        "verification blocker propagates",
+    ):
+        if phrase not in transition_text:
+            fail(errors, f"{path}: route transitions missing deliverable/debt invariant {phrase!r}")
+
+    completion_text = "\n".join(str(item) for item in payload.get("completion", [])).lower()
+    for phrase in (
+        "deployment is required only when deployment is actually part of that target",
+        "evidence appropriate to that target",
+        "artifact capability closure",
+        "material verification debt",
+    ):
+        if phrase not in completion_text:
+            fail(errors, f"{path}: completion missing deliverable-aware evidence invariant {phrase!r}")
+
+    capability_policy = payload.get("capability_policy")
+    if not isinstance(capability_policy, dict):
+        fail(errors, f"{path}: capability_policy must be an object")
+    else:
+        agent_bundles_policy = str(capability_policy.get("agent_bundles", "")).lower()
+        if "retired" not in agent_bundles_policy or "compatibility" not in agent_bundles_policy:
+            fail(errors, f"{path}: agent-bundles capability policy must remain a retired compatibility alias")
+        if "optional curated specialist source" in agent_bundles_policy:
+            fail(errors, f"{path}: retired agent-bundles must not be presented as a current optional specialist source")
+
+    historical_sources = payload.get("historical_sources")
+    if not isinstance(historical_sources, dict):
+        fail(errors, f"{path}: historical_sources must be an object")
+    else:
+        agent_bundles_history = str(historical_sources.get("agent-bundles", "")).lower()
+        if "historical" not in agent_bundles_history or "retired" not in agent_bundles_history:
+            fail(errors, f"{path}: agent-bundles historical source must be explicitly historical and retired")
 
     gates = payload.get("gates")
     if not isinstance(gates, list) or not gates:
@@ -229,6 +275,8 @@ def validate_journey(root: Path, errors: list[str]) -> None:
     intake = gates_by_id.get("intake")
     if not intake or intake.get("route_selection") != "developer-intake" or "primary_route" in intake:
         fail(errors, f"{path}: intake must let developer-intake select the current route instead of forcing greenfield")
+    elif "deliverable/consumer/target" not in str(intake.get("goal", "")).lower():
+        fail(errors, f"{path}: intake must recover the actual deliverable/consumer/target when material")
 
     first_slice = gates_by_id.get("first-slice")
     if not first_slice:
@@ -248,8 +296,13 @@ def validate_journey(root: Path, errors: list[str]) -> None:
     deploy = gates_by_id.get("deploy-observe")
     if not deploy or deploy.get("primary_route") != "release-operations":
         fail(errors, f"{path}: deploy-observe must run under release-operations")
-    elif not any("current release cycle" in str(item).lower() for item in deploy.get("exit_evidence", [])):
-        fail(errors, f"{path}: deploy-observe target evidence must be scoped to the current release cycle")
+    else:
+        if not any("current release cycle" in str(item).lower() for item in deploy.get("exit_evidence", [])):
+            fail(errors, f"{path}: deploy-observe target evidence must be scoped to the current release cycle")
+        deploy_goal = str(deploy.get("goal") or "").lower()
+        for phrase in ("compatibility gate name retained", "do not invent a web/application deployment"):
+            if phrase not in deploy_goal:
+                fail(errors, f"{path}: deploy-observe must remain compatibility-safe and deliverable-aware: missing {phrase!r}")
 
 
 def validate_skill_wiring(root: Path, errors: list[str]) -> None:
@@ -276,6 +329,18 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
             fail(errors, f"{end_to_end}: missing hardened Journey contract phrase {required!r}")
     if "--start-next-cycle" not in end_text:
         fail(errors, f"{end_to_end}: completed releases are not wired to an explicit next-cycle boundary")
+
+    end_lower = end_text.lower()
+    for required in (
+        "recover the actual deliverable",
+        "deployment is required only when deployment is actually part of that target",
+        "verification debt containment during continuation",
+        "artifact capability closure",
+        "public visibility is access evidence only",
+        "do not invent an unrelated web deployment",
+    ):
+        if required not in end_lower:
+            fail(errors, f"{end_to_end}: missing deliverable-aware execution contract phrase {required!r}")
 
     intake_requirements = (
         "end-to-end-delivery",
@@ -338,7 +403,7 @@ def main() -> int:
             print(f"  - {item}", file=sys.stderr)
         return 1
 
-    print("AAOP Journey validation passed (routing, continuation, stale-write CAS, Gate/Route compatibility, completion, resumability, release-cycle isolation, specialist detection)")
+    print("AAOP Journey validation passed (routing, deliverable-aware target completion, continuation, stale-write CAS, Gate/Route compatibility, verification-debt containment, resumability, release-cycle isolation, specialist detection)")
     return 0
 
 

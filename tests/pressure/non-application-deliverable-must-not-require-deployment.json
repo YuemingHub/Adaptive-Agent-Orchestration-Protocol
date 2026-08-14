@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "id": "non-application-deliverable-must-not-require-deployment",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "main at 064dbab7d071a9bdb3e761981509f314625a9388; README and Skill install contracts",
+    "captured_at": "2026-08-13",
+    "privacy": "public"
+  },
+  "developer_request": "Take this project to a real completed release without assuming that every software project must end as a deployed Web application. Recover the actual deliverable and prove it in the environment where its intended consumer uses it.",
+  "expected_route": "release-operations",
+  "known_facts": [
+    "The repository's primary advertised deliverables are independently consumable AI Skill assets and install/load flows for Agent hosts.",
+    "The repository also contains a Web Runtime/demo, but the presence of that auxiliary surface does not prove that deploying a public Web service is the required completion target for every Skill release.",
+    "For an installable Skill artifact, a meaningful target can be a clean supported host that discovers/loads the Skill and successfully executes representative tasks from the exact artifact.",
+    "Forcing a production Web deployment solely because the canonical Journey expects a deployed application would expand scope rather than prove the accepted Skill outcome.",
+    "Different project types may terminate at different real targets: deployed service, installed CLI, consumed library/package, loaded Skill/plugin, built artifact, infrastructure state, or another project-defined observable target."
+  ],
+  "expected_first_moves": [
+    "recover the actual deliverable/consumer/target contract from current project evidence before choosing release operations",
+    "distinguish auxiliary demos or development servers from the accepted release target",
+    "derive completion evidence appropriate to the deliverable, such as clean install/load plus representative consumer behavior for a Skill",
+    "require direct target evidence for the chosen target type without inventing a production deployment that the project never required",
+    "keep completion blocked if the real target cannot be verified, but do not substitute an unrelated target merely because AAOP has a deployment route"
+  ],
+  "must_preserve": [
+    "strong direct target verification",
+    "release-cycle freshness and exact-candidate evidence",
+    "rollback/recovery or uninstall/reversal expectations appropriate to the chosen target",
+    "deployment evidence when deployment really is the accepted outcome"
+  ],
+  "must_not": [
+    "require a Web deployment for libraries, Skills, CLIs, packages, plugins, or other non-service deliverables solely because the canonical Journey uses application language",
+    "treat a source checkout as the consumer target when the deliverable is an installed/built artifact",
+    "declare completion from local tests while the actual chosen consumer target remains unverified",
+    "turn examples of deliverable types into a fixed universal taxonomy that projects must fit",
+    "treat an auxiliary demo/runtime as the product target without project evidence"
+  ],
+  "required_guard_ids": [
+    "deliverable-aware-completion-target"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Project completion is target-aware, not deployment-shaped: the accepted deliverable determines what real target must be verified.",
+    "Direct target evidence remains mandatory, but 'target' may be a deployed environment, clean consumer installation, package/registry consumer, host-loaded Skill/plugin, local installed command, infrastructure state, or another observable project-defined destination.",
+    "Auxiliary application surfaces must not silently redefine a library/Skill/package project's completion contract.",
+    "A generic autonomous project operator should preserve outcome rigor while avoiding Web-application assumptions."
+  ]
+}

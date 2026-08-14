@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression validation for project-wide frontier reconciliation before project no-op."""
+"""Regression validation for project frontier reconciliation and bounded verification debt."""
 
 from __future__ import annotations
 
@@ -10,8 +10,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE_PATH = ROOT / ".aaop" / "routes" / "repo-recovery.json"
 JOURNEY_PATH = ROOT / ".aaop" / "journeys" / "idea-to-production.json"
+POLICY_PATH = ROOT / ".aaop" / "policies" / "pre-mutation-reconciliation.md"
 PRESSURE_PATH = ROOT / "tests" / "pressure" / "green-local-checkout-with-active-project-frontier.json"
+VERIFICATION_DEBT_PRESSURE_PATH = ROOT / "tests" / "pressure" / "verification-debt-must-not-compound-unbounded.json"
 GUARD_ID = "project-frontier-before-project-noop"
+SCOPED_BLOCKER_GUARD_ID = "scoped-blocker-frontier-continuation"
 BANNED_CONSUMER_TOKENS = ("Family Space", "Family-Space", "MingOS", "aaop-family", "Jiaming")
 
 
@@ -31,6 +34,8 @@ def main() -> int:
     route = load(ROUTE_PATH)
     journey = load(JOURNEY_PATH)
     pressure = load(PRESSURE_PATH)
+    verification_debt_pressure = load(VERIFICATION_DEBT_PRESSURE_PATH)
+    policy = POLICY_PATH.read_text(encoding="utf-8")
 
     require(route.get("route_id") == "repo-recovery", "frontier reconciliation must strengthen repo-recovery")
 
@@ -54,6 +59,12 @@ def main() -> int:
         "do not manufacture",
     ):
         require(phrase in lower_rule, f"project-frontier guard missing invariant: {phrase}")
+
+    scoped_blocker_guard = next(
+        (item for item in guards if isinstance(item, dict) and item.get("id") == SCOPED_BLOCKER_GUARD_ID),
+        None,
+    )
+    require(isinstance(scoped_blocker_guard, dict), f"repo-recovery missing {SCOPED_BLOCKER_GUARD_ID}")
 
     stages = route.get("stages")
     require(isinstance(stages, list), "repo-recovery stages must be a list")
@@ -116,18 +127,53 @@ def main() -> int:
     ):
         require(phrase in serialized_pressure, f"project-frontier pressure missing real-project lesson: {phrase}")
 
+    # The inverse failure mode of scoped continuation is unbounded verification debt:
+    # continuing work is correct, but later dependent mutations must not treat an
+    # unverified delta as a trusted baseline indefinitely.
+    lower_policy = policy.lower()
+    for phrase in (
+        "## verification debt containment",
+        "unverified mutation",
+        "dependency-aware scope",
+        "keep the dependent unverified chain **bounded**",
+        "critical-control, migration, release, deployment, shared-runtime",
+        "retire all material verification debt",
+        "monetary cost remains an authorization boundary",
+    ):
+        require(phrase in lower_policy, f"pre-mutation policy missing verification-debt invariant: {phrase}")
+
+    require(
+        verification_debt_pressure.get("expected_route") == "repo-recovery",
+        "verification-debt pressure must begin with repo-recovery",
+    )
+    debt_guards = verification_debt_pressure.get("required_guard_ids")
+    require(
+        isinstance(debt_guards, list) and SCOPED_BLOCKER_GUARD_ID in debt_guards,
+        "verification-debt pressure must preserve scoped-blocker continuation",
+    )
+    serialized_debt_pressure = json.dumps(verification_debt_pressure, ensure_ascii=False).lower()
+    for phrase in (
+        "exact-head aggregate execution remains unavailable",
+        "unverified mutation",
+        "continue genuinely independent",
+        "bounded verification debt",
+        "retired before merge",
+    ):
+        require(phrase in serialized_debt_pressure, f"verification-debt pressure missing lesson: {phrase}")
+
     combined = (
         f"{json.dumps(route, ensure_ascii=False)}\n"
         f"{json.dumps(journey, ensure_ascii=False)}\n"
-        f"{json.dumps(pressure, ensure_ascii=False)}"
+        f"{json.dumps(pressure, ensure_ascii=False)}\n"
+        f"{policy}"
     ).lower()
     for token in BANNED_CONSUMER_TOKENS:
         require(token.lower() not in combined, f"project-frontier invariant leaked consumer-specific token: {token}")
 
     print(
         "PASS project frontier reconciliation: local green/no-mutation evidence stays scope-relative; "
-        "current project work topology and unmet acceptance evidence are reconciled before project no-op/pause; "
-        "repeated host termination remains an execution-continuity/provider-selection concern"
+        "current project work topology is reconciled before project pause; blockers preserve independent frontier; "
+        "dependent unverified mutations remain bounded verification debt until exact acceptance evidence retires it"
     )
     return 0
 

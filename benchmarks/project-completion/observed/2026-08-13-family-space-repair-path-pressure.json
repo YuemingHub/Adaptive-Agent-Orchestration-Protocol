@@ -1,0 +1,48 @@
+{
+  "case_id": "repair-path-preserving-validation",
+  "run_id": "2026-08-13-family-space-repair-path-pressure",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "repair-loop-remains-executable",
+      "status": "proven",
+      "evidence": [
+        "Family-Space production@caf763f37ee817ba86f39e7ce82a55a8e00c9d17 changed both .claude/settings.json and .codex/hooks.json from a hard non-zero control-plane drift hook to `node scripts/check-agent-control-plane.js || echo '[WARN] ... Repair it before claiming the repository is ready.'`, preserving an executable repair path after drift is detected."
+      ]
+    },
+    {
+      "id": "material-drift-cannot-pass-authoritative-acceptance",
+      "status": "failed",
+      "evidence": [
+        "At Family-Space production@caf763f37ee817ba86f39e7ce82a55a8e00c9d17, scripts/check-agent-control-plane.js still returns non-zero on drift, but scripts/aaop-family.cjs ready does not invoke that detector and the repository workflows inspected do not invoke it either; the warning hook is therefore not yet paired with a proven fail-closed acceptance owner."
+      ]
+    },
+    {
+      "id": "existing-control-owner-reused",
+      "status": "unknown",
+      "evidence": []
+    },
+    {
+      "id": "governance-boundary-preserved",
+      "status": "proven",
+      "evidence": [
+        "No Family-Space branch protection, ruleset, production deployment, or hosted workflow was mutated while collecting this pressure evidence; repository-governance enforcement remains a separate authorization decision."
+      ]
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [],
+  "remaining_frontier": [
+    {
+      "id": "family-space-attach-drift-detector-to-existing-acceptance-owner",
+      "summary": "In Family-Space, reuse an existing zero-cost readiness/validation owner so check-agent-control-plane.js is fail-closed at acceptance while the lifecycle hook remains repairable; do not create another scheduler or control plane.",
+      "executable": true
+    },
+    {
+      "id": "family-space-merge-enforcement-governance",
+      "summary": "Only with explicit repository-governance authorization, decide whether the resulting acceptance status must become a required check on the release/default branch.",
+      "executable": false
+    }
+  ]
+}

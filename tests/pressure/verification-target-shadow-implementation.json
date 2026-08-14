@@ -1,0 +1,49 @@
+{
+  "version": "0.1.0",
+  "id": "verification-target-shadow-implementation",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "commit 064dbab7d071a9bdb3e761981509f314625a9388; tests/embodied-learning-loop/test_mode_selection.py and tests/parent-reply/test_mode_selection.py",
+    "captured_at": "2026-08-13",
+    "privacy": "public"
+  },
+  "developer_request": "Take over this existing project and determine whether its green behavioral tests actually prove the Runtime behavior before relying on them for completion or release decisions.",
+  "expected_route": "repo-recovery",
+  "known_facts": [
+    "The project contains tests that correctly call ContextEngine for some mode-selection scenarios, so the test files are not wholly fake.",
+    "The same embodied-learning-loop test file also assigns actual_dims = expected_dims and then asserts equality, so that result cannot change when the production Runtime state-vector implementation changes.",
+    "The same file checks expected_steps == STEPS_BY_MODE[mode], which compares the test's local expected table to itself instead of observing the Runtime ExecutionPlan.",
+    "The parent-reply test defines QUICK_SCAN and ALL_FM locally and verifies those local sets directly instead of asking MingOSRuntime which failure modes an actual quick/standard/deep plan will scan.",
+    "These checks can execute, be discovered distinctly, and propagate failures correctly while still providing no implementation-path evidence for the behavior they claim to verify."
+  ],
+  "expected_first_moves": [
+    "separate tests that call the authoritative implementation from tests that only validate local mirrored constants or shadow logic",
+    "narrow the evidence scope of self-comparison tests to specification/reference consistency rather than implementation/runtime proof",
+    "replace or supplement material behavioral checks with assertions whose observed actual values come from the authoritative Runtime/implementation path",
+    "when consequence is material, demonstrate mutation sensitivity or an equivalent causal dependency so a relevant implementation defect can make the verification fail",
+    "recompute acceptance evidence after fixing the verification target instead of preserving a historical green count"
+  ],
+  "must_preserve": [
+    "useful specification/reference fixtures that are honestly scoped",
+    "the distinction between a test-target defect and an implementation defect",
+    "the project's domain-specific mode, safety, and response contracts unless direct product evidence independently requires a change"
+  ],
+  "must_not": [
+    "treat a test as implementation proof merely because it executes and exits zero",
+    "promote actual-equals-expected self-assignment or mirrored constants into runtime evidence",
+    "delete useful contract fixtures solely because they are not implementation tests",
+    "change product behavior merely to preserve a large historical pass count",
+    "turn this consumer's Python constants, module names, or MingOS domain semantics into AAOP Core rules"
+  ],
+  "required_guard_ids": [
+    "verification-harness-integrity"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Verification integrity includes evidence-target fidelity: a passing assertion must observe the implementation or runtime surface it claims to prove, not merely a mirrored representation in the test itself.",
+    "Harness discovery, execution, and failure propagation can all be correct while the resulting evidence is still weak because the asserted actual value has no causal dependency on the owning implementation.",
+    "Shadow implementations and mirrored constants may remain valuable as specification/reference checks, but their claim scope must stay narrower than implementation or runtime verification.",
+    "A representative mutation-sensitive path is a practical way to prove that material verification can detect relevant implementation drift."
+  ]
+}

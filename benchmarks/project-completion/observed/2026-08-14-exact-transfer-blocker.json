@@ -1,0 +1,41 @@
+{
+  "case_id": "frontier-continuation",
+  "run_id": "2026-08-14-exact-transfer-blocker",
+  "final_status": "partially-resolved",
+  "claimed_complete": false,
+  "original_evidence_target": "5139f893b4874bf79be4d7507419c76de48e61e8",
+  "latest_reconciled_candidate": "9a8408a8562b8dec053ae25892d79046a78aa5ec",
+  "state": {
+    "targeted_text_object_execution": "proven",
+    "programmatic_connector_response_to_executor_materialization": "unproven",
+    "whole_repository_archive_or_tree_transfer": "unproven"
+  },
+  "evidence": [
+    "The original run proved that GitHub connector exact-object reads and local execution were individually available while direct raw GitHub download into the executor was blocked by the host cache/network boundary.",
+    "That historical direct-download failure remains valid and is retained because it explains why a generic programmatic whole-tree transfer path is still unavailable.",
+    "Subsequent verification proved a narrower zero-cost path for text dependency closures: read immutable connector content, reconstruct it in one workspace, independently recompute each native Git blob identity, reject mismatches as non-evidence, and execute the original validator only after every dependency identity matches.",
+    "Using that identity-verified reconstruction method, Project Frontier Reconciliation, Verification Harness Integrity, Project Completion Benchmark, Journey, and Human-forward Capability Fabric original validators all produced semantic PASS evidence.",
+    "Therefore targeted exact-object semantic execution is no longer blocked. Only programmatic connector-response materialization and whole-repository exact-head transfer remain unproven."
+  ],
+  "classification": {
+    "consumer-only": [
+      "project-specific runtime, deployment, routing, lifecycle, and conformance facts"
+    ],
+    "existing-AAOP-coverage": [
+      "verification-debt containment",
+      "evidence-target fidelity",
+      "capability composability and exact-object transfer",
+      "scoped-blocker continuation"
+    ],
+    "candidate-generic-gap": [
+      "unknown external-effect outcome before replay or retry",
+      "logical project scope is not a technical sandbox boundary"
+    ],
+    "promoted-invariant": []
+  },
+  "remaining_frontier": [
+    "Do not wait for a generic transfer bridge before advancing other independent project frontiers; targeted text closures already have a proven identity-preserving execution method.",
+    "Keep whole-repository exact-head green unproven until an authorized zero-cost archive/tree transfer or equivalent fidelity-preserving execution path exists.",
+    "Do not add a second Provider/runtime/control plane merely to bypass the current host transfer limitation."
+  ]
+}

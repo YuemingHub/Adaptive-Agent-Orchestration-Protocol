@@ -1,0 +1,50 @@
+{
+  "version": "0.1.0",
+  "id": "distributed-artifact-missing-claimed-capability",
+  "provenance": {
+    "kind": "public-repository",
+    "repository": "YuemingHub/mingos-skills",
+    "reference": "main at 064dbab7d071a9bdb3e761981509f314625a9388; parent-reply/install_config.json and parent-reply/_test/run_regression.py",
+    "captured_at": "2026-08-13",
+    "privacy": "public"
+  },
+  "developer_request": "Prepare an independently installable artifact that honestly supports every capability advertised by its install profile, including any optional validation/developer bundle. Do not infer artifact completeness from the source checkout working.",
+  "expected_route": "release-operations",
+  "known_facts": [
+    "The parent-reply install profile advertises an optional devtest bundle as 63 regression cases plus 54 safety-gate cases for secondary development or acceptance.",
+    "That devtest bundle includes only the parent-reply/_test directory.",
+    "The bundled _test/run_regression.py requires a sibling g2_regression_cases.json at runtime.",
+    "The actual _test directory does not contain g2_regression_cases.json, so the advertised installed regression runner is not dependency-closed even before model/API availability is considered.",
+    "Current canonical verification has also moved to top-level tests/parent-reply plus tests/framework, so a source-tree green result would not by itself prove the independently installed devtest artifact is current or executable."
+  ],
+  "expected_first_moves": [
+    "identify the capabilities the final install/package/container/zip claims to provide, including optional profiles rather than only the default path",
+    "inspect the final artifact/install plan for all files, runtime dependencies, entrypoints, configuration, and externally declared prerequisites required by each claimed capability",
+    "exercise representative capability paths from the built/installed artifact in a clean target rather than from the source checkout when the artifact boundary is material",
+    "if an optional capability is not closed, either make that artifact slice self-contained/dependency-declared or stop advertising/installing the capability until it is valid",
+    "keep source-tree verification and artifact verification as distinct evidence claims"
+  ],
+  "must_preserve": [
+    "valid source-tree development tests as source-tree evidence",
+    "honest optional artifact profiles that may intentionally omit capabilities",
+    "declared external dependencies when they are explicit and verifiably resolvable",
+    "the ability to ship a smaller core artifact when optional developer/test tooling is not part of that artifact's contract"
+  ],
+  "must_not": [
+    "treat source checkout success as proof that a built or installed artifact is dependency-closed",
+    "claim an optional validation/developer capability when required files or entrypoints are absent from the installed artifact",
+    "hide missing artifact dependencies behind the developer machine's source tree, global environment, or leftover files",
+    "force every project to bundle tests or development tooling when those capabilities are not part of the accepted artifact contract",
+    "copy this consumer's Python paths, Skill names, or test counts into AAOP Core"
+  ],
+  "required_guard_ids": [
+    "artifact-capability-closure"
+  ],
+  "expected_blocker_class": null,
+  "lessons": [
+    "Source-tree success, build success, artifact success, installation success, runtime success, and accepted target outcome are separate evidence layers.",
+    "A release/install artifact must be closed for the capabilities it actually claims: required files, runtime dependencies, entrypoints, configuration, and declared external prerequisites must survive the artifact boundary.",
+    "Optional artifact profiles need their own closure evidence; a broken optional developer/test bundle must not inherit the source repository's green status.",
+    "Representative validation should execute from the final built/installed artifact in a clean target when artifact boundaries are material."
+  ]
+}

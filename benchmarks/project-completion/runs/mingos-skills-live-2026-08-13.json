@@ -1,0 +1,67 @@
+{
+  "case_id": "brownfield-rescue",
+  "run_id": "mingos-skills-live-2026-08-13",
+  "final_status": "in-progress",
+  "claimed_complete": false,
+  "outcomes": [
+    {
+      "id": "existing-value-preserved",
+      "status": "proven",
+      "evidence": [
+        "No repository rewrite or destructive cleanup was performed while authority and product behavior were still being recovered."
+      ]
+    },
+    {
+      "id": "current-truth-recovered",
+      "status": "proven",
+      "evidence": [
+        "main remained at 064dbab7d071a9bdb3e761981509f314625a9388 during recovery.",
+        "The production RiskDetector matched only 40 of 54 declared safety fixtures in direct rule execution; 14 expected safety-door cases were missed.",
+        "The aggregate test runner reused same-basename Python test modules and leaked sys.path entries, so historical aggregate-green evidence was not trustworthy.",
+        "The Web runtime declared invite-code authentication but request dispatch did not enforce _check_auth; /login.html was redirected to but not served; a default invite code was embedded and displayed."
+      ]
+    },
+    {
+      "id": "high-value-path-repaired",
+      "status": "unknown",
+      "evidence": [
+        "A local candidate RiskDetector passes all 54 existing safety fixtures plus 6 precedence regressions, but repository mutation is not yet applied."
+      ]
+    },
+    {
+      "id": "repair-verified-on-real-path",
+      "status": "unknown",
+      "evidence": [
+        "Local candidate validation passed for safety and authentication behavior, but the exact repository candidate cannot yet be created because the connected GitHub integration returns 403 for ref, contents, and git-object writes."
+      ]
+    },
+    {
+      "id": "frontier-recomputed-after-repair",
+      "status": "unknown",
+      "evidence": [
+        "Executable local frontier remains: finish installer repair candidate, consolidate patch, and rerun project-level validation once code write access is restored."
+      ]
+    }
+  ],
+  "human_interruptions": [],
+  "forbidden_events": [],
+  "remaining_frontier": [
+    {
+      "id": "safety-runtime-apply-and-verify",
+      "summary": "Apply the verified RiskDetector and direct-runtime safety-test repair, then run the real repository suite.",
+      "executable": false,
+      "blocker": "GitHub integration code-write endpoints return 403 Resource not accessible by integration."
+    },
+    {
+      "id": "web-auth-apply-and-verify",
+      "summary": "Apply fail-closed Web authentication and run HTTP integration checks against the repository runtime.",
+      "executable": false,
+      "blocker": "GitHub integration code-write endpoints return 403 Resource not accessible by integration."
+    },
+    {
+      "id": "installer-transactional-repair",
+      "summary": "Replace implicit WorkBuddy host creation and destructive --force replacement with explicit host resolution and preservation/transaction semantics.",
+      "executable": true
+    }
+  ]
+}

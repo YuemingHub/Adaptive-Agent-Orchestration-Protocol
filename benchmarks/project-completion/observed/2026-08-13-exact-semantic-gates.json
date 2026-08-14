@@ -1,0 +1,49 @@
+{
+  "status": "targeted-validation-complete",
+  "scope": "dependency-closed exact-object semantic validators only; not whole-repository exact-head validation",
+  "latest_candidate_evidence_target": "774cf41ad1d77e1f1fefc8f00f19f3ff4041a60b",
+  "validated_gates": [
+    {
+      "name": "project-frontier-reconciliation",
+      "evidence_target": "46bee1738a08cc18ac476ad09a69ef0b2124fb8d",
+      "result": "pass",
+      "identity_checked_files": 6,
+      "output": "PASS project frontier reconciliation"
+    },
+    {
+      "name": "verification-harness-integrity",
+      "evidence_target": "7b9dde91a64be7b593c780aa2176bb9d8bd43bc9",
+      "result": "pass",
+      "identity_checked_files": 11,
+      "output": "AAOP verification-harness integrity validation passed"
+    },
+    {
+      "name": "project-completion-benchmark",
+      "evidence_target": "c9205f671f7543294232983522ad40ec4980097d",
+      "result": "pass",
+      "identity_checked_files": 19,
+      "output": "AAOP project completion benchmark validation passed (12 cases)"
+    },
+    {
+      "name": "journey",
+      "evidence_target": "d0596c80ae705b61bf1070eab3769d07be7a1eea",
+      "result": "pass",
+      "identity_checked_files": 8,
+      "output": "AAOP Journey validation passed (routing, deliverable-aware target completion, continuation, stale-write CAS, Gate/Route compatibility, verification-debt containment, resumability, release-cycle isolation, specialist detection)"
+    },
+    {
+      "name": "human-forward-capability-fabric",
+      "evidence_target": "774cf41ad1d77e1f1fefc8f00f19f3ff4041a60b",
+      "result": "pass",
+      "identity_checked_files": 14,
+      "output": "AAOP human-forward capability fabric validation passed",
+      "notes": "Includes the DeepSeek Harness consumer/Core boundary regression in the existing Human-forward validator owner."
+    }
+  ],
+  "method": "Reconstruct each fixed-revision text dependency in one local workspace, verify native Git blob identity for every file, then execute the original validator only after all identities match. Any byte mismatch is rejected as non-evidence until corrected.",
+  "remaining_verification_debt": [
+    "Whole-repository exact-head execution is still unproven because the current zero-cost environment lacks an identity-preserving whole-tree/archive transfer into the local executor.",
+    "Repository branch/ruleset required-check enforcement is a separate governance decision and is not implied by validator success."
+  ],
+  "next_frontier": "Reduce candidate reviewability debt and inspect fresh real-project pressure; do not add AAOP Core mechanisms without new promotion evidence."
+}

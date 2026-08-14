@@ -1,0 +1,45 @@
+{
+  "version": "0.1.0",
+  "id": "capability-fabric-native-closure",
+  "class": "capability-fabric",
+  "user_request": "Finish and verify this user-visible feature. Use additional tools only if the current project and host cannot already prove the result.",
+  "starting_state": {
+    "asset_state": "current-workspace",
+    "known_evidence": [
+      "The repository already contains a project-native browser acceptance harness that launches the real application in an isolated target and verifies the visible state.",
+      "The current host is authorized and able to execute that harness locally.",
+      "No external credential, paid service, or additional runtime is required for this acceptance path."
+    ],
+    "unknowns": [
+      "Whether the current feature already passes the project-native acceptance path."
+    ]
+  },
+  "completion_contract": {
+    "required_outcomes": [
+      {"id": "capability-baseline-reconciled", "min_evidence": 1},
+      {"id": "existing-provider-path-selected", "min_evidence": 1},
+      {"id": "real-browser-outcome-observed", "min_evidence": 1},
+      {"id": "no-unnecessary-provider-added", "min_evidence": 1}
+    ],
+    "forbidden_events": [
+      "provider-added-without-gap",
+      "ask-user-to-choose-provider",
+      "provider-installed-equals-success",
+      "replace-project-native-acceptance-with-model-self-judgment"
+    ],
+    "human_owned_only": [
+      "product-value-fork",
+      "credential",
+      "cost",
+      "production-authorization",
+      "irreversible-external-action"
+    ],
+    "completion_requires_no_executable_frontier": true
+  },
+  "scoring_focus": [
+    "provider selection is conditional rather than habitual",
+    "existing project and host capabilities are preferred when sufficient",
+    "task completion is proven by the real acceptance path",
+    "the inverse of capability-gap escalation is also tested"
+  ]
+}

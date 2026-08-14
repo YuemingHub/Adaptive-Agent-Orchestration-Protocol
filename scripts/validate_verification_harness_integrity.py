@@ -12,6 +12,14 @@ ROUTES = ("repo-recovery", "bug-fix", "feature-change", "release-operations")
 PRESSURE_CASES = (
     "tests/pressure/custom-verification-harness-false-green.json",
     "tests/pressure/self-judging-behavioral-eval-is-provisional.json",
+    "tests/pressure/verification-target-shadow-implementation.json",
+)
+RELEASE_GATE_PATH = ".github/workflows/validate-production-release.yml"
+REQUIRED_RELEASE_GATE_COMMANDS = (
+    "python scripts/validate_project_completion_benchmark.py",
+    "python scripts/validate_project_frontier_reconciliation.py",
+    "python scripts/validate_verification_harness_integrity.py",
+    "python scripts/validate_human_forward_capability_fabric.py",
 )
 
 
@@ -31,7 +39,11 @@ def main() -> int:
         "failure exit codes and failure states propagate",
         "generator self-assessment is not silently promoted into independent verification",
         "same-turn self-judgment as independent proof",
-        "downgrade its green result to provisional/unknown evidence",
+        "observed **actual** value has a causal path",
+        "shadow implementation proves only that the local test/spec representation is self-consistent",
+        "representative mutation-sensitive path",
+        "evidence-target fidelity",
+        "downgrade the affected green result to provisional/unknown evidence",
     ):
         if phrase not in policy:
             errors.append(f"{policy_path}: missing verification-harness policy phrase {phrase!r}")
@@ -78,6 +90,17 @@ def main() -> int:
                 f"{journey_path}: route transitions must keep untrusted green aggregates provisional"
             )
 
+    release_gate_path = root / RELEASE_GATE_PATH
+    if not release_gate_path.is_file():
+        errors.append(f"{release_gate_path}: missing owning production-release machine gate")
+    else:
+        release_gate = release_gate_path.read_text(encoding="utf-8")
+        for command in REQUIRED_RELEASE_GATE_COMMANDS:
+            if command not in release_gate:
+                errors.append(
+                    f"{release_gate_path}: critical validator is orphaned from the owning release gate: {command!r}"
+                )
+
     runner_case_path = root / PRESSURE_CASES[0]
     runner_case = load(runner_case_path)
     if not isinstance(runner_case, dict):
@@ -108,6 +131,30 @@ def main() -> int:
         for phrase in ("same model response", "dry run", "does not execute this behavioral runner"):
             if phrase not in facts:
                 errors.append(f"{eval_case_path}: missing evidence phrase {phrase!r}")
+
+    target_case_path = root / PRESSURE_CASES[2]
+    target_case = load(target_case_path)
+    if not isinstance(target_case, dict):
+        errors.append(f"{target_case_path}: pressure case must be an object")
+    else:
+        if target_case.get("expected_route") != "repo-recovery":
+            errors.append(f"{target_case_path}: expected route must be repo-recovery")
+        guards = target_case.get("required_guard_ids", [])
+        if GUARD_ID not in guards:
+            errors.append(f"{target_case_path}: must require {GUARD_ID!r}")
+        facts = "\n".join(target_case.get("known_facts", []))
+        for phrase in (
+            "actual_dims = expected_dims",
+            "expected_steps == STEPS_BY_MODE[mode]",
+            "QUICK_SCAN and ALL_FM locally",
+            "no implementation-path evidence",
+        ):
+            if phrase not in facts:
+                errors.append(f"{target_case_path}: missing evidence phrase {phrase!r}")
+        lessons = "\n".join(target_case.get("lessons", []))
+        for phrase in ("evidence-target fidelity", "causal dependency", "mutation-sensitive"):
+            if phrase not in lessons:
+                errors.append(f"{target_case_path}: missing generic lesson phrase {phrase!r}")
 
     if errors:
         print("AAOP verification-harness integrity validation failed:", file=sys.stderr)

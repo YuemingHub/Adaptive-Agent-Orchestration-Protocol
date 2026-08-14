@@ -68,13 +68,35 @@ Check, where relevant, that:
 4. failure exit codes and failure states propagate through wrappers, matrices, `continue-on-error` behavior, pipelines, and report generators;
 5. counts/summaries do not double-count one execution or hide missing expected executions;
 6. when practical, a representative known failing condition or direct underlying check demonstrates that the aggregate harness would fail rather than remain falsely green;
-7. when acceptance depends on generated or nondeterministic output, the acceptance oracle is independent and explicit enough for the claim: criteria are fixed before the observed output where practical, generator self-assessment is not silently promoted into independent verification, and material model/runtime/version assumptions are recorded when they can change the result.
+7. when acceptance depends on generated or nondeterministic output, the acceptance oracle is independent and explicit enough for the claim: criteria are fixed before the observed output where practical, generator self-assessment is not silently promoted into independent verification, and material model/runtime/version assumptions are recorded when they can change the result;
+8. when a check claims implementation or runtime behavior, the observed **actual** value has a causal path from the authoritative implementation/runtime surface being claimed. A mirror constant, copied decision function, fixture-only self-comparison, `actual = expected`, or another shadow implementation proves only that the local test/spec representation is self-consistent unless it is explicitly scoped as such;
+9. when consequence or evidence concentration is material, use at least one representative mutation-sensitive path: a relevant change in the owning implementation should be capable of changing or failing the check without first editing the test's mirrored implementation. If that dependency cannot be shown, narrow the claim or keep implementation verification provisional.
 
 Do not require a meta-test framework for every ordinary project command. Scale this check to consequence and evidence concentration: a standard mature runner with direct project tests may need no special audit, while a bespoke aggregator that is the sole basis for a safety, release, or completion claim needs stronger proof.
 
 A model, agent, or generator saying that its own output passes the criteria can be useful diagnostic evidence, but it is weaker than an independent evaluator, deterministic assertion, calibrated rubric, or other external acceptance signal. Do not treat same-turn self-judgment as independent proof merely because it returns structured `PASS`/`FAIL` JSON.
 
-If harness integrity or evaluator validity is materially unknown or disproven, downgrade its green result to provisional/unknown evidence. Prefer direct underlying checks where practical, repair the harness when it owns the defect, and re-establish only the affected acceptance evidence. Do not change product behavior merely to satisfy an unsound verification harness.
+A shadow implementation or mirrored constant can still be useful as a specification/reference check, fixture validator, or contract example. Its evidence scope must stay honest: it does not become implementation/runtime proof merely because it executes successfully or lives under a test directory.
+
+If harness integrity, evaluator validity, or evidence-target fidelity is materially unknown or disproven, downgrade the affected green result to provisional/unknown evidence. Prefer direct underlying checks where practical, repair the harness when it owns the defect, and re-establish only the affected acceptance evidence. Do not change product behavior merely to satisfy an unsound verification harness.
+
+## Verification debt containment
+
+A scoped verification blocker must not be promoted into project-wide paralysis, but autonomous continuation also must not turn an **unverified mutation** into the trusted baseline for an indefinitely growing chain of dependent changes.
+
+When a material delta has been implemented but the evidence required to verify it is unavailable, cost-gated, environment-blocked, credential-blocked, or otherwise still unknown:
+
+1. keep the delta's acceptance state explicitly **unverified/unknown**; implementation presence, code review, static plausibility, or an earlier non-exact candidate check does not make the current head verified;
+2. record the affected surface and the missing evidence capability/precondition at the smallest useful scope;
+3. treat a later delta that depends on that unverified surface as inheriting the unresolved verification debt; do not silently use the unverified head as a fully trusted baseline;
+4. continue genuinely independent authorized frontier whose correctness does not depend on the blocked evidence, including static authority repair, documentation that reflects known facts, independent components, or capability-resolution work;
+5. keep the dependent unverified chain **bounded**. As consequence, shared-surface coupling, number of dependent mutations, or failure-localization cost grows, prioritize restoring the missing verification capability or split/reduce the candidate instead of stacking more dependent mutations merely to remain busy;
+6. critical-control, migration, release, deployment, shared-runtime, and other high-consequence surfaces require a stricter bound: do not keep compounding dependent unverified mutations when a representative executable check is unavailable;
+7. before merge, release, deployment, stable promotion, or project-completion claims, retire all material verification debt required by the acceptance contract on the exact candidate/baseline being accepted.
+
+A verification blocker therefore has **dependency-aware scope**: it does not automatically stop unrelated work, but it propagates to later work whose validity depends on the unverified delta. This preserves both sides of AAOP autonomy: do not stop too early, and do not create a large opaque candidate that can only be debugged after many unverified assumptions have accumulated.
+
+Monetary cost remains an authorization boundary. If the preferred verification path would incur unauthorized cost, seek an already-available local, project-native, self-hosted, or otherwise authorized equivalent first. If no equivalent is currently available, keep the required evidence unknown and contain the affected verification debt; do not spend by default and do not lower the acceptance standard to compensate.
 
 ## Derived control surface truth boundary
 
