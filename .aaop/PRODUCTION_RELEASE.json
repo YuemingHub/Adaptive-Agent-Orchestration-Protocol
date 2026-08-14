@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "package_version": "1.1.0",
+  "package_version": "1.2.0",
   "release_line": "production",
   "stable_channel": "stable",
   "stable_promotion": "post-merge-fast-forward-only",
@@ -9,7 +9,7 @@
     "repository": "YuemingHub/MingOS",
     "commit": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
     "workflow": ".github/workflows/validate-downstream-consumer.yml",
-    "validation": "stable-v0.27-to-exact-v1.1-candidate upgrade plus project tests/checks, project authority, Journey, Working Contract, runtime and provenance continuity"
+    "validation": "stable-v1.1.0-to-exact-v1.2.0-candidate upgrade plus project tests/checks, project authority, Journey, Working Contract, runtime and provenance continuity"
   },
   "canonical_journey": {
     "path": ".aaop/journeys/idea-to-production.json",
