@@ -214,6 +214,24 @@ def validate_journey(root: Path, errors: list[str]) -> None:
         if phrase not in completion_text:
             fail(errors, f"{path}: completion missing deliverable-aware evidence invariant {phrase!r}")
 
+    capability_policy = payload.get("capability_policy")
+    if not isinstance(capability_policy, dict):
+        fail(errors, f"{path}: capability_policy must be an object")
+    else:
+        agent_bundles_policy = str(capability_policy.get("agent_bundles", "")).lower()
+        if "retired" not in agent_bundles_policy or "compatibility" not in agent_bundles_policy:
+            fail(errors, f"{path}: agent-bundles capability policy must remain a retired compatibility alias")
+        if "optional curated specialist source" in agent_bundles_policy:
+            fail(errors, f"{path}: retired agent-bundles must not be presented as a current optional specialist source")
+
+    historical_sources = payload.get("historical_sources")
+    if not isinstance(historical_sources, dict):
+        fail(errors, f"{path}: historical_sources must be an object")
+    else:
+        agent_bundles_history = str(historical_sources.get("agent-bundles", "")).lower()
+        if "historical" not in agent_bundles_history or "retired" not in agent_bundles_history:
+            fail(errors, f"{path}: agent-bundles historical source must be explicitly historical and retired")
+
     gates = payload.get("gates")
     if not isinstance(gates, list) or not gates:
         fail(errors, f"{path}: gates must be a non-empty list")
