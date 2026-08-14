@@ -63,6 +63,8 @@ The schema carries only execution-relevant facts:
 
 `human_open_questions` is constrained to an empty array. If a genuinely human-owned question is unresolved, AAOP has not reached the state where it may issue an execution grant.
 
+Consumer products may maintain their own correlation identifier outside this schema and place a stable evidence pointer in `references` when useful. Product-specific objects, IDs and state models do not become AAOP grant fields merely because one consumer needs correlation.
+
 ## Exact write target
 
 A provider must never infer a write destination from repository defaults.
@@ -112,8 +114,8 @@ They do not mutate the grant into success by themselves.
 
 Before accepting delivery, the AAOP coordinator re-reads the current authoritative target where practical and verifies the required acceptance evidence.
 
-## Workbench integration
+## Consumer correlation boundary
 
-Ming Workbench may carry an external `work_unit_ref` so a provider result can be reconciled back to the human-facing Work Unit.
+A consumer may correlate a grant with its own product-level object, ticket, case, work item, or UI state. That mapping remains consumer-owned.
 
-That reference does not make Workbench the owner of AAOP Route or authorization. Workbench sends intent into AAOP; AAOP issues the grant; Workbench/Harness executes and returns evidence; AAOP decides engineering acceptance; Workbench then updates its human-facing Work Unit from that accepted evidence.
+AAOP does not standardize those product objects in the Provider Execution Grant. Consumers should retain their own mapping and, when useful, put a stable pointer in `references`. The provider executes the AAOP grant and returns evidence; the consumer updates its own state only after the appropriate acceptance decision.
