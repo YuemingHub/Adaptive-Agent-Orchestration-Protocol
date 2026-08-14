@@ -325,7 +325,7 @@ AAOP reuses mature upstream layers instead of recreating them. It does not try t
 - an organizational control plane;
 - a system that installs more tooling whenever work is blocked.
 
-Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, and optional specialist/delegated sources such as agent-bundles, agency-agents-zh, and agency-orchestrator, but only a proven capability or responsibility gap should justify adoption.
+Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, and AgentSpace, plus optional current specialist/delegated sources such as `agency-agents-zh` and `agency-orchestrator`, but only a proven capability or responsibility gap should justify adoption. `agent-bundles` remains retired compatibility lineage only and is not a current provider for new specialist composition.
 
 ## Project principles that matter in practice
 
@@ -409,11 +409,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v1.1.0 — production release line governed by the AAOP production release contract.**
+**v1.2.0 — production release line governed by the AAOP production release contract.**
 
-A source-tree or pull-request copy is not production merely because it carries the v1.1.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
+A source-tree or pull-request copy is not production merely because it carries the v1.2.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
 
-v1.1 keeps the v1 Human-Agent Working Contract and adds the production lessons learned from real autonomous takeover pressure: current control-plane freshness, default takeover continuation, scoped-blocker frontier continuation, project-wide frontier reconciliation before project no-op/pause, and stable release identity that can distinguish a coherent-but-stale control plane from the latest deliberately promoted stable package.
+v1.2 keeps the v1 Human-Agent Working Contract and v1.1 stable source-freshness lifecycle, then adds the evidence learned from longer autonomous development: exact evidence-target fidelity, project-frontier reconciliation before completion claims, verification-harness integrity, bounded verification-debt continuation, capability/provider composability, deliverable-aware release evidence, and optional host/runtime integration without letting consumer product models or provider defaults become universal AAOP contracts.
 
 Accumulated production hardening also includes stable-vs-edge bootstrap separation and exact-ref pinning; bounded archive extraction; transactional install/upgrade/uninstall with interrupted-operation recovery; fail-closed manifest and Journey schema handling; Journey CAS/OS locking and last-good recovery; CPython 3.11–3.14 support across Linux/Windows/macOS; install provenance with managed-byte fingerprinting; immutable reviewed GitHub Action pins; and exact-candidate downstream consumer validation.
 
