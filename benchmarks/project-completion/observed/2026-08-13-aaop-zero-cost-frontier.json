@@ -4,22 +4,21 @@
   "final_status": "in-progress",
   "claimed_complete": false,
   "current_state": {
-    "main_sha": "2e5ef4955d011fca945b87536709027de24abb25",
-    "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "774cf41ad1d77e1f1fefc8f00f19f3ff4041a60b",
-    "ahead_by_before_this_update": 89,
-    "behind_by_before_this_update": 0,
+    "main_sha": "7503060d01f70b47f375bca37ac63d519a7e837e",
+    "main_tree_sha": "c651d56a9eb789358f476c0910a3d857b57ace59",
+    "main_version": "1.2.0",
+    "stable_sha": "e438e81c2e3ed8889dd09373f25aec9b3707a167",
+    "stable_version": "1.1.0",
+    "stable_to_main_ahead_by": 135,
+    "stable_to_main_behind_by": 0,
+    "release_pr": 60,
+    "release_candidate_head": "6466e9898e4aa839d1c6171d26707951887a62c5",
+    "release_merge_sha": "7503060d01f70b47f375bca37ac63d519a7e837e",
+    "post_merge_reconciliation_branch": "agent/v1-2-post-merge-reconciliation",
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
     "mingos_main_sha": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
-    "mingos_foundation_main_sha": "7eb33ffc806db1da2fde488a617860ca34b76c0e",
-    "deepseek_harness": {
-      "aaop_main_integration_sha": "2e5ef4955d011fca945b87536709027de24abb25",
-      "candidate_reconciliation_merge_sha": "6cd252bda01c9c3c4ea3ff8f7f9ab4ce8de6ae98",
-      "upstream_revision": "47f943859bef60e4160492346772ded9b24f765a",
-      "upstream_version": "0.1.0-rc.5",
-      "upstream_master_matches_reviewed_revision": true
-    }
+    "mingos_foundation_main_sha": "7eb33ffc806db1da2fde488a617860ca34b76c0e"
   },
   "proven_semantic_gates": [
     "project-frontier-reconciliation",
@@ -28,66 +27,59 @@
     "journey",
     "human-forward-capability-fabric"
   ],
-  "partial_verification": {},
   "new_outcomes": [
     {
-      "id": "deepseek-harness-concurrent-branch-reconciled",
+      "id": "evidence-target-fidelity-line-merged",
       "status": "proven",
       "evidence": [
-        "PR #56 was merged to main as 2e5ef4955d011fca945b87536709027de24abb25, then reconciled into the active candidate through merge commit 6cd252bda01c9c3c4ea3ff8f7f9ab4ce8de6ae98.",
-        "The active candidate is a strict descendant of current main.",
-        "The reviewed DeepSeek Harness revision still equals upstream master at 47f943859bef60e4160492346772ded9b24f765a, so no upstream upgrade was required during reconciliation."
+        "PR #58 merged the evidence-target-fidelity and project-completion hardening line into main.",
+        "The merged #58 tree was independently validated by all 14 push-triggered workflows on its exact main revision before release preparation continued.",
+        "The old agent/evidence-target-fidelity branch is no longer an active project frontier."
       ]
     },
     {
-      "id": "harness-product-boundary-leak-repaired",
+      "id": "v1-2-release-candidate-merged",
       "status": "proven",
       "evidence": [
-        "Post-merge inspection found two consumer-specific concepts in universal AAOP surfaces: a Ming Workbench preferred-host policy in the provider registry and work_unit_ref in the Provider Execution Grant schema.",
-        "The candidate keeps DeepSeek Harness optional and explicitly states that consumer products own preferred-host policy.",
-        "work_unit_ref is absent from the universal Provider Execution Grant; consumer correlation remains consumer-owned and may reference stable evidence through the existing references field.",
-        "The existing Human-forward capability-fabric validator machine-enforces that deepseek-harness has no universal preference, retains the consumer-owned preferred-host rule, contains no Ming Workbench product policy, and that the Provider Execution Grant does not define work_unit_ref while remaining closed to additional root properties.",
-        "The advanced validator source is Git blob 9980ee823c435c34d625568a8935602193d58a2e and the production-release workflow invokes this existing validator owner.",
-        "At candidate 774cf41ad1d77e1f1fefc8f00f19f3ff4041a60b, the original Human-forward validator executed against an identity-verified 14-object dependency closure and returned success, proving the boundary regression through the authoritative machine gate rather than source inspection alone."
+        "PR #60 prepared AAOP 1.2.0 from current stable 1.1.0 and merged as 7503060d01f70b47f375bca37ac63d519a7e837e.",
+        "Its exact candidate 6466e9898e4aa839d1c6171d26707951887a62c5 passed all 14 PR workflows, including production-release and the pinned real MingOS stable-1.1.0-to-exact-1.2.0 downstream upgrade gate.",
+        "All 14 push-triggered workflows also completed successfully on exact merged main SHA 7503060d01f70b47f375bca37ac63d519a7e837e.",
+        "stable has not yet moved; release promotion remains separate from merge."
       ]
     },
     {
-      "id": "exact-url-cache-admission-retested",
-      "status": "blocked",
+      "id": "post-merge-provider-doc-drift-found",
+      "status": "in-progress",
       "evidence": [
-        "container.download exposes a potentially reusable URL-to-executor primitive but requires successful prior web admission of the exact URL.",
-        "Exact commit raw and GitHub file URLs were opened through the web path and still returned cache miss, so no identity-preserving programmatic materialization seam was established.",
-        "The failed cache-admission experiment does not invalidate connector-side exact object reads; targeted exact-object semantic execution remains possible through identity-verified reconstruction while whole-repository transfer remains unproven."
+        "Post-merge reconciliation found README still listing agent-bundles as a current optional specialist source while the Provider Registry and canonical Journey classify it as a retired compatibility alias that must not be newly installed or adopted.",
+        "The dedicated post-merge reconciliation branch corrects README to keep agent-bundles as retired compatibility lineage only.",
+        "This is authority-surface consistency repair, not a new Provider or Core mechanism."
       ]
     },
     {
-      "id": "superseded-loop-heartbeats-retired",
-      "status": "proven",
+      "id": "canonical-frontier-drift-repaired",
+      "status": "in-progress",
       "evidence": [
-        "Five dated aaop-loop heartbeat evidence files from 2026-08-13 were removed in one candidate commit because the canonical rolling frontier now supersedes their state.",
-        "Independent pressure evidence, exact semantic-gate evidence, mingos-skills observed evidence, and the exact-transfer blocker were retained.",
-        "Git history preserves the retired heartbeat records, so review noise was reduced without destroying recoverability or creating a second evidence store."
+        "The rolling frontier still described the pre-merge 89-commit candidate, local transfer blocker, and whole-repository exact-head validation as unproven after both #58 and #60 had merged and exact-main CI was available.",
+        "This update replaces stale candidate state with current main/stable/release evidence and prevents autonomous recovery from repeating already-completed verification work."
       ]
     },
     {
-      "id": "journey-exact-semantic-gate",
+      "id": "loopx-bounded-pilot-reconciled",
       "status": "proven",
       "evidence": [
-        "At candidate d0596c80ae705b61bf1070eab3769d07be7a1eea, the Journey validator plus seven dependencies were materialized into one local workspace from connector-read exact content.",
-        "All eight files independently recomputed to the locked Git blob identities: validator 9d2c070222be272ccc03b5e4bfffe235622420c8, canonical Journey c2f3cfa472461573bee39cd57f287994f75dca72, schemas d646763a93e191b84a4bcd77ad1af1bb0aa63600 and d742263c96478bb748e8a0a6cdd2ec49c029ffe2, end-to-end Skill 42c99a4ac0eb73eb2e81ad7c2a4246e1bab178ab, developer-intake Skill af879860194a8e46fa4f1cabc0254376e18ab69e, Journey tool fc09c8fc6a6dac55d8cd0319a2e680cfb54442b9, and retired agent-bundles recipe aaf3fb04e92b8e26e20ca8c7c4e724cf8931fa80.",
-        "The original scripts/validate_journey.py executed with return code 0 and stdout: AAOP Journey validation passed (routing, deliverable-aware target completion, continuation, stale-write CAS, Gate/Route compatibility, verification-debt containment, resumability, release-cycle isolation, specialist detection).",
-        "The only stderr text was the host terminal warning TERM environment variable not set; it did not change the validator return code or semantic result."
+        "Closed qualification Issue #42 records a real mingos-foundation execution-continuity pilot with a closes-gap outcome for the bounded Linux direct-CLI/custom-runner use case.",
+        "That evidence supports optional conditional LoopX escalation for a proven continuity gap; it does not support default adoption or a second AAOP scheduler/state store.",
+        "Older blanket wording that LoopX adoption was entirely unproven is superseded by this scoped pilot evidence."
       ]
     },
     {
-      "id": "human-forward-exact-semantic-gate",
+      "id": "consumer-core-boundaries-reconciled",
       "status": "proven",
       "evidence": [
-        "At candidate 774cf41ad1d77e1f1fefc8f00f19f3ff4041a60b, the original scripts/validate_human_forward_capability_fabric.py plus thirteen semantic dependencies were materialized into one local workspace from connector-read exact content.",
-        "All fourteen files independently recomputed to their Git blob identities before execution: validator 9980ee823c435c34d625568a8935602193d58a2e; idea-to-build 9b538d8b9f1eeea2e59308d8624758b548eafd64; capabilities b8bbc72c4dd60fa5348339dcdb7f922d54ebcf88; capability-planning dd9ecc67f489ae787c89a9de55dd27176575ea93; capability-matrix c9c8b5e16668c7ad5c77013c2dee1a22e52e313b; providers d37f74fdda252adcb9a30c04b8c5ed6c09c11c5c; Provider Execution Grant 5ee46b77880943cfba0d710516b9fc6e02564fe0; provider-selection d48906259039aa122516b6b6e1020f875766e6a5; ORCHESTRATOR db7cc771a9591e4b00713af8ac22b15850970dba; repo-recovery f6d335d1986458acfef220e4d3a7ff83104439c2; and pressure cases 5777c7676e738dcb40acfac5f2d59956b607527e, 32a6b924422be0fed6f011e6d442591abea1bd2b, 0ae1cf69c5886415f09628fd26631f4315e7368e, bbe067470d76de3e38e2d802f0c3612ca158dca3.",
-        "The original validator executed with return code 0 and stdout: AAOP human-forward capability fabric validation passed.",
-        "The only stderr text was the host terminal warning TERM environment variable not set; it did not change the validator return code or semantic result.",
-        "This exact semantic execution includes the DeepSeek Harness consumer/Core boundary regression added to the existing Human-forward validator owner."
+        "DeepSeek Harness remains a generic optional AAOP host/runtime adapter; consumer products retain preferred-host policy.",
+        "Ming Workbench Space, Work Unit, Gate, Evidence, and product correlation remain consumer-owned rather than universal AAOP objects.",
+        "agent-bundles remains retired compatibility lineage; current specialist selection uses Task Pod policy and only justified current role sources."
       ]
     }
   ],
@@ -110,9 +102,9 @@
       "Human-forward capability-fabric contract",
       "Journey continuation/CAS/release-cycle isolation",
       "generic DeepSeek Harness host/runtime adapter under bounded Provider Execution Grant authority",
-      "consumer/Core product-boundary enforcement inside the existing Human-forward validator owner",
-      "cross-branch shared-contract reconciliation before acceptance",
-      "canonical rolling evidence replacing superseded loop-heartbeat artifacts"
+      "optional conditional LoopX execution-continuity provider for a proven bounded gap",
+      "consumer/Core product-boundary enforcement",
+      "release identity and exact-candidate downstream validation"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -120,23 +112,21 @@
     ],
     "promoted-invariant": []
   },
-  "best_practice_reconciliation": [
-    "AWS Durable Execution guidance still treats replay/retry side effects as potentially repeated and requires idempotent or at-most-once/no-retry handling for non-idempotent external effects; no fresh independent consumer failure crossed AAOP promotion threshold this run.",
-    "OpenAI Codex production safety guidance still treats sandbox writable roots, network policy, and approval boundaries as enforced technical controls rather than logical project-scope promises; no fresh independent consumer sandbox near-miss crossed promotion threshold this run.",
-    "GitHub required checks only become merge enforcement through branch protection/rulesets and must correspond to the latest commit SHA; repository governance remains a human-owned release decision.",
-    "DeepSeek Harness remains exact-pinned to the reviewed dsh@0.1.0-rc.5 revision; keep deliberate review rather than upgrading merely because a provider exists.",
-    "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy."
-  ],
   "remaining_frontier": [
     {
-      "id": "candidate-reviewability-debt",
-      "summary": "With all five mapped targeted semantic gates proven, reduce only superseded/redundant candidate artifacts and audit the 89-commit diff for reviewable ownership boundaries. Do not delete independent pressure or machine-verification evidence and do not add Core mechanisms without fresh promotion evidence.",
+      "id": "post-merge-reconciliation-exact-validation",
+      "summary": "Run the full PR gate surface on the exact two-file post-merge reconciliation candidate. Do not reuse #60 or merged-main green for the changed README/frontier tree.",
       "executable": true
     },
     {
-      "id": "whole-repository-exact-head-validation",
-      "summary": "Whole-repository exact-head execution remains unproven because no zero-cost identity-preserving whole-tree/archive transfer into the local executor is available. Do not infer whole-repo green from targeted gate success.",
-      "executable": false
+      "id": "post-merge-reconciliation-merge",
+      "summary": "If the exact cleanup candidate is fully green and main has not moved, merge it and revalidate the exact merged main revision before release promotion.",
+      "executable": true
+    },
+    {
+      "id": "stable-v1-2-promotion",
+      "summary": "Only after the final merged 1.2.0 tree is re-read and fully validated may stable fast-forward non-force from 1.1.0 to that exact commit.",
+      "executable": true
     },
     {
       "id": "exercise-benchmark-on-real-projects",
@@ -145,7 +135,7 @@
     },
     {
       "id": "branch-gate-enforcement-governance",
-      "summary": "Repository merge-enforcement policy remains a separate human governance decision before release promotion.",
+      "summary": "Required-check/branch-protection policy remains a separate repository-governance decision and must not be inferred from green CI alone.",
       "executable": false
     }
   ]
