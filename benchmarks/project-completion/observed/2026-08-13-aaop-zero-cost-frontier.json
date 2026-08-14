@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "2c16ba35a491f8e95c164896e738c1eafe123d24",
-    "ahead_by_before_this_update": 76,
+    "candidate_head_before_this_update": "08107894a87bc9d786b76af08e5b123173e9d0c3",
+    "ahead_by_before_this_update": 77,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -19,9 +19,9 @@
       "id": "frontier-reconciled",
       "status": "proven",
       "evidence": [
-        "AAOP candidate and main plus mingos-skills main were re-read from GitHub before this update.",
-        "The candidate is 76 commits ahead of main and 0 behind before this update.",
-        "mingos-skills has no revision newer than the last recorded pressure evidence.",
+        "AAOP candidate/main and real pressure consumers were re-read from GitHub before this update.",
+        "The candidate is 77 commits ahead of main and 0 behind before this update.",
+        "mingos-skills and the other recorded consumers have no newer revision than the last recorded pressure evidence.",
         "Implementation expansion remains frozen while executable verification debt is open."
       ]
     },
@@ -71,8 +71,17 @@
       "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
       "evidence": [
         "The original Journey validator and seven required dependency paths were recovered at one fixed revision.",
-        "Source-side audit confirms deliverable-aware completion, scoped blockers, verification-debt containment, CAS continuation, and release-cycle isolation semantics.",
-        "Original-validator executor PASS remains unproven until the fixed-revision closure is identity-preserving materialized into one workspace."
+        "Source-side audit confirms deliverable-aware completion, scoped blockers, verification-debt containment, CAS continuation, and release-cycle isolation semantics."
+      ]
+    },
+    {
+      "id": "journey-exact-identity-closure",
+      "status": "proven",
+      "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
+      "evidence": [
+        "The Journey validator plus seven dependencies have immutable Git object identities locked at one fixed candidate revision.",
+        "The identity closure contains scripts/validate_journey.py, the canonical Journey, two Journey schemas, end-to-end-delivery, developer-intake, the Journey tool, and the retired agent-bundles recipe.",
+        "This proves fixed-revision identity closure only; original-validator executor PASS remains unproven until all eight objects are materialized into one workspace and re-hashed before execution."
       ]
     },
     {
@@ -128,25 +137,26 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "AWS Lambda Durable Functions documents at-least-once step execution and requires idempotent business logic for operations that may retry; this remains candidate pressure because no new independent consumer duplicate-effect failure appeared in this run.",
+    "AWS Lambda Durable Functions documents at-least-once step execution and requires idempotent business logic for operations that may retry; execution names can serve as idempotency keys. This remains candidate pressure because no new independent consumer duplicate-effect failure appeared in this run.",
     "AWS durable-function guidance recommends pinning long-running executions to versions or aliases and retaining replay compatibility; AAOP maps this to existing revision/evidence-target fidelity rather than adding a second workflow runtime.",
     "OpenAI Codex safety guidance treats enforced sandbox writable roots and managed network policy as technical boundaries; logical project scope remains candidate pressure without promotion.",
-    "GitHub ruleset guidance confirms required status checks become merge constraints only when explicitly configured and must pass on the latest commit SHA; branch/ruleset enforcement remains a human governance boundary."
+    "GitHub deployment APIs bind deployment requests to an explicit ref/SHA and expose resolved SHA, reinforcing existing deliverable-target/evidence-target fidelity rather than requiring a second deployment state system.",
+    "GitHub ruleset guidance confirms required status checks become merge constraints only when explicitly configured; branch/ruleset enforcement remains a human governance boundary."
   ],
   "remaining_frontier": [
+    {
+      "id": "execute-journey-validator",
+      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr. Do not repeat source or identity discovery unless the evidence target moves.",
+      "executable": true
+    },
     {
       "id": "execute-human-forward-capability-fabric-validator",
       "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies into one executor workspace, recompute each Git object identity, execute the original validator, and preserve stdout/stderr. Do not repeat source-side semantic inspection unless the evidence target moves.",
       "executable": true
     },
     {
-      "id": "execute-journey-validator",
-      "summary": "Materialize the fixed-revision Journey validator plus seven required dependency files into one workspace, recompute every Git object identity, run the original validator, and preserve stdout/stderr. Do not repeat source inspection unless the evidence target moves.",
-      "executable": true
-    },
-    {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current mingos-skills head does not add a new independent failure this run.",
+      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current consumer heads do not add a new independent failure this run.",
       "executable": true
     },
     {
