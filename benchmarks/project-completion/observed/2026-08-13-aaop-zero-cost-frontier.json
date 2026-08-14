@@ -4,156 +4,74 @@
   "final_status": "in-progress",
   "claimed_complete": false,
   "current_state": {
-    "main_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
+    "main_sha": "2e5ef4955d011fca945b87536709027de24abb25",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "faf0cb88ec78f862f12e3307e5bed0fd9b920aee",
-    "ahead_by_before_this_update": 78,
+    "candidate_head_before_this_update": "65f48c0e955ce689b77abc50068eadad4f65113b",
+    "ahead_by_before_this_update": 83,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
     "mingos_main_sha": "c355f2b1fdbe067eb66fbd622dec372b5b12b27d",
     "mingos_foundation_main_sha": "7eb33ffc806db1da2fde488a617860ca34b76c0e",
-    "concurrent_deepseek_harness_pr": {
-      "number": 56,
-      "draft": true,
-      "head_sha": "378af013a0f6a13fced9958175483c4de88cdbd2",
-      "base_sha": "7c5fa4bb65afb6a249f9501176fbfe531e354e77",
+    "deepseek_harness": {
+      "aaop_main_integration_sha": "2e5ef4955d011fca945b87536709027de24abb25",
+      "candidate_reconciliation_merge_sha": "6cd252bda01c9c3c4ea3ff8f7f9ab4ce8de6ae98",
       "upstream_revision": "47f943859bef60e4160492346772ded9b24f765a",
-      "upstream_version": "0.1.0-rc.5"
+      "upstream_version": "0.1.0-rc.5",
+      "upstream_master_matches_reviewed_revision": true
     }
   },
-  "outcomes": [
+  "proven_semantic_gates": [
+    "project-frontier-reconciliation",
+    "verification-harness-integrity",
+    "project-completion-benchmark"
+  ],
+  "partial_verification": {
+    "human-forward-capability-fabric": "source-side semantic closure proven; original-validator exact executor PASS unproven",
+    "journey": "fixed-revision eight-object identity closure and source-side semantic closure proven; original-validator exact executor PASS unproven"
+  },
+  "new_outcomes": [
     {
-      "id": "frontier-reconciled",
+      "id": "deepseek-harness-concurrent-branch-reconciled",
       "status": "proven",
       "evidence": [
-        "AAOP candidate/main and real pressure consumers were re-read from GitHub before this update.",
-        "The candidate is 78 commits ahead of main and 0 behind before this update.",
-        "mingos-skills, Family-Space, MingOS, and mingos-foundation have no newer revision than the last recorded pressure evidence.",
-        "A concurrent Draft PR #56 was discovered on feat/deepseek-harness-host; it overlaps the candidate on .aaop/registries/providers.json and therefore requires pre-merge reconciliation rather than blind parallel merge.",
-        "Implementation expansion remains frozen while executable verification debt is open."
+        "PR #56 was merged to main as 2e5ef4955d011fca945b87536709027de24abb25, then reconciled into the active candidate through merge commit 6cd252bda01c9c3c4ea3ff8f7f9ab4ce8de6ae98.",
+        "The active candidate is a strict descendant of current main: 83 commits ahead and 0 behind before this evidence update.",
+        "The reviewed DeepSeek Harness revision still equals upstream master at 47f943859bef60e4160492346772ded9b24f765a, so no upstream upgrade was required this run."
       ]
     },
     {
-      "id": "project-frontier-exact-closure-semantic-validation",
-      "status": "proven",
-      "evidence_target": "46bee1738a08cc18ac476ad09a69ef0b2124fb8d",
-      "evidence": [
-        "The original project-frontier validator and five semantic dependencies were materialized into one local workspace from the fixed evidence target.",
-        "All six files independently reproduced their expected immutable Git blob identities before execution.",
-        "The original validator exited successfully."
-      ]
-    },
-    {
-      "id": "verification-harness-exact-closure-semantic-validation",
-      "status": "proven",
-      "evidence_target": "7b9dde91a64be7b593c780aa2176bb9d8bd43bc9",
-      "evidence": [
-        "The verification-harness-integrity validator and exact dependency closure were reconstructed from the fixed evidence target.",
-        "Eleven Git objects reproduced their expected identities before execution.",
-        "The original validator exited successfully."
-      ]
-    },
-    {
-      "id": "project-completion-benchmark-exact-closure-semantic-validation",
-      "status": "proven",
-      "evidence_target": "c9205f671f7543294232983522ad40ec4980097d",
-      "evidence": [
-        "The original benchmark validator, scorer, README, all 12 current cases, and four fixtures were materialized from one fixed candidate revision.",
-        "All 19 Git objects reproduced their immutable identities before execution.",
-        "The original validator exited successfully and reported 12 cases passing."
-      ]
-    },
-    {
-      "id": "human-forward-source-side-semantic-closure",
+      "id": "harness-product-boundary-leak-repaired",
       "status": "proven-partial",
-      "evidence_target": "5c36fa59cda7a4dc6dcd42effea0bac1ee479123",
       "evidence": [
-        "The original Human-forward validator and all eleven semantic dependency paths were re-read from one fixed revision.",
-        "Source-side audit matches the original validator assertions.",
-        "Original-validator executor PASS remains unproven until the exact dependency closure is identity-preserving materialized into one workspace."
-      ]
-    },
-    {
-      "id": "journey-source-side-semantic-closure",
-      "status": "proven-partial",
-      "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
-      "evidence": [
-        "The original Journey validator and seven required dependency paths were recovered at one fixed revision.",
-        "Source-side audit confirms deliverable-aware completion, scoped blockers, verification-debt containment, CAS continuation, and release-cycle isolation semantics."
-      ]
-    },
-    {
-      "id": "journey-exact-identity-closure",
-      "status": "proven",
-      "evidence_target": "875517b68ed6779a6dd5c8a52266cadf92144894",
-      "evidence": [
-        "The Journey validator plus seven dependencies have immutable Git object identities locked at one fixed candidate revision.",
-        "The identity closure contains scripts/validate_journey.py, the canonical Journey, two Journey schemas, end-to-end-delivery, developer-intake, the Journey tool, and the retired agent-bundles recipe.",
-        "This proves fixed-revision identity closure only; original-validator executor PASS remains unproven until all eight objects are materialized into one workspace and re-hashed before execution."
-      ]
-    },
-    {
-      "id": "deepseek-harness-concurrent-integration-pressure",
-      "status": "proven-partial",
-      "consumer_revision": "378af013a0f6a13fced9958175483c4de88cdbd2",
-      "evidence": [
-        "Draft PR #56 introduces DeepSeek Harness as an optional AAOP host/runtime provider while explicitly keeping AAOP authoritative for Working Contract, Route/Journey, authorization, and final acceptance.",
-        "The pinned upstream revision 47f943859bef60e4160492346772ded9b24f765a is the current DeepSeek Harness master revision and publishes @deepseek-ai/dsh@0.1.0-rc.5; upstream explicitly marks the project developer preview with compatibility-breaking changes expected.",
-        "The generic Harness provider/adapter fits existing AAOP capability-planning/provider-selection ownership and does not justify another scheduler, Journey state machine, permission authority, or acceptance system.",
-        "Ming Workbench preference and Workbench product objects are consumer-specific and must remain outside the universal AAOP provider-registry contract.",
-        "PR #56 and agent/evidence-target-fidelity both modify .aaop/registries/providers.json, so shared-file ownership must be reconciled before merge.",
-        "PR #56 has an existing successful Journey CI run, but its Journey validator/canonical Journey objects differ from the active candidate objects; that green result therefore cannot substitute for candidate Journey validation."
-      ]
-    },
-    {
-      "id": "family-space-deployment-history-divergence-pressure",
-      "status": "proven",
-      "consumer_revision": "9c44822836eba8fc08234f9bf7471172e70b7101",
-      "evidence": [
-        "Family-Space records deployed production lineage that is not fast-forward compatible with repository production history.",
-        "The project requires history convergence before the next release instead of blindly overwriting deployment state.",
-        "This remains real-project pressure for existing evidence-target fidelity and pre-mutation reconciliation, not a new deployment state machine."
-      ]
-    },
-    {
-      "id": "exact-transfer-seam",
-      "status": "blocked-partial",
-      "evidence": [
-        "Exact Git object discovery and connector-side content reads are available.",
-        "The local executor remains unable to resolve github.com, raw.githubusercontent.com, or api.github.com directly.",
-        "No zero-cost programmatic connector-response-to-executor materialization primitive has been proven for the remaining large closures.",
-        "This blocker is scoped to original-validator exact-object execution and does not block independent real-project pressure or concurrent-branch reconciliation."
-      ]
-    },
-    {
-      "id": "recurring-evidence-debt-contained",
-      "status": "proven",
-      "evidence": [
-        "Routine loops update this rolling frontier instead of creating standalone evidence files unless materially new project pressure or validation evidence warrants one."
+        "Post-merge inspection found two consumer-specific concepts in universal AAOP surfaces: a Ming Workbench preferred-host policy in the provider registry and work_unit_ref in the Provider Execution Grant schema.",
+        "The candidate now keeps DeepSeek Harness optional and explicitly states that consumer products own preferred-host policy.",
+        "work_unit_ref was removed from the universal Provider Execution Grant; consumer correlation remains consumer-owned and may reference stable evidence through the existing references field.",
+        "The Provider Execution Grant documentation was updated to describe the product-neutral correlation boundary.",
+        "Machine regression coverage for this exact no-product-object boundary is not yet proven; do not promote this repair to complete until an existing validator owner enforces it or equivalent exact validation proves the boundary."
       ]
     }
   ],
   "classification": {
     "consumer-only": [
       "project-specific runtime, deployment, routing, lifecycle, and conformance facts",
-      "Family-Space server/repository production history and deployment lineage",
-      "Ming Workbench preferred execution-chassis policy and Workbench product object model"
+      "Family-Space deployment lineage",
+      "Ming Workbench preferred execution-chassis policy",
+      "Ming Workbench Space, Work Unit, Gate, Evidence, and other product object models"
     ],
     "existing-AAOP-coverage": [
       "project-frontier reconciliation",
       "scoped-blocker continuation",
       "verification-debt containment",
       "evidence-target fidelity",
-      "capability composability and exact-object transfer",
+      "capability composability and provider selection",
       "critical-control reachability",
       "verification-harness integrity",
-      "project-completion benchmark contract and scorer integrity",
-      "human-forward capability-fabric contract",
-      "Journey continuation/CAS/release-cycle isolation contract",
-      "pre-mutation reconciliation for divergent deployment and repository histories",
-      "generic DeepSeek Harness host/runtime integration under capability planning, provider selection, and authority separation",
-      "cross-branch shared-contract ownership reconciliation before merge"
+      "project-completion benchmark contract",
+      "Human-forward capability-fabric contract",
+      "Journey continuation/CAS/release-cycle isolation",
+      "generic DeepSeek Harness host/runtime adapter under bounded Provider Execution Grant authority",
+      "cross-branch shared-contract reconciliation before acceptance"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -162,32 +80,29 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "AWS Lambda Durable Functions documents at-least-once step execution and requires idempotent business logic for operations that may retry; execution names can serve as idempotency keys. This remains candidate pressure because no new independent consumer duplicate-effect failure appeared in this run.",
-    "AWS durable-function guidance recommends pinning long-running executions to versions or aliases and retaining replay compatibility; AAOP maps this to existing revision/evidence-target fidelity rather than adding a second workflow runtime.",
-    "OpenAI Codex safety guidance treats enforced sandbox writable roots and managed network policy as technical boundaries; logical project scope remains candidate pressure without promotion.",
-    "DeepSeek Harness currently marks itself developer preview and warns of compatibility-breaking changes; AAOP may pin and review the optional provider, but must not treat the current runtime surface as a permanent universal contract.",
-    "GitHub deployment APIs bind deployment requests to an explicit ref/SHA and expose resolved SHA, reinforcing existing deliverable-target/evidence-target fidelity rather than requiring a second deployment state system.",
-    "GitHub ruleset guidance confirms required status checks become merge constraints only when explicitly configured; branch/ruleset enforcement remains a human governance boundary."
+    "DeepSeek Harness master still resolves to the reviewed dsh@0.1.0-rc.5 revision; keep exact pinning and deliberate review rather than upgrading merely because a provider exists.",
+    "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy.",
+    "The two retained generic gaps remain pressure only because no fresh independent real-project replay duplicate or sandbox-boundary failure appeared in the current consumer heads."
   ],
   "remaining_frontier": [
     {
+      "id": "regress-harness-product-boundary",
+      "summary": "Use an existing validator owner, preferably Human-forward capability-fabric or provider-selection validation, to machine-enforce that universal AAOP provider/grant contracts do not embed consumer product objects or preferred-host product policy. Avoid creating a second validator/control plane.",
+      "executable": true
+    },
+    {
       "id": "execute-journey-validator",
-      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr. Do not reuse PR #56 Journey CI because its Journey Git objects differ from the active candidate evidence target.",
+      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr.",
       "executable": true
     },
     {
       "id": "execute-human-forward-capability-fabric-validator",
-      "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies into one executor workspace, recompute each Git object identity, execute the original validator, and preserve stdout/stderr. Do not repeat source-side semantic inspection unless the evidence target moves.",
-      "executable": true
-    },
-    {
-      "id": "reconcile-deepseek-harness-pr",
-      "summary": "Keep PR #56 Draft while verification debt is open. Before any merge, reconcile its generic DeepSeek Harness provider/adapter with the active candidate, resolve .aaop/registries/providers.json ownership, keep Ming Workbench preference consumer-side, and revalidate against the resulting exact revision.",
+      "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies, execute the original validator, and preserve stdout/stderr. If its evidence target is advanced to include the Harness boundary repair, rebuild the closure rather than reusing stale green evidence.",
       "executable": true
     },
     {
       "id": "exercise-benchmark-on-real-projects",
-      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core; current consumer heads do not add a new independent replay or sandbox failure this run.",
+      "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core.",
       "executable": true
     },
     {
