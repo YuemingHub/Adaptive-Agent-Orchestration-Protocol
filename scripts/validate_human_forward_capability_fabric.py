@@ -103,6 +103,44 @@ def main() -> int:
                 if not isinstance(edge_props, dict) or field not in edge_props:
                     errors.append(f"{matrix_path}: composition_edges missing {field!r}")
 
+    providers_path = root / ".aaop/registries/providers.json"
+    providers = load(providers_path)
+    if not isinstance(providers, dict):
+        errors.append(f"{providers_path}: expected object")
+    else:
+        provider_entries = {
+            item.get("id"): item
+            for item in providers.get("providers", [])
+            if isinstance(item, dict) and isinstance(item.get("id"), str)
+        }
+        harness = provider_entries.get("deepseek-harness")
+        if not isinstance(harness, dict):
+            errors.append(f"{providers_path}: missing deepseek-harness provider")
+        else:
+            if harness.get("preference") is not None:
+                errors.append(f"{providers_path}: deepseek-harness must not define a universal preference")
+            require_text(
+                errors,
+                str(harness.get("status_note", "")),
+                "Consumer products own any preferred-host policy",
+                str(providers_path),
+            )
+            if "Ming Workbench" in json.dumps(harness, ensure_ascii=False):
+                errors.append(f"{providers_path}: deepseek-harness must not embed Ming Workbench product policy")
+
+    grant_path = root / ".aaop/schemas/provider-execution-grant.schema.json"
+    grant = load(grant_path)
+    if not isinstance(grant, dict):
+        errors.append(f"{grant_path}: expected object")
+    else:
+        grant_properties = grant.get("properties", {})
+        if not isinstance(grant_properties, dict):
+            errors.append(f"{grant_path}: properties must be an object")
+        elif "work_unit_ref" in grant_properties:
+            errors.append(f"{grant_path}: consumer-specific work_unit_ref must not be a universal AAOP field")
+        if grant.get("additionalProperties") is not False:
+            errors.append(f"{grant_path}: root additionalProperties must remain false")
+
     provider_path = root / ".aaop/skills/provider-selection/SKILL.md"
     provider_text = provider_path.read_text(encoding="utf-8")
     for phrase in (
