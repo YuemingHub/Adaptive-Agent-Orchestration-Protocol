@@ -23,7 +23,6 @@
   "properties": {
     "schema_version": {"const": "1.0"},
     "grant_id": {"type": "string", "minLength": 1},
-    "work_unit_ref": {"type": ["string", "null"]},
     "provider": {"type": "string", "minLength": 1},
     "route": {
       "enum": [
