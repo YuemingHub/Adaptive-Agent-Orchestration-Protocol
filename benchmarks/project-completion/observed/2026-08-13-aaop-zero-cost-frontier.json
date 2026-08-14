@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "2e5ef4955d011fca945b87536709027de24abb25",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "65f48c0e955ce689b77abc50068eadad4f65113b",
-    "ahead_by_before_this_update": 83,
+    "candidate_head_before_this_update": "3d2fcbf81bd927fd1ca19b7927a53537cdaa1976",
+    "ahead_by_before_this_update": 85,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -27,7 +27,7 @@
     "project-completion-benchmark"
   ],
   "partial_verification": {
-    "human-forward-capability-fabric": "source-side semantic closure proven; original-validator exact executor PASS unproven",
+    "human-forward-capability-fabric": "source-side semantic closure plus Harness consumer/Core boundary regression source and gate wiring proven; original-validator exact executor PASS on the advanced evidence target remains unproven",
     "journey": "fixed-revision eight-object identity closure and source-side semantic closure proven; original-validator exact executor PASS unproven"
   },
   "new_outcomes": [
@@ -36,8 +36,8 @@
       "status": "proven",
       "evidence": [
         "PR #56 was merged to main as 2e5ef4955d011fca945b87536709027de24abb25, then reconciled into the active candidate through merge commit 6cd252bda01c9c3c4ea3ff8f7f9ab4ce8de6ae98.",
-        "The active candidate is a strict descendant of current main: 83 commits ahead and 0 behind before this evidence update.",
-        "The reviewed DeepSeek Harness revision still equals upstream master at 47f943859bef60e4160492346772ded9b24f765a, so no upstream upgrade was required this run."
+        "The active candidate is a strict descendant of current main.",
+        "The reviewed DeepSeek Harness revision still equals upstream master at 47f943859bef60e4160492346772ded9b24f765a, so no upstream upgrade was required during reconciliation."
       ]
     },
     {
@@ -45,10 +45,20 @@
       "status": "proven-partial",
       "evidence": [
         "Post-merge inspection found two consumer-specific concepts in universal AAOP surfaces: a Ming Workbench preferred-host policy in the provider registry and work_unit_ref in the Provider Execution Grant schema.",
-        "The candidate now keeps DeepSeek Harness optional and explicitly states that consumer products own preferred-host policy.",
-        "work_unit_ref was removed from the universal Provider Execution Grant; consumer correlation remains consumer-owned and may reference stable evidence through the existing references field.",
-        "The Provider Execution Grant documentation was updated to describe the product-neutral correlation boundary.",
-        "Machine regression coverage for this exact no-product-object boundary is not yet proven; do not promote this repair to complete until an existing validator owner enforces it or equivalent exact validation proves the boundary."
+        "The candidate keeps DeepSeek Harness optional and explicitly states that consumer products own preferred-host policy.",
+        "work_unit_ref is absent from the universal Provider Execution Grant; consumer correlation remains consumer-owned and may reference stable evidence through the existing references field.",
+        "The existing Human-forward capability-fabric validator now machine-enforces that deepseek-harness has no universal preference, retains the consumer-owned preferred-host rule, contains no Ming Workbench product policy, and that the Provider Execution Grant does not define work_unit_ref while remaining closed to additional root properties.",
+        "The advanced validator source was written as Git blob 9980ee823c435c34d625568a8935602193d58a2e, independently reproduced with Git blob hashing locally, and py_compile passed. The production-release workflow already invokes this validator, so the regression is on the existing machine gate path.",
+        "Full original-validator semantic PASS on the advanced exact dependency closure is still unproven and must not be inferred from source identity, syntax compilation, or gate wiring alone."
+      ]
+    },
+    {
+      "id": "exact-url-cache-admission-retested",
+      "status": "blocked",
+      "evidence": [
+        "container.download exposes a potentially reusable URL-to-executor primitive but requires successful prior web admission of the exact URL.",
+        "Exact commit raw and GitHub file URLs were opened through the web path and still returned cache miss, so no identity-preserving programmatic materialization seam was established in this run.",
+        "The failed cache-admission experiment does not invalidate connector-side exact object reads and does not convert Human-forward or Journey executor validation to failed; those scopes remain unproven."
       ]
     }
   ],
@@ -71,6 +81,7 @@
       "Human-forward capability-fabric contract",
       "Journey continuation/CAS/release-cycle isolation",
       "generic DeepSeek Harness host/runtime adapter under bounded Provider Execution Grant authority",
+      "consumer/Core product-boundary enforcement inside the existing Human-forward validator owner",
       "cross-branch shared-contract reconciliation before acceptance"
     ],
     "candidate-generic-gap": [
@@ -80,24 +91,19 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
-    "DeepSeek Harness master still resolves to the reviewed dsh@0.1.0-rc.5 revision; keep exact pinning and deliberate review rather than upgrading merely because a provider exists.",
+    "DeepSeek Harness remains exact-pinned to the reviewed dsh@0.1.0-rc.5 revision; keep deliberate review rather than upgrading merely because a provider exists.",
     "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy.",
-    "The two retained generic gaps remain pressure only because no fresh independent real-project replay duplicate or sandbox-boundary failure appeared in the current consumer heads."
+    "The two retained generic gaps remain pressure only because no fresh independent real-project replay duplicate or sandbox-boundary failure has crossed the promotion threshold."
   ],
   "remaining_frontier": [
     {
-      "id": "regress-harness-product-boundary",
-      "summary": "Use an existing validator owner, preferably Human-forward capability-fabric or provider-selection validation, to machine-enforce that universal AAOP provider/grant contracts do not embed consumer product objects or preferred-host product policy. Avoid creating a second validator/control plane.",
-      "executable": true
-    },
-    {
       "id": "execute-journey-validator",
-      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr.",
+      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr. Do not repeat source inspection.",
       "executable": true
     },
     {
       "id": "execute-human-forward-capability-fabric-validator",
-      "summary": "Complete identity-preserving materialization of the fixed-revision Human-forward validator and all eleven dependencies, execute the original validator, and preserve stdout/stderr. If its evidence target is advanced to include the Harness boundary repair, rebuild the closure rather than reusing stale green evidence.",
+      "summary": "Rebuild the advanced Human-forward exact dependency closure including providers.json and provider-execution-grant.schema.json, verify every Git object identity, execute the original validator containing the Harness consumer/Core boundary regression, and preserve stdout/stderr.",
       "executable": true
     },
     {
