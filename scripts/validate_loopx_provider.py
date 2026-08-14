@@ -235,7 +235,7 @@ def main() -> int:
     require("LoopX" in provider_selection, "provider selection must route execution-continuity toward LoopX-style providers")
     require("Deep Agents" in provider_selection, "provider selection must distinguish long-horizon agent runtime gaps")
     require("agency-orchestrator" in provider_selection, "provider selection must distinguish bounded Task Pod runtime gaps")
-    require("Do not collapse these three gaps" in provider_selection, "provider-selection anti-collapse rule is missing")
+    require("Do not collapse these gaps" in provider_selection, "provider-selection anti-collapse rule is missing")
     require("Execution-continuity escalation" in end_to_end, "end-to-end Journey must have an execution-continuity escalation seam")
     require("execution-continuity failure" in end_to_end, "Journey must distinguish execution-continuity failure from implementation/environment/human gates")
     require("provider-selection/SKILL.md" in end_to_end, "Journey must route proven continuity gaps through provider selection")
