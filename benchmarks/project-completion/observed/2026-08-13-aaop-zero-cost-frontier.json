@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "2e5ef4955d011fca945b87536709027de24abb25",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "d239e89b6fde287ac234ce31eeb0feea76af23bf",
-    "ahead_by_before_this_update": 87,
+    "candidate_head_before_this_update": "d2d57167b80c3306e5d6c7f2afceee488461788f",
+    "ahead_by_before_this_update": 88,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -24,11 +24,11 @@
   "proven_semantic_gates": [
     "project-frontier-reconciliation",
     "verification-harness-integrity",
-    "project-completion-benchmark"
+    "project-completion-benchmark",
+    "journey"
   ],
   "partial_verification": {
-    "human-forward-capability-fabric": "source-side semantic closure plus Harness consumer/Core boundary regression source and gate wiring proven; original-validator exact executor PASS on the advanced evidence target remains unproven",
-    "journey": "fixed-revision eight-object identity closure and source-side semantic closure proven; original-validator exact executor PASS unproven"
+    "human-forward-capability-fabric": "source-side semantic closure plus Harness consumer/Core boundary regression source and gate wiring proven; original-validator exact executor PASS on the advanced evidence target remains unproven"
   },
   "new_outcomes": [
     {
@@ -58,7 +58,7 @@
       "evidence": [
         "container.download exposes a potentially reusable URL-to-executor primitive but requires successful prior web admission of the exact URL.",
         "Exact commit raw and GitHub file URLs were opened through the web path and still returned cache miss, so no identity-preserving programmatic materialization seam was established.",
-        "The failed cache-admission experiment does not invalidate connector-side exact object reads and does not convert Human-forward or Journey executor validation to failed; those scopes remain unproven."
+        "The failed cache-admission experiment does not invalidate connector-side exact object reads and does not convert blocked executor scopes to failed; those scopes remain unproven until separately executed."
       ]
     },
     {
@@ -68,6 +68,16 @@
         "Five dated aaop-loop heartbeat evidence files from 2026-08-13 were removed in one candidate commit because the canonical rolling frontier now supersedes their state.",
         "Independent pressure evidence, exact semantic-gate evidence, mingos-skills observed evidence, and the exact-transfer blocker were retained.",
         "Git history preserves the retired heartbeat records, so review noise was reduced without destroying recoverability or creating a second evidence store."
+      ]
+    },
+    {
+      "id": "journey-exact-semantic-gate",
+      "status": "proven",
+      "evidence": [
+        "At candidate d0596c80ae705b61bf1070eab3769d07be7a1eea, the Journey validator plus seven dependencies were materialized into one local workspace from connector-read exact content.",
+        "All eight files independently recomputed to the locked Git blob identities: validator 9d2c070222be272ccc03b5e4bfffe235622420c8, canonical Journey c2f3cfa472461573bee39cd57f287994f75dca72, schemas d646763a93e191b84a4bcd77ad1af1bb0aa63600 and d742263c96478bb748e8a0a6cdd2ec49c029ffe2, end-to-end Skill 42c99a4ac0eb73eb2e81ad7c2a4246e1bab178ab, developer-intake Skill af879860194a8e46fa4f1cabc0254376e18ab69e, Journey tool fc09c8fc6a6dac55d8cd0319a2e680cfb54442b9, and retired agent-bundles recipe aaf3fb04e92b8e26e20ca8c7c4e724cf8931fa80.",
+        "The original scripts/validate_journey.py executed with return code 0 and stdout: AAOP Journey validation passed (routing, deliverable-aware target completion, continuation, stale-write CAS, Gate/Route compatibility, verification-debt containment, resumability, release-cycle isolation, specialist detection).",
+        "The only stderr text was the host terminal warning TERM environment variable not set; it did not change the validator return code or semantic result."
       ]
     }
   ],
@@ -108,11 +118,6 @@
     "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy."
   ],
   "remaining_frontier": [
-    {
-      "id": "execute-journey-validator",
-      "summary": "Materialize the already identity-locked fixed-revision Journey validator plus seven dependencies into one workspace, recompute all eight Git object identities, run the original validator, and preserve stdout/stderr. Do not repeat source inspection.",
-      "executable": true
-    },
     {
       "id": "execute-human-forward-capability-fabric-validator",
       "summary": "Rebuild the advanced Human-forward exact dependency closure including providers.json and provider-execution-grant.schema.json, verify every Git object identity, execute the original validator containing the Harness consumer/Core boundary regression, and preserve stdout/stderr.",
