@@ -409,11 +409,11 @@ docs/                              detailed design and research
 
 ## Status
 
-**v1.1.0 — production release line governed by the AAOP production release contract.**
+**v1.2.0 — production release line governed by the AAOP production release contract.**
 
-A source-tree or pull-request copy is not production merely because it carries the v1.1.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
+A source-tree or pull-request copy is not production merely because it carries the v1.2.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree from the current stable release, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
 
-v1.1 keeps the v1 Human-Agent Working Contract and adds the production lessons learned from real autonomous takeover pressure: current control-plane freshness, default takeover continuation, scoped-blocker frontier continuation, project-wide frontier reconciliation before project no-op/pause, and stable release identity that can distinguish a coherent-but-stale control plane from the latest deliberately promoted stable package.
+v1.2 keeps the v1 Human-Agent Working Contract and v1.1 release/freshness semantics, while hardening project-frontier completion truth, exact evidence-target fidelity, verification-harness integrity, capability composition/transfer closure, pressure-backed project-completion benchmarking, and the boundary between AAOP's generic provider contracts and optional execution chassis such as DeepSeek Harness.
 
 Accumulated production hardening also includes stable-vs-edge bootstrap separation and exact-ref pinning; bounded archive extraction; transactional install/upgrade/uninstall with interrupted-operation recovery; fail-closed manifest and Journey schema handling; Journey CAS/OS locking and last-good recovery; CPython 3.11–3.14 support across Linux/Windows/macOS; install provenance with managed-byte fingerprinting; immutable reviewed GitHub Action pins; and exact-candidate downstream consumer validation.
 
