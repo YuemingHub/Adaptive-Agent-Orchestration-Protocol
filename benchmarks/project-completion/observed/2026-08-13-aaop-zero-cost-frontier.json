@@ -6,8 +6,8 @@
   "current_state": {
     "main_sha": "2e5ef4955d011fca945b87536709027de24abb25",
     "candidate_branch": "agent/evidence-target-fidelity",
-    "candidate_head_before_this_update": "3d2fcbf81bd927fd1ca19b7927a53537cdaa1976",
-    "ahead_by_before_this_update": 85,
+    "candidate_head_before_this_update": "d239e89b6fde287ac234ce31eeb0feea76af23bf",
+    "ahead_by_before_this_update": 87,
     "behind_by_before_this_update": 0,
     "mingos_skills_main_sha": "064dbab7d071a9bdb3e761981509f314625a9388",
     "family_space_production_sha": "9c44822836eba8fc08234f9bf7471172e70b7101",
@@ -47,7 +47,7 @@
         "Post-merge inspection found two consumer-specific concepts in universal AAOP surfaces: a Ming Workbench preferred-host policy in the provider registry and work_unit_ref in the Provider Execution Grant schema.",
         "The candidate keeps DeepSeek Harness optional and explicitly states that consumer products own preferred-host policy.",
         "work_unit_ref is absent from the universal Provider Execution Grant; consumer correlation remains consumer-owned and may reference stable evidence through the existing references field.",
-        "The existing Human-forward capability-fabric validator now machine-enforces that deepseek-harness has no universal preference, retains the consumer-owned preferred-host rule, contains no Ming Workbench product policy, and that the Provider Execution Grant does not define work_unit_ref while remaining closed to additional root properties.",
+        "The existing Human-forward capability-fabric validator machine-enforces that deepseek-harness has no universal preference, retains the consumer-owned preferred-host rule, contains no Ming Workbench product policy, and that the Provider Execution Grant does not define work_unit_ref while remaining closed to additional root properties.",
         "The advanced validator source was written as Git blob 9980ee823c435c34d625568a8935602193d58a2e, independently reproduced with Git blob hashing locally, and py_compile passed. The production-release workflow already invokes this validator, so the regression is on the existing machine gate path.",
         "Full original-validator semantic PASS on the advanced exact dependency closure is still unproven and must not be inferred from source identity, syntax compilation, or gate wiring alone."
       ]
@@ -57,8 +57,17 @@
       "status": "blocked",
       "evidence": [
         "container.download exposes a potentially reusable URL-to-executor primitive but requires successful prior web admission of the exact URL.",
-        "Exact commit raw and GitHub file URLs were opened through the web path and still returned cache miss, so no identity-preserving programmatic materialization seam was established in this run.",
+        "Exact commit raw and GitHub file URLs were opened through the web path and still returned cache miss, so no identity-preserving programmatic materialization seam was established.",
         "The failed cache-admission experiment does not invalidate connector-side exact object reads and does not convert Human-forward or Journey executor validation to failed; those scopes remain unproven."
+      ]
+    },
+    {
+      "id": "superseded-loop-heartbeats-retired",
+      "status": "proven",
+      "evidence": [
+        "Five dated aaop-loop heartbeat evidence files from 2026-08-13 were removed in one candidate commit because the canonical rolling frontier now supersedes their state.",
+        "Independent pressure evidence, exact semantic-gate evidence, mingos-skills observed evidence, and the exact-transfer blocker were retained.",
+        "Git history preserves the retired heartbeat records, so review noise was reduced without destroying recoverability or creating a second evidence store."
       ]
     }
   ],
@@ -82,7 +91,8 @@
       "Journey continuation/CAS/release-cycle isolation",
       "generic DeepSeek Harness host/runtime adapter under bounded Provider Execution Grant authority",
       "consumer/Core product-boundary enforcement inside the existing Human-forward validator owner",
-      "cross-branch shared-contract reconciliation before acceptance"
+      "cross-branch shared-contract reconciliation before acceptance",
+      "canonical rolling evidence replacing superseded loop-heartbeat artifacts"
     ],
     "candidate-generic-gap": [
       "unknown external-effect outcome before replay or retry",
@@ -91,9 +101,11 @@
     "promoted-invariant": []
   },
   "best_practice_reconciliation": [
+    "AWS Durable Execution guidance still treats replay/retry side effects as potentially repeated and requires idempotent or at-most-once/no-retry handling for non-idempotent external effects; no fresh independent consumer failure crossed AAOP promotion threshold this run.",
+    "OpenAI Codex production safety guidance still treats sandbox writable roots, network policy, and approval boundaries as enforced technical controls rather than logical project-scope promises; no fresh independent consumer sandbox near-miss crossed promotion threshold this run.",
+    "GitHub required checks only become merge enforcement through branch protection/rulesets and must correspond to the latest commit SHA; repository governance remains a human-owned release decision.",
     "DeepSeek Harness remains exact-pinned to the reviewed dsh@0.1.0-rc.5 revision; keep deliberate review rather than upgrading merely because a provider exists.",
-    "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy.",
-    "The two retained generic gaps remain pressure only because no fresh independent real-project replay duplicate or sandbox-boundary failure has crossed the promotion threshold."
+    "Provider-specific execution machinery stays below AAOP Working Contract, Route/Journey, authorization, and acceptance authority; consumer product preference does not become protocol policy."
   ],
   "remaining_frontier": [
     {
@@ -109,6 +121,11 @@
     {
       "id": "exercise-benchmark-on-real-projects",
       "summary": "Continue collecting only fresh independent real-project pressure before promoting either retained generic candidate into Core.",
+      "executable": true
+    },
+    {
+      "id": "candidate-reviewability-debt",
+      "summary": "Continue reducing superseded or redundant evidence artifacts and keep Core expansion frozen while the candidate remains materially ahead of main. Do not delete independent pressure or machine-verification evidence.",
       "executable": true
     },
     {
