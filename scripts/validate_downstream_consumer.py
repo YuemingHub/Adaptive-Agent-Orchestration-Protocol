@@ -22,7 +22,8 @@ from pathlib import Path
 AAOP_BEGIN = "<!-- AAOP:BEGIN -->"
 AAOP_END = "<!-- AAOP:END -->"
 ROOT = Path(__file__).resolve().parents[1]
-PREVIOUS_STABLE_COMMIT = "036412c4446447cf2170f2aeadf9320450f7481a"
+PREVIOUS_STABLE_COMMIT = "e438e81c2e3ed8889dd09373f25aec9b3707a167"
+PREVIOUS_STABLE_VERSION = "1.1.0"
 EXPECTED_CONSUMER_REPO = "YuemingHub/MingOS"
 AUTHORITY_FILES = (
     "AGENTS.md",
@@ -217,8 +218,10 @@ def bootstrap_previous_stable(consumer: Path) -> None:
     run("curl", "-fsSL", url, "-o", script)
     run(sys.executable, script, "--target", consumer, "--ref", PREVIOUS_STABLE_COMMIT)
     version = (consumer / ".aaop" / "VERSION").read_text(encoding="utf-8").strip()
-    if version != "0.27.0":
-        raise AssertionError(f"previous stable consumer install expected 0.27.0, got {version}")
+    if version != PREVIOUS_STABLE_VERSION:
+        raise AssertionError(
+            f"previous stable consumer install expected {PREVIOUS_STABLE_VERSION}, got {version}"
+        )
 
 
 def working_contract_fixture() -> dict[str, object]:

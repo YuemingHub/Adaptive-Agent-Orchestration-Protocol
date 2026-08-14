@@ -38,5 +38,5 @@ jobs:
           echo "AAOP_CANDIDATE_SHA=$candidate_sha" >> "$GITHUB_ENV"
           echo "Pinned MingOS consumer commit: $consumer_sha"
           echo "Exact AAOP candidate commit: $candidate_sha"
-      - name: Validate real stable-to-v1 consumer compatibility
+      - name: Validate real stable-to-candidate consumer compatibility
         run: python scripts/validate_downstream_consumer.py
