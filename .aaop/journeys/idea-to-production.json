@@ -1,6 +1,6 @@
 {
   "journey_id": "idea-to-production",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "status": "canonical",
   "objective": "Take a person from a rough idea or partial implementation to a real accepted deliverable on the target its intended consumer actually uses, through evidence-driven AAOP route transitions without making the user operate the engineering machinery.",
   "routing_policy": {
@@ -203,12 +203,12 @@
     "default": "one capable host-native agent with existing project tools",
     "specialist_condition": "specialization, context isolation, safe parallel independence, adversarial review, or a permission boundary materially improves execution",
     "provider_condition": "a genuine capability gap remains after native agent, project scripts/tests, Skills, host tools, connected tools, and existing specialists are checked",
-    "agent_bundles": "optional curated specialist source; never default-install"
+    "agent_bundles": "retired compatibility alias only; never select or install for new specialist composition; redirect legacy references to the current Task Pod role-source policy"
   },
   "historical_sources": {
     "creating-forward": "requirements baseline, task/evidence discipline, authorization boundaries, interruption recovery; archived lineage, not a parallel runtime",
     "solo-dev-autopilot": "novice UX, environment/bootstrap, dev loop, verification, review, commit/release preflight, deployment gate; concepts absorbed into AAOP gates rather than copied as a fixed 21-Skill topology",
-    "agent-bundles": "curated specialist-agent source used only after AAOP justifies specialist composition"
+    "agent-bundles": "historical curated specialist-agent source; retired compatibility lineage only, not a current provider for new specialist composition"
   },
   "completion": [
     "the current release cycle's real deliverable reaches the intended consumer/target defined by current project evidence; deployment is required only when deployment is actually part of that target",
