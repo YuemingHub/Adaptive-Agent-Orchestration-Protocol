@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// AAOP GitHub Mission Adapter — mission-watcher.mjs (candidate)
+// AAOP GitHub Mission Adapter — mission-watcher.mjs (transport).
 //
 // Transport only: one GitHub Issue = one Mission; the local worker discovers it, claims it
-// with a nonce, executes a contract it never interprets, and returns evidence. State is always
-// derived from the GitHub issue timeline, so a restart resumes with zero local-dependency.
+// with a nonce, executes a contract it never interprets, and returns evidence. All
+// contract/state logic lives in mission-core.mjs (pure, importable, testable); this file
+// only does gh/git I/O and the CLI. State is always derived from the GitHub issue timeline,
+// so a restart resumes with zero local-dependency.
 //
-// Contract surface is AAOP-owned (README.md + fixtures/task-contract.example.md). Parity with
-// the reference Mission Bus implementation is preserved: same event protocol, same field list,
-// same GATE default values.
+// Contract surface is AAOP-owned: .aaop/schemas/github-mission-task-contract.schema.json.
+// Parity with the reference Mission Bus implementation is preserved: same event protocol,
+// same field list, same GATE default values.
 //
 // Events (issue comments, exactly 5):
 //   [CLAIM]                     take the task: task_id / worker / claim_nonce / at
@@ -16,18 +18,13 @@
 //   [REVIEW: READY_TO_ADVANCE]  reviewer accepts (terminal)
 //   [RETURN]                    executor hit RETURN-WHEN, stops with evidence
 //
-// Review loop (state derived from timeline only):
-//   CLAIM → EVIDENCE → [REVIEW: CHANGES_REQUIRED] → rework → EVIDENCE v2 → review
-//   latest evidence followed by CHANGES_REQUIRED → winner may resume
-//   latest evidence followed by READY_TO_ADVANCE or RETURN → stop
-//
 // Concurrency arbitration (no lock service): every claim posts a unique claim_nonce, then
 // re-reads the timeline; the earliest valid CLAIM wins (same-second tie → nonce dictionary
 // order). Only the winner writes current-task.md and proceeds.
 //
-// Hard-coded safety (no switch): comments are never executed (execFileSync argv, no shell);
-// no model call in the transport; no deploy/delete/payment/private-data; the contract is never
-// rewritten; the review outcome never auto-advances across a Gate; no second primary executor.
+// Hard-coded safety: comments are never executed (execFileSync argv, no shell); no model call
+// in the transport; no deploy/delete/payment/private-data; the contract is never rewritten;
+// the review outcome never auto-advances across a Gate; no second primary executor.
 //
 // Usage:
 //   node mission-watcher.mjs check  [--once] [--interval SEC] [--worker ID]
@@ -35,26 +32,21 @@
 //   node mission-watcher.mjs submit --file PATH [--return] [--worker ID]
 //        [--repo OWNER/NAME] [--state-file PATH]
 //
-// Env: MISSION_BUS_WORKER, MISSION_BUS_REPO, MISSION_BUS_STATE_FILE, MISSION_BUS_GATE_VALUES
-// (comma-separated; default COMMANDER,FOUNDER to keep parity with the original Mission Bus).
+// Env: MISSION_BUS_WORKER, MISSION_BUS_REPO, MISSION_BUS_STATE_FILE, MISSION_BUS_GATE_VALUES.
 
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+import {
+  taskIdFor, validateContract, deriveMissionState, gatesFromEnv,
+} from "./mission-core.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const RUNTIME = join(ROOT, ".runtime");
 const DEFAULT_STATE_FILE = join(ROOT, ".mission-state.json");
-
-const REQUIRED_FIELDS = [
-  "EXECUTOR", "GOAL", "SCOPE", "NOT-IN-SCOPE",
-  "DONE-WHEN", "EVIDENCE", "FINAL VERIFICATION", "GATE",
-];
-const AUTONOMOUS_EXTRA = ["STOP-WHEN", "RETURN-WHEN"];
-const DEFAULT_GATES = ["COMMANDER", "FOUNDER"];
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -76,8 +68,7 @@ if (!command || !["check", "submit"].includes(command)) {
 }
 
 const STATE_FILE = values["state-file"] || DEFAULT_STATE_FILE;
-const VALID_GATES = (process.env.MISSION_BUS_GATE_VALUES || DEFAULT_GATES.join(","))
-  .split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+const VALID_GATES = gatesFromEnv(process.env.MISSION_BUS_GATE_VALUES);
 
 function run(file, args, opts = {}) {
   return execFileSync(file, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim();
@@ -98,75 +89,8 @@ function readState() {
   return JSON.parse(readFileSync(STATE_FILE, "utf8"));
 }
 
-function taskIdFor(issueNumber, body) {
-  return `mission-${issueNumber}-${createHash("sha1").update(body || "").digest("hex").slice(0, 12)}`;
-}
-
 function issueView(repo, n) {
   return JSON.parse(gh(["issue", "view", String(n), "--repo", repo, "--json", "number,title,body,state,comments,updatedAt"]));
-}
-
-// ---------- TASK CONTRACT validation (structure only) ----------
-
-function validateContract(body) {
-  const field = (name) => {
-    const m = (body || "").match(new RegExp(`^${name}:\\s*(.+)$`, "mi"));
-    return m ? m[1].trim() : null;
-  };
-  const missing = REQUIRED_FIELDS.filter((f) => !field(f));
-  const taskType = (field("TASK_TYPE") || "surgical").toLowerCase();
-  if (taskType === "autonomous") {
-    for (const f of AUTONOMOUS_EXTRA) if (!field(f)) missing.push(`${f}（autonomous 必填）`);
-  }
-  const gate = (field("GATE") || "").toUpperCase();
-  if (field("GATE") && !VALID_GATES.includes(gate)) {
-    missing.push(`GATE 非法值 "${gate}"（仅允许 ${VALID_GATES.join("/")}）`);
-  }
-  return { field, missing, taskType, gate };
-}
-
-// ---------- timeline events → state (the single source of truth) ----------
-
-function matchField(body, key) { return (body.match(new RegExp(`${key}=([^\\s]+)`)) || [])[1] || null; }
-
-function parseEvents(issue) {
-  const events = [];
-  for (const c of issue.comments || []) {
-    const body = c.body || "";
-    const at = c.createdAt;
-    if (/^\s*\[CLAIM\]/.test(body)) {
-      events.push({ type: "CLAIM", at, task_id: matchField(body, "task_id"), worker: matchField(body, "worker"), nonce: matchField(body, "claim_nonce") || "" });
-    } else if (/^\s*\[EVIDENCE\]/.test(body)) {
-      events.push({ type: "EVIDENCE", at, task_id: matchField(body, "task_id"), worker: matchField(body, "worker") });
-    } else if (/^\s*\[RETURN\]/.test(body)) {
-      events.push({ type: "RETURN", at, task_id: matchField(body, "task_id") });
-    } else if (body.includes("[REVIEW: CHANGES_REQUIRED]")) {
-      events.push({ type: "REVIEW_CHANGES", at });
-    } else if (body.includes("[REVIEW: READY_TO_ADVANCE]")) {
-      events.push({ type: "REVIEW_READY", at });
-    }
-  }
-  return events.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
-}
-
-function deriveMissionState(issue, tid) {
-  const ev = parseEvents(issue);
-  const claims = ev.filter((e) => e.type === "CLAIM" && e.task_id === tid)
-    .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : a.nonce < b.nonce ? -1 : 1));
-  const evidence = ev.filter((e) => e.type === "EVIDENCE" && e.task_id === tid);
-  const winner = claims[0] || null; // earliest valid CLAIM = unique winner
-  const lastEv = evidence[evidence.length - 1] || null;
-  const afterLastEvidence = (e) => !lastEv || e.at > lastEv.at;
-  const ready = ev.some((e) => e.type === "REVIEW_READY" && afterLastEvidence(e));
-  const changes = ev.some((e) => e.type === "REVIEW_CHANGES" && afterLastEvidence(e));
-  const returned = ev.some((e) => e.type === "RETURN" && e.task_id === tid && afterLastEvidence(e));
-  const state = ready ? "READY_TO_ADVANCE"
-    : returned ? "RETURNED"
-    : changes ? "CHANGES_REQUIRED"
-    : lastEv ? "EVIDENCE_SUBMITTED"
-    : winner ? "CLAIMED"
-    : "UNCLAIMED";
-  return { state, winner, evidenceCount: evidence.length };
 }
 
 // ---------- local cache (decision never depends on it) ----------
@@ -202,7 +126,7 @@ function checkOnce(repo, worker) {
   const skip = (reason) => { console.log(`[github-mission] 跳过 ${tid}: ${reason}`); return false; };
 
   if ((issue.state || "").toUpperCase() !== "OPEN") return skip(`Issue #${issue.number} 状态为 ${issue.state}`);
-  const contract = validateContract(issue.body || "");
+  const contract = validateContract(issue.body || "", VALID_GATES);
   if (contract.missing.length) return skip(`TASK CONTRACT 不合法: ${contract.missing.join("; ")}`);
   const executor = contract.field("EXECUTOR");
   if (executor !== worker) return skip(`EXECUTOR=${executor} 与当前 worker=${worker} 不匹配`);

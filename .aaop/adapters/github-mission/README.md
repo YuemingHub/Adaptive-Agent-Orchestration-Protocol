@@ -6,11 +6,21 @@
 > agent-workspace-canonical dependency removed. FSW's original stays in place until a parity
 > fixture proves this adapter is a drop-in.
 
+## Files
+
+- `mission-watcher.mjs` — the transport CLI (gh/git I/O only).
+- `mission-core.mjs` — the pure, importable contract/state logic (no I/O); this is what the parity
+  test imports and what the watcher calls.
+- `fixtures/task-contract.example.md` — a shared contract fixture.
+- `test/parity.test.mjs` — unit (imports `mission-core.mjs`) + subprocess parity against the
+  Family-Space-Workspace reference watcher (via `FSW_REFERENCE`).
+
 ## What it is
 
 A single-file, zero-third-party-dependency Node transport that turns **one GitHub Issue = one
 Mission** into a *resumable* execution handoff to a local worker. AAOP already owns the
-*contract semantics* (`working-contract` / `task-handoff`); this adapter owns only the
+*contract semantics* (`working-contract` / `task-handoff`) plus, for the GitHub-issue mission
+form specifically, `.aaop/schemas/github-mission-task-contract.schema.json`; this adapter owns only the
 **transport**: how the issue timeline becomes the source of truth, how exactly one worker
 wins the task, and how evidence/review/recovery flow.
 
@@ -59,8 +69,11 @@ Commander:     [REVIEW: CHANGES_REQUIRED]  → winner resumes and re-submits
 
 - **State source**: `--state-file <path>` (default `./.mission-state.json`), read as
   `{ "active_mission": { "issue_number": <n> } }`. No hardcoded `../state/WORKSPACE_STATE.json`.
-- **Contract ownership**: fields are documented here and in `fixtures/task-contract.example.md`;
-  no citation of `agent-workspace/开发协作协议.md`.
+- **Contract ownership**: the TASK CONTRACT is AAOP-owned — machine-readable in
+  `.aaop/schemas/github-mission-task-contract.schema.json` (`executor`/`goal`/`scope`/`not_in_scope`/
+  `done_when`/`evidence`/`final_verification`/`gate` + `task_type`-conditional `stop_when`/
+  `return_when`). `mission-core.mjs` mirrors that schema's fields; the adapter validates against
+  the AAOP-owned contract, not against a free-floating field list and not against `agent-workspace`.
 - **GATE values**: allow-list configurable via `MISSION_BUS_GATE_VALUES` (default
   `COMMANDER,FOUNDER` to preserve parity with the original Mission Bus). In AAOP terms these
   are the two advance-authority classes; see `decision_ownership` in the migration matrix.
