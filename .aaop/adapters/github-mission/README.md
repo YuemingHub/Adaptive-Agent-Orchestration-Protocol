@@ -9,11 +9,24 @@
 ## Files
 
 - `mission-watcher.mjs` — the transport CLI (gh/git I/O only).
-- `mission-core.mjs` — the pure, importable contract/state logic (no I/O); this is what the parity
-  test imports and what the watcher calls.
+- `mission-core.mjs` — pure, importable contract/state logic. It parses the Markdown TASK CONTRACT to
+  a normalized object and validates it against `.aaop/schemas/github-mission-task-contract.schema.json`,
+  which is the **single contract authority** for required fields / `task_type` enum / `gate` enum /
+  `autonomous ⇒ stop_when+return_when` (no parallel hardcoded rules). It also owns `transportIdFor()`.
 - `fixtures/task-contract.example.md` — a shared contract fixture.
 - `test/parity.test.mjs` — unit (imports `mission-core.mjs`) + subprocess parity against the
   Family-Space-Workspace reference watcher (via `FSW_REFERENCE`).
+
+## Contract authority & identity
+
+- **One authority.** The Markdown TASK CONTRACT is the human input format; it is parsed to a
+  normalized object and validated against the AAOP-owned JSON schema. The schema decides required
+  fields, the `task_type` enum, the `gate` enum, and the `autonomous ⇒ stop_when+return_when`
+  conditional. There is no second copy of these rules in JS.
+- **Two identities, not one.** The contract's `TASK_ID` (a human field on the body, schema-required)
+  is **not** the transport identity. `transportIdFor(issueNumber, body)` derives
+  `mission-<n>-<sha1(body)>` for timeline matching; timeline events use that transport id under the
+  `task_id=` key (reference-watcher compatibility), and it is never confused with the contract `TASK_ID`.
 
 ## What it is
 

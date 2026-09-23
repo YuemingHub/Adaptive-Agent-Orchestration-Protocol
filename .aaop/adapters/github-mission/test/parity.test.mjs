@@ -18,7 +18,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  taskIdFor, validateContract, parseEvents, deriveMissionState,
+  transportIdFor, validateContract, parseEvents, deriveMissionState, SCHEMA, parseContract,
 } from "../mission-core.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -41,7 +41,7 @@ STOP-WHEN: evidence v1 written
 RETURN-WHEN: arbitration broken`;
 
 const ISSUE = { number: 5, title: "parity mission", state: "OPEN", body: CONTRACT };
-const TID = taskIdFor(5, CONTRACT);
+const TID = transportIdFor(5, CONTRACT);
 
 // ---------------------------------------------------------------------------
 // 1. UNIT — real mission-core.mjs (imported, not copied)
@@ -83,6 +83,41 @@ test("unit: append-only evidence + CHANGES_REQUIRED recovery + READY/RETURN term
   assert.equal(deriveMissionState({ comments: [...base, { body: "[REVIEW: READY_TO_ADVANCE]", createdAt: "00:00:03" }] }, TID).state, "READY_TO_ADVANCE");
   assert.equal(deriveMissionState({ comments: [...base, { body: `[RETURN] task_id=${TID} at=x`, createdAt: "00:00:03" }] }, TID).state, "RETURNED");
   assert.equal(deriveMissionState({ comments: [...base, { body: `[EVIDENCE] task_id=${TID} worker=w1`, createdAt: "00:00:04" }] }, TID).evidenceCount, 2);
+});
+
+// ---------------------------------------------------------------------------
+// reverse-drift + identity tests (the schema is the single contract authority)
+// ---------------------------------------------------------------------------
+test("drift: gate enum comes from the schema, not JS", () => {
+  const senate = CONTRACT.replace("GATE: COMMANDER", "GATE: SENATE");
+  assert.ok(validateContract(senate).missing.some((m) => /GATE 非法值/.test(m)), "real schema rejects SENATE");
+  const mutated = structuredClone(SCHEMA);
+  mutated.properties.gate.enum.push("SENATE");
+  assert.ok(!validateContract(senate, { schema: mutated }).missing.some((m) => /GATE 非法值/.test(m)), "mutated schema must accept SENATE");
+});
+
+test("drift: required list comes from the schema, not JS", () => {
+  const noEvidence = CONTRACT.replace(/^EVIDENCE: [^\n]*\n?/m, "");
+  assert.ok(validateContract(noEvidence).missing.includes("EVIDENCE"), "real schema requires evidence");
+  const mutated = structuredClone(SCHEMA);
+  mutated.required = mutated.required.filter((k) => k !== "evidence");
+  assert.ok(!validateContract(noEvidence, { schema: mutated }).missing.includes("EVIDENCE"), "mutated schema must drop the evidence requirement");
+});
+
+test("drift: autonomous conditional comes from schema.if/then, not JS", () => {
+  const autoNoStop = CONTRACT.replace(/^STOP-WHEN: [^\n]*\n?/m, "").replace(/^RETURN-WHEN: [^\n]*\n?/m, "");
+  assert.ok(validateContract(autoNoStop).missing.includes("STOP-WHEN（autonomous 必填）"));
+  const mutated = structuredClone(SCHEMA);
+  mutated.then.required = mutated.then.required.filter((k) => k !== "stop_when");
+  assert.ok(!validateContract(autoNoStop, { schema: mutated }).missing.includes("STOP-WHEN（autonomous 必填）"));
+});
+
+test("identity: contract TASK_ID is distinct from the issue-derived transport id", () => {
+  const parsed = parseContract(CONTRACT);
+  assert.equal(parsed.task_id, "aaop-github-mission-parity", "contract TASK_ID parsed from the body");
+  assert.match(transportIdFor(5, CONTRACT), /^mission-5-[0-9a-f]{12}$/);
+  assert.notEqual(parsed.task_id, transportIdFor(5, CONTRACT), "contract TASK_ID != transport id (not silently conflated)");
+  assert.equal(transportIdFor(5, CONTRACT), TID, "timeline events match on the transport id, never the contract TASK_ID");
 });
 
 // ---------------------------------------------------------------------------

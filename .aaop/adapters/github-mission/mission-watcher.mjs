@@ -41,10 +41,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
-  taskIdFor, validateContract, deriveMissionState, gatesFromEnv,
+  transportIdFor, validateContract, deriveMissionState, gatesFromEnv,
 } from "./mission-core.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = dirname(fileURLToPath(import.meta.url)); // the adapter directory itself
 const RUNTIME = join(ROOT, ".runtime");
 const DEFAULT_STATE_FILE = join(ROOT, ".mission-state.json");
 
@@ -122,13 +122,13 @@ function checkOnce(repo, worker) {
     return false;
   }
   const issue = issueView(repo, mission.issue_number);
-  const tid = taskIdFor(issue.number, issue.body || "");
+  const tid = transportIdFor(issue.number, issue.body || "");
   const skip = (reason) => { console.log(`[github-mission] 跳过 ${tid}: ${reason}`); return false; };
 
   if ((issue.state || "").toUpperCase() !== "OPEN") return skip(`Issue #${issue.number} 状态为 ${issue.state}`);
-  const contract = validateContract(issue.body || "", VALID_GATES);
+  const contract = validateContract(issue.body || "", { gates: VALID_GATES });
   if (contract.missing.length) return skip(`TASK CONTRACT 不合法: ${contract.missing.join("; ")}`);
-  const executor = contract.field("EXECUTOR");
+  const executor = contract.obj.executor;
   if (executor !== worker) return skip(`EXECUTOR=${executor} 与当前 worker=${worker} 不匹配`);
 
   const ms = deriveMissionState(issue, tid);
@@ -196,7 +196,7 @@ function submit(repo, worker) {
   if (!mission || !mission.issue_number) fail("无 active Mission，无法提交");
   const issueNumber = mission.issue_number;
   const issue = issueView(repo, issueNumber);
-  const tid = taskIdFor(issue.number, issue.body || "");
+  const tid = transportIdFor(issue.number, issue.body || "");
 
   const ms = deriveMissionState(issue, tid);
   if (!ms.winner) fail("timeline 无 CLAIM，先运行 check 接单");
