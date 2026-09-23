@@ -134,7 +134,7 @@ function freshWorkspace() {
   const binDir = join(tmp, "bin"); mkdirSync(binDir);
   writeFakeGh(binDir);
   const issuePath = join(tmp, "issue.json");
-  const writeFixture = (comments) => writeFileSync(issuePath, JSON.stringify({ issue: { ...ISSUE, comments } }, null, 2));
+  const writeFixture = (comments, body) => writeFileSync(issuePath, JSON.stringify({ issue: { number: 5, title: "parity mission", state: "OPEN", body: body || CONTRACT, comments } }, null, 2));
   writeFixture([]);
   const aaopState = join(tmp, "aaop-state.json");
   writeFileSync(aaopState, JSON.stringify({ active_mission: { issue_number: 5 } }));
@@ -168,18 +168,27 @@ const fixtures = [
   ], decision: /\[RETURN\] 停止/ },
 ];
 
-for (const fx of fixtures) {
+const INVALID_CONTRACT = CONTRACT.replace("GATE: COMMANDER", "GATE: SENATE");
+const EXTRA_FIXTURES = [
+  { name: "INVALID_GATE", body: INVALID_CONTRACT, comments: [], decision: /TASK CONTRACT 不合法.*GATE 非法值/ },
+  { name: "TWO_CLAIMS", comments: [
+    { body: `[CLAIM] task_id=${TID} worker=w1 claim_nonce=n1 at=t`, createdAt: "00:00:01" },
+    { body: `[CLAIM] task_id=${TID} worker=w2 claim_nonce=n2 at=t`, createdAt: "00:00:02" },
+  ], decision: /已被其他 Primary Executor 接单（winner=w1）/ },
+];
+
+for (const fx of [...fixtures, ...EXTRA_FIXTURES]) {
   test(`subprocess parity: ${fx.name} — AAOP adapter ≡ FSW reference`, (t) => {
     if (!FSW_WATCHER) { t.skip("FSW_REFERENCE not set — point it at a Family-Space-Workspace clone"); return; }
     const ws = freshWorkspace();
     try {
       // AAOP adapter (fresh fixture)
-      ws.writeFixture(fx.comments);
+      ws.writeFixture(fx.comments, fx.body);
       const aaop = runWatcher(ADAPTER, ws.binDir, ws.issuePath, ws.aaopState);
       const aaopTids = ws.claimedTaskIds();
 
       // FSW reference (fresh fixture)
-      ws.writeFixture(fx.comments);
+      ws.writeFixture(fx.comments, fx.body);
       const fsw = runWatcher(ws.fswWatcher, ws.binDir, ws.issuePath, null);
       const fswTids = ws.claimedTaskIds();
 
