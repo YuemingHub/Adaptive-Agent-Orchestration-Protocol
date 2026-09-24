@@ -510,7 +510,6 @@ def main() -> int:
         "capability-planning",
         "provider-selection",
         "team-construction",
-        "tool-resolution",
         "verification-loop",
     }
     actual_skills = {path.parent.name for path in skills}

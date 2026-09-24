@@ -73,7 +73,6 @@ The user should be able to speak in ordinary language. Do not require them to ch
 - `.aaop/skills/capability-planning/SKILL.md` — derive required capabilities and dependencies.
 - `.aaop/skills/provider-selection/SKILL.md` — select a mature provider only after a concrete technical gap is proven.
 - `.aaop/skills/team-construction/SKILL.md` — create the minimum sufficient 1–5 member Task Pod with one accountable owner and bounded handoff.
-- `.aaop/skills/tool-resolution/SKILL.md` — resolve missing tools/MCP safely and with least privilege.
 - `.aaop/skills/verification-loop/SKILL.md` — define acceptance evidence, review independently, and replan on failure.
 
 ## Runtime outputs
