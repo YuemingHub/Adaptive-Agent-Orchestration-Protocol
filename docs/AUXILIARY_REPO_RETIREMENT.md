@@ -68,7 +68,7 @@ Therefore agent-bundles no longer closes a unique capability gap.
 
 ### Compatibility policy
 
-The Provider Registry and `agent-bundles.json` Recipe remain temporarily as a **retired compatibility alias/tombstone** so an older installed AAOP instruction does not fail open or clone the old repository by accident.
+The Provider Registry entry for `agent-bundles` remains temporarily as a **retired compatibility alias/tombstone** so an older installed AAOP instruction does not fail open or clone the old repository by accident. The `agent-bundles.json` Recipe itself was removed under the 2026-09 borrow-first demotion: a retired provider no longer carries integration metadata.
 
 The tombstone:
 

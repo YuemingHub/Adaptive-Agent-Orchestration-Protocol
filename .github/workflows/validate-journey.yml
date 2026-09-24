@@ -278,6 +278,7 @@ jobs:
           python - "$target/doctor.json" <<'PY'
           import json, sys
           d = json.load(open(sys.argv[1]))
-          assert d['provider_detection']['agent-bundles']['detected'] is False, d['provider_detection']['agent-bundles']
-          assert d['provider_detection']['agent-bundles']['status'] == 'no_detector'
+          # The retired agent-bundles recipe is removed entirely, so it can never
+          # be detected or impersonated through a detection key again.
+          assert 'agent-bundles' not in d['provider_detection'], sorted(d['provider_detection'])
           PY

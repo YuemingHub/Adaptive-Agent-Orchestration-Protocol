@@ -309,7 +309,7 @@ If the Task Pod still has a concrete specialist-role gap after host-native and p
 
 If the justified Task Pod instead lacks delegated multi-role DAG/resume execution that the current host cannot provide, evaluate `agency-orchestrator` as a **separate runtime capability**. A role source and an execution runtime are different gaps; do not install both without separate evidence.
 
-`agent-bundles` is retired for new AAOP work. Its Provider/Recipe entry is only a compatibility tombstone for older installed instructions and must redirect to current Task Pod/provider policy rather than cloning or installing the old repository.
+`agent-bundles` is retired for new AAOP work. Its Provider Registry entry is only a compatibility tombstone for older installed instructions and must redirect to current Task Pod/provider policy rather than cloning or installing the old repository.
 
 Specialist workers do not become independent Journey-state owners; checkpoint updates remain serialized through the primary orchestration context and protected by the current revision precondition.
 
