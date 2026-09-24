@@ -405,7 +405,7 @@ def validate_recipes(root: Path, errors: list[str], ids: set[str]) -> set[str]:
     return recipe_ids
 
 
-def validate_route_packs(root: Path, errors: list[str], providers: set[str], recipes: set[str]) -> None:
+def validate_route_packs(root: Path, errors: list[str], providers: set[str]) -> None:
     pack_root = root / ".aaop/routes"
     found: set[str] = set()
     for path in sorted(pack_root.glob("*.json")) if pack_root.exists() else []:
@@ -464,8 +464,9 @@ def validate_route_packs(root: Path, errors: list[str], providers: set[str], rec
             for provider_id in candidates:
                 if provider_id not in providers:
                     error(errors, f"{path}: unknown provider candidate {provider_id!r}")
-                elif provider_id not in recipes:
-                    error(errors, f"{path}: provider candidate {provider_id!r} has no integration recipe")
+                # Provider candidates are escalation vocabulary validated against the provider
+                # registry. Integration recipes exist only for surfaces with real adoption
+                # evidence; absence of a recipe is the normal case, not an error.
 
     missing = ROUTE_IDS - found
     if missing:
@@ -501,7 +502,7 @@ def main() -> int:
     providers = provider_ids(root, errors)
     validate_provider_model(root, errors, providers)
     recipes = validate_recipes(root, errors, providers)
-    validate_route_packs(root, errors, providers, recipes)
+    validate_route_packs(root, errors, providers)
 
     skill_root = root / ".aaop" / "skills"
     skills = sorted(skill_root.glob("*/SKILL.md")) if skill_root.exists() else []

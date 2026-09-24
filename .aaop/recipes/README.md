@@ -2,6 +2,8 @@
 
 Integration Recipes are **glue metadata**, not vendored dependencies and not an AAOP package manager.
 
+The default answer to a capability question is **no new provider**: the current host, the repository, and existing standards come first (see `docs/ECOSYSTEM_MAP.md` and the provider-selection Skill). A recipe is written only when a surface has **real adoption evidence** (a proven pilot in a real consumer project) or documents a **format lineage AAOP itself depends on**. Conditional provider knowledge that has not been adopted stays as escalation vocabulary inside the Route Capability Packs and `registries/providers.json`; it does not get a recipe.
+
 A recipe tells the orchestrator, in one predictable shape:
 
 - when an upstream provider is justified;
@@ -11,6 +13,11 @@ A recipe tells the orchestrator, in one predictable shape:
 - optional, time-stamped provider-adoption review debt that must be rechecked for a relevant surface/context;
 - how to verify the original capability gap is closed;
 - how to remove or disable the integration.
+
+## Current recipes
+
+- `loopx.json` — long-running execution-control provider; qualified in a real consumer pilot (`docs/LOOPX_PILOT_EVIDENCE.md`).
+- `agent-skills.json` — the Agent Skills file format (`https://agentskills.io`), which AAOP's own canonical Skills follow; `install.mode` is `none`.
 
 ## Detection contract
 
@@ -25,7 +32,7 @@ Supported baseline hints:
 
 Detection hints must be **provider-specific**. Do not use generic signals such as `package.json`, `pyproject.toml`, or `requirements.txt` by themselves: their presence says nothing about a particular provider and creates false positives.
 
-A detection result means only **“evidence this provider is already present.”** It does not mean:
+A detection result means only **"evidence this provider is already present."** It does not mean:
 
 - the current route needs it;
 - it is configured correctly;
@@ -80,43 +87,6 @@ If `adoption_review` applies, also re-check its sources and conditions before en
 
 A recipe MUST NOT silently install anything merely because it exists or because the Doctor detects it.
 
-## Developer experience
-
-```text
-User states outcome
-  ↓
-Developer Intake selects current route
-  ↓
-Doctor inventories what already exists
-  ↓
-Route Capability Pack requires capability X
-  ↓
-Can current environment satisfy X?
-  ├─ yes → reuse it
-  └─ no  → prove the gap
-             ↓
-          Provider selected
-             ↓
-          Recipe gives one integration path
-             ↓
-          Applicable adoption review?
-             ├─ no  → continue
-             └─ yes → re-check current source + actual context
-                         ↓
-                    adopt / narrow / isolate /
-                    choose alternative / defer
-             ↓
-          Ask only for genuinely required credential/high-risk permission
-             ↓
-          Upstream package manager/host performs installation
-             ↓
-          AAOP verifies the original gap closed
-```
-
-This removes the need for developers to manually hunt across repositories while avoiding an all-in-one distribution, repeated installation of capabilities they already have, and forgotten integration risks from earlier reviews.
-
 ## Contract
 
-Recipes should conform to `../schemas/integration-recipe.schema.json`.
-
-They are resolver hints, not security endorsements. Consequential adoption still requires current provenance, permission, data exposure, cost, maintenance, operational context, and rollback review.
+Recipes are resolver hints, not security endorsements. Consequential adoption still requires current provenance, permission, data exposure, cost, maintenance, operational context, and rollback review.
