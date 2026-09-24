@@ -396,7 +396,7 @@ From v0.8 onward, all six routes must retain at least one real pressure case. Th
 
 ## 7. Provider adoption review discipline
 
-Recipes may contain optional `adoption_review` metadata conforming to `.aaop/schemas/integration-recipe.schema.json`.
+Recipes may contain optional `adoption_review` metadata describing time-stamped, re-checkable adoption concerns (see `.aaop/recipes/README.md`).
 
 Use it sparingly. A good adoption review is:
 

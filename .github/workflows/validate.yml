@@ -89,10 +89,7 @@ jobs:
           test -f "$target/.aaop/routes/bug-fix.json"
           test -f "$target/.aaop/routes/idea-to-build.json"
           test -f "$target/.aaop/routes/understand-review.json"
-          test -f "$target/.aaop/schemas/environment-inventory.schema.json"
-          test -f "$target/.aaop/schemas/installation-health.schema.json"
           test -f "$target/.aaop/schemas/pressure-case.schema.json"
-          test -f "$target/.aaop/schemas/integration-recipe.schema.json"
           test -f "$target/.aaop/.install-manifest.json"
           grep -qx "$expected_version" "$target/.aaop/VERSION"
 

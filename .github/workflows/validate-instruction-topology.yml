@@ -169,7 +169,6 @@ jobs:
           target="$(mktemp -d)"
           python scripts/install.py "$target"
           test -f "$target/.aaop/tools/instructions.py"
-          test -f "$target/.aaop/schemas/instruction-topology.schema.json"
           python "$target/.aaop/tools/instructions.py" "$target" --json > "$target/topology.json"
           python - "$target/topology.json" <<'PY'
           import json, sys
@@ -185,5 +184,4 @@ jobs:
           manifest = json.load(open(sys.argv[2]))
           assert health['state'] == 'healthy', health
           assert 'tools/instructions.py' in manifest['files']
-          assert 'schemas/instruction-topology.schema.json' in manifest['files']
           PY

@@ -211,10 +211,4 @@ When useful, save the JSON output to:
 .aaop/runtime/instruction-topology.json
 ```
 
-against:
-
-```text
-.aaop/schemas/instruction-topology.schema.json
-```
-
-The runtime artifact is derived evidence and normally remains uncommitted.
+The runtime artifact is derived evidence and normally remains uncommitted. There is no separate schema contract for it: the authoritative shape is what `.aaop/tools/instructions.py` emits, and consumers should treat unknown extra fields as extension evidence rather than contract violations.

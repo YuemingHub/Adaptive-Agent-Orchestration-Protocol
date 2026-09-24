@@ -88,7 +88,6 @@ safe experiment. Do not treat technical uncertainty, an unfamiliar repository, f
 tests, architecture choice, provider choice, or an incomplete plan as a human-owned
 question.
 
-When useful, materialize `.aaop/runtime/intake-envelope.json` against `../../schemas/intake-envelope.schema.json`.
 
 ## Step 1 — Read before asking
 

@@ -94,7 +94,7 @@ This prevents an execution provider from turning a single-agent decision into an
 
 The grant is a bounded projection of currently runnable work, not a second planning system.
 
-The task vocabulary intentionally follows the useful subset of `execution-plan.schema.json`:
+The task vocabulary intentionally stays a small bounded work-unit shape:
 
 - id;
 - owner;
