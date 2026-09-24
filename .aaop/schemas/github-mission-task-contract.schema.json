@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aaop.dev/schemas/github-mission-task-contract.schema.json",
+  "title": "AAOP GitHub Mission Task Contract",
+  "description": "Machine-readable task contract consumed by the AAOP GitHub Mission Adapter. This schema is the AAOP-owned canonical authority for a single GitHub-Issue mission; the adapter validates structure against it and must not invent a second contract authority.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_type",
+    "executor",
+    "goal",
+    "scope",
+    "not_in_scope",
+    "done_when",
+    "evidence",
+    "final_verification",
+    "gate"
+  ],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_type": {
+      "type": "string",
+      "enum": ["surgical", "autonomous"],
+      "description": "surgical = small, fully-specified task (STOP-WHEN/RETURN-WHEN may be omitted); autonomous = multi-round self-iterating mission (STOP-WHEN and RETURN-WHEN are required)."
+    },
+    "executor": { "type": "string", "minLength": 1, "description": "The single primary executor. Maps to working-contract account/owner semantics: one task, one executor." },
+    "goal": { "type": "string", "minLength": 1 },
+    "scope": { "type": "string", "minLength": 1 },
+    "not_in_scope": { "type": "string", "minLength": 1 },
+    "done_when": { "type": "string", "minLength": 1 },
+    "evidence": { "type": "string", "minLength": 1 },
+    "final_verification": { "type": "string", "minLength": 1 },
+    "gate": {
+      "type": "string",
+      "enum": ["COMMANDER", "FOUNDER"],
+      "description": "Who holds advance/review authority after review. Exactly two classes (mirrors decision_ownership: agent-owned advance vs human-authority advance)."
+    },
+    "stop_when": {
+      "type": "string",
+      "description": "Terminal success criterion for an autonomous task (reach it and stop). Required when task_type=autonomous."
+    },
+    "return_when": {
+      "type": "string",
+      "description": "Escalation condition: when hit, stop and return with evidence. Required when task_type=autonomous. Maps to AAOP escalation semantics (blockers / human_open_questions)."
+    }
+  },
+  "additionalProperties": true,
+  "if": { "properties": { "task_type": { "const": "autonomous" } } },
+  "then": { "required": ["stop_when", "return_when"] }
+}
