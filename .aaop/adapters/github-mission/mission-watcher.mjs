@@ -32,7 +32,7 @@
 //   node mission-watcher.mjs submit --file PATH [--return] [--worker ID]
 //        [--repo OWNER/NAME] [--state-file PATH]
 //
-// Env: MISSION_BUS_WORKER, MISSION_BUS_REPO, MISSION_BUS_STATE_FILE, MISSION_BUS_GATE_VALUES.
+// Env: MISSION_BUS_WORKER, MISSION_BUS_REPO, MISSION_BUS_STATE_FILE.
 
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -41,7 +41,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import {
-  transportIdFor, validateContract, deriveMissionState, gatesFromEnv,
+  transportIdFor, validateContract, deriveMissionState,
 } from "./mission-core.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url)); // the adapter directory itself
@@ -68,7 +68,6 @@ if (!command || !["check", "submit"].includes(command)) {
 }
 
 const STATE_FILE = values["state-file"] || DEFAULT_STATE_FILE;
-const VALID_GATES = gatesFromEnv(process.env.MISSION_BUS_GATE_VALUES);
 
 function run(file, args, opts = {}) {
   return execFileSync(file, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts }).trim();
@@ -126,7 +125,7 @@ function checkOnce(repo, worker) {
   const skip = (reason) => { console.log(`[github-mission] 跳过 ${tid}: ${reason}`); return false; };
 
   if ((issue.state || "").toUpperCase() !== "OPEN") return skip(`Issue #${issue.number} 状态为 ${issue.state}`);
-  const contract = validateContract(issue.body || "", { gates: VALID_GATES });
+  const contract = validateContract(issue.body || "");
   if (contract.missing.length) return skip(`TASK CONTRACT 不合法: ${contract.missing.join("; ")}`);
   const executor = contract.obj.executor;
   if (executor !== worker) return skip(`EXECUTOR=${executor} 与当前 worker=${worker} 不匹配`);

@@ -55,17 +55,11 @@ export function gateEnum(schema = SCHEMA) {
   return (schema.properties?.gate?.enum || []).map(String);
 }
 
-// Operational allow-list override; defaults to the schema's gate enum (single authority).
-export function gatesFromEnv(raw, schema = SCHEMA) {
-  const list = (raw || "").split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
-  return list.length ? list : gateEnum(schema);
-}
-
 // Validate a normalized object against the schema (the schema is the authority).
-export function validateContract(markdown, { schema = SCHEMA, gates } = {}) {
+export function validateContract(markdown, { schema = SCHEMA } = {}) {
   const obj = parseContract(markdown);
   const missing = [];
-  const gateValues = (gates ?? gateEnum(schema)).map(String);
+  const gateValues = gateEnum(schema).map(String);
 
   for (const key of schema.required || []) {
     if (!obj[key]) missing.push(REVERSE_MAP[key] ?? key);

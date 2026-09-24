@@ -87,17 +87,16 @@ Commander:     [REVIEW: CHANGES_REQUIRED]  → winner resumes and re-submits
   `done_when`/`evidence`/`final_verification`/`gate` + `task_type`-conditional `stop_when`/
   `return_when`). `mission-core.mjs` mirrors that schema's fields; the adapter validates against
   the AAOP-owned contract, not against a free-floating field list and not against `agent-workspace`.
-- **GATE values**: allow-list configurable via `MISSION_BUS_GATE_VALUES` (default
-  `COMMANDER,FOUNDER` to preserve parity with the original Mission Bus). In AAOP terms these
-  are the two advance-authority classes; see `decision_ownership` in the migration matrix.
+- **GATE values**: exactly the `gate` enum in `.aaop/schemas/github-mission-task-contract.schema.json`
+  (`COMMANDER`/`FOUNDER`) — no run-time override. In AAOP terms these are the two advance-authority
+  classes; see `decision_ownership` in the migration matrix.
 - **Wording**: no "Family-Space" / "Commander" / "Agent-Space" hardcoded strings (Commander kept
   only as the default GATE *value*, not as a hardcoded dependency).
 
 ## Parity strategy (do not delete FSW first)
 
-1. `test/state-machine.test.mjs` exercises the pure state derivation
-   (`validateContract`, `parseEvents`, `deriveMissionState`) against fixtures — no network,
-   no `gh`, no model.
+1. `test/parity.test.mjs` (unit + subprocess) imports `mission-core.mjs` and runs both real
+   watchers against fixtures — no network, no real `gh`, no model.
 2. `fixtures/task-contract.example.md` is a single contract usable as `current-task.md` input by
    **both** this adapter and `Family-Space-Workspace/tools/mission-watcher.mjs`.
 3. Only after the parity fixture passes against both implementations should FSW's original be
