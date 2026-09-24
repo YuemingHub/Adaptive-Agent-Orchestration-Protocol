@@ -7,7 +7,11 @@ import argparse
 import json
 from pathlib import Path
 
-from score_project_completion_run import load_json, score
+from score_project_completion_run import (
+    REQUIRED_RUN_FIELDS,
+    load_json,
+    score,
+)
 
 
 def main() -> int:
@@ -28,8 +32,15 @@ def main() -> int:
 
     results = []
     missing_cases = []
+    skipped = []
     for path in sorted(args.runs_dir.glob("*.json")):
         run = load_json(path)
+        if not isinstance(run, dict) or not REQUIRED_RUN_FIELDS <= run.keys():
+            # A run directory may also hold free-form observation documents
+            # (e.g. timestamped gate notes). They are not scoreable run records;
+            # skipping them is honest, crashing on them hides the summary.
+            skipped.append(path.name)
+            continue
         case = cases.get(run.get("case_id"))
         if case is None:
             missing_cases.append(str(run.get("case_id")))
@@ -56,6 +67,7 @@ def main() -> int:
         "unnecessary_human_interruptions": interruptions,
         "case_ids": sorted({item["case_id"] for item in results}),
         "missing_case_ids": sorted(set(missing_cases)),
+        "skipped_non_run_files": sorted(skipped),
         "results": results,
     }
 
@@ -72,6 +84,10 @@ def main() -> int:
         )
         if missing_cases:
             print(f"missing cases: {', '.join(sorted(set(missing_cases)))}")
+        if skipped:
+            print(
+                "skipped non-run records: " + ", ".join(sorted(skipped))
+            )
 
     return 0 if not missing_cases else 2
 
