@@ -1,6 +1,8 @@
 # Ecosystem Map: Integrate, Do Not Reimplement
 
-Verified: 2026-08-11
+Verified: 2026-09-25 (previous verification: 2026-08-11)
+
+2026-09 reality note: mainstream hosts (Claude Code, Codex, ZCode, Cursor, ...) now natively provide planning/plan approval, permission modes, subagents and (experimental) agent teams, session resume/fork, and Skills loading. MCP's Tasks extension and A2A 1.0 standardize async task lifecycles; GitHub Agent HQ covers assigning issues to hosted agents. AAOP therefore treats all of those as **borrowed layers**. What AAOP still owns is the part hosts do not persist for the project: the machine-readable Working Contract with decision ownership, evidence-backed completion semantics, revision/CAS-protected project state, and the install/uninstall/upgrade supply chain. Provider surfaces without real adoption evidence stay in this map and in Route Pack escalation vocabulary — they no longer carry integration recipes.
 
 AAOP sits above existing developer tools, agent standards, SDLC harnesses, verification tools, execution-control planes, runtimes, discovery systems, and workspaces. Its role is to understand **what is needed now**, select the smallest sufficient provider surface, constrain permissions, and verify the result.
 
@@ -17,7 +19,7 @@ AAOP owns:
 - progressive integration decisions;
 - least-privilege / autonomy policy;
 - provider selection criteria;
-- normalized Integration Recipes;
+- integration recipes, only for surfaces with real adoption evidence or format lineage;
 - Journey/release-cycle continuity;
 - evidence, verification, rerouting, and replanning contracts;
 - graceful degradation across hosts.

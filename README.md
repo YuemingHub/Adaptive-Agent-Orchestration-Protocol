@@ -1,12 +1,23 @@
 # Adaptive Agent Orchestration Protocol (AAOP)
 
-AAOP is a host-agnostic **developer intake, human-agent working contract, routing, evidence, decision, policy, and integration layer** for AI-assisted software work.
+AAOP is a host-agnostic **human-agent authority, working-contract, evidence, and bounded-continuity layer** for AI-assisted software work.
 
 The intended experience is simple:
 
 > Open a project, speak in ordinary language, let AAOP understand the project/idea and resolve what it can itself, confirm your collaboration style once, then let the Agent carry the engineering process through verified delivery.
 
-AAOP is **not** another agent runtime, package manager, workflow engine, or multi-agent framework.
+AAOP is **not** an agent runtime, package manager, workflow engine, model router, multi-agent orchestrator, or provider marketplace.
+
+## Why AAOP still exists next to strong hosts (2026)
+
+Modern hosts (Claude Code, Codex, ZCode, Cursor, Qoder, OpenHands, ...) already natively provide planning, permission gates, subagent/teams, session resume, and Skills. AAOP does **not** duplicate those. What it still owns, because hosts persistently do not:
+
+- **Machine-readable Human-Agent Working Contract** — collaboration mode, aligned outcome, decision ownership (evidence-resolvable / expert-decidable / human-owned), and success evidence persisted as a schema-checked JSON in the project, assertable by any host, CI, or tool — not free-text memory.
+- **Concurrent-write safety for project state** — revision/CAS + OS file locking + atomic writes + last-good recovery for Working Contract and Journey checkpoints, so two sessions (or a stale session) cannot silently overwrite newer human decisions.
+- **Evidence-backed completion** — "code written" is not "done": completion requires declared success evidence and target-environment verification; a scorer machine-detects `false_completion` and `wrong_stop`.
+- **Cross-host install/uninstall/upgrade supply chain** — transactional, manifest-scoped, with drift detection and pinned provenance, working identically on hosts that otherwise share no state format.
+
+Everything else — routing, planning, tool selection, subagent assembly, session memory — is delegated to the host by design and kept here only as policy documentation.
 
 ## Use AAOP now
 
@@ -323,9 +334,11 @@ AAOP reuses mature upstream layers instead of recreating them. It does not try t
 - a package manager for third-party agent systems;
 - a competing Skill/MCP/A2A protocol;
 - an organizational control plane;
-- a system that installs more tooling whenever work is blocked.
+- a system that installs more tooling whenever work is blocked;
+- a model router, task engine, or standing multi-agent orchestrator;
+- a provider marketplace — integration recipes exist only for surfaces with real adoption evidence (currently LoopX) or format lineage AAOP itself depends on (Agent Skills); everything else stays as escalation vocabulary and policy documentation.
 
-Integration Recipes can reference mature providers such as Agent Skills, MCP, ARD, Spec Kit, Playwright, mini-SWE-agent, OpenHands, Deep Agents, Microsoft Agent Framework, CAMEL, AutoAgent, AgentSpace, plus optional current specialist/delegated sources such as `agency-agents-zh` and `agency-orchestrator`, but only a proven capability or responsibility gap should justify adoption. `agent-bundles` remains retired compatibility lineage only and is not a current provider for new specialist composition.
+Integration Recipes exist only for surfaces with real adoption evidence (currently `loopx`) or format lineage AAOP depends on (`agent-skills`). Other mature providers (MCP, A2A, Spec Kit, Playwright, OpenHands, Deep Agents, ...) remain documented conditional candidates in [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md) and the Route Capability Pack escalation vocabulary, without install recipes. `agent-bundles` remains retired compatibility lineage only and is not a current provider for new specialist composition.
 
 ## Project principles that matter in practice
 
@@ -367,8 +380,11 @@ AGENTS.md / CLAUDE.md              host-native bootstrap
 ├── journeys/                      multi-route continuity definitions
 ├── policies/                      autonomy / tool / integration boundaries
 ├── routes/                        Route Capability Packs
-├── recipes/                       lazy provider integration knowledge
-├── schemas/                       machine-readable contracts
+├── recipes/                       integration recipes for surfaces with real
+│                                  adoption evidence or format lineage
+├── schemas/                       machine-readable contracts kept only where
+│                                  runtime code, CI, or the production gate
+│                                  actually consumes them
 ├── skills/                        reusable orchestration procedures
 └── tools/
     ├── aaop.py                    human-facing command surface
@@ -417,9 +433,11 @@ v1.2 keeps the v1 Human-Agent Working Contract and v1.1 release/freshness semant
 
 Accumulated production hardening also includes stable-vs-edge bootstrap separation and exact-ref pinning; bounded archive extraction; transactional install/upgrade/uninstall with interrupted-operation recovery; fail-closed manifest and Journey schema handling; Journey CAS/OS locking and last-good recovery; CPython 3.11–3.14 support across Linux/Windows/macOS; install provenance with managed-byte fingerprinting; immutable reviewed GitHub Action pins; and exact-candidate downstream consumer validation.
 
+2026-09 borrow-first demotion (on `main`): integration recipes without adoption evidence, schemas whose artifacts no code reads, and a host-duplicated tool-resolution skill were removed. Surviving core: the Human-Agent Working Contract, evidence-backed completion semantics, revisioned Journey/Working Contract continuity, and the install/uninstall/upgrade supply chain. If a future host makes any of those natively assertable across sessions, the same demotion standard applies to it.
+
 See [`docs/PRODUCTION_RELEASE.md`](docs/PRODUCTION_RELEASE.md) for promotion/rollback and [`.aaop/PRODUCTION_RELEASE.json`](.aaop/PRODUCTION_RELEASE.json) for required gate topology.
 
-AAOP still does not ship a standalone agent runtime, third-party package manager, generic workflow engine, or repository merge-queue service — intentionally.
+AAOP still does not ship a standalone agent runtime, third-party package manager, generic workflow engine, model router, task engine, or repository merge-queue service — intentionally.
 
 ## License
 

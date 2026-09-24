@@ -28,7 +28,6 @@ REQUIRED_FILES = {
     ".aaop/skills/end-to-end-delivery/SKILL.md",
     ".aaop/skills/developer-intake/SKILL.md",
     ".aaop/tools/journey.py",
-    ".aaop/recipes/agent-bundles.json",
 }
 
 
@@ -369,19 +368,6 @@ def validate_skill_wiring(root: Path, errors: list[str]) -> None:
             fail(errors, f"{journey_tool}: missing Journey safeguard {required!r}")
 
 
-def validate_agent_bundles_detection(root: Path, errors: list[str]) -> None:
-    path = root / ".aaop/recipes/agent-bundles.json"
-    payload = load(path, errors)
-    if payload is None:
-        return
-    detect = payload.get("detect")
-    if detect != {}:
-        fail(
-            errors,
-            f"{path}: detection must remain empty until agent-bundles provides provider-specific ownership evidence; generic host agent files are false positives",
-        )
-
-
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     errors: list[str] = []
@@ -395,7 +381,6 @@ def main() -> int:
     validate_state_schema(root, errors)
     validate_journey(root, errors)
     validate_skill_wiring(root, errors)
-    validate_agent_bundles_detection(root, errors)
 
     if errors:
         print("AAOP Journey validation failed:", file=sys.stderr)
