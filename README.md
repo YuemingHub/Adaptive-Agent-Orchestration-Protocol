@@ -1,3 +1,15 @@
+> ⚠️ **RETIREMENT / RESEARCH NOTICE · 2026-09-25**
+>
+> AAOP is no longer an active YueMing runtime/protocol development line.
+>
+> Issue #62 (`Existence Gate`) compared mature coding hosts with and without AAOP and concluded that AAOP's Working Contract / route / registry / runtime machinery did not earn continued product complexity. Current YueMing software work should prefer mature coding Agents + GitHub / Spec-driven tooling, with YueMing-specific Human Authority / evidence / reality-first boundaries kept thin in `YuemingHub/agent-workspace`.
+>
+> Existing releases, branches and installer paths remain available as **historical research/provenance**, not as the recommended current YueMing control plane.
+>
+> Do not resume feature expansion unless a future repeated consequential failure proves that a thin project rule/config cannot solve the gap. See [RETIREMENT.md](./RETIREMENT.md).
+
+---
+
 # Adaptive Agent Orchestration Protocol (AAOP)
 
 AAOP is a host-agnostic **human-agent authority, working-contract, evidence, and bounded-continuity layer** for AI-assisted software work.
@@ -418,27 +430,3 @@ docs/                              detailed design and research
 - [`docs/ROUTE_CAPABILITY_PACKS.md`](docs/ROUTE_CAPABILITY_PACKS.md) — route execution model
 - [`docs/REAL_PROJECT_PRESSURE_TESTS.md`](docs/REAL_PROJECT_PRESSURE_TESTS.md) — real-project regression discipline
 - [`docs/PROGRESSIVE_ADOPTION.md`](docs/PROGRESSIVE_ADOPTION.md) — capability/provider escalation
-- [`docs/ECOSYSTEM_MAP.md`](docs/ECOSYSTEM_MAP.md) — what AAOP reuses rather than rebuilds
-- [`docs/HOST_BOOTSTRAP_CONFORMANCE.md`](docs/HOST_BOOTSTRAP_CONFORMANCE.md) — Codex / Claude Code / Cursor entry behavior
-- [`docs/INSTRUCTION_TOPOLOGY.md`](docs/INSTRUCTION_TOPOLOGY.md) — scoped project rule discovery
-- [`docs/PRODUCTION_RELEASE.md`](docs/PRODUCTION_RELEASE.md) — production candidate/promotion/rollback contract
-
-## Status
-
-**v1.2.0 — production release line governed by the AAOP production release contract.**
-
-A source-tree or pull-request copy is not production merely because it carries the v1.2.0 package identity. A commit becomes an AAOP production release only after the final candidate passes every required workflow, a real downstream consumer validates the exact candidate tree from the current stable release, the candidate is merged without material tree drift, and `stable` is fast-forwarded to that validated merged commit.
-
-v1.2 keeps the v1 Human-Agent Working Contract and v1.1 release/freshness semantics, while hardening project-frontier completion truth, exact evidence-target fidelity, verification-harness integrity, capability composition/transfer closure, pressure-backed project-completion benchmarking, and the boundary between AAOP's generic provider contracts and optional execution chassis such as DeepSeek Harness.
-
-Accumulated production hardening also includes stable-vs-edge bootstrap separation and exact-ref pinning; bounded archive extraction; transactional install/upgrade/uninstall with interrupted-operation recovery; fail-closed manifest and Journey schema handling; Journey CAS/OS locking and last-good recovery; CPython 3.11–3.14 support across Linux/Windows/macOS; install provenance with managed-byte fingerprinting; immutable reviewed GitHub Action pins; and exact-candidate downstream consumer validation.
-
-2026-09 borrow-first demotion (on `main`): integration recipes without adoption evidence, schemas whose artifacts no code reads, and a host-duplicated tool-resolution skill were removed. Surviving core: the Human-Agent Working Contract, evidence-backed completion semantics, revisioned Journey/Working Contract continuity, and the install/uninstall/upgrade supply chain. If a future host makes any of those natively assertable across sessions, the same demotion standard applies to it.
-
-See [`docs/PRODUCTION_RELEASE.md`](docs/PRODUCTION_RELEASE.md) for promotion/rollback and [`.aaop/PRODUCTION_RELEASE.json`](.aaop/PRODUCTION_RELEASE.json) for required gate topology.
-
-AAOP still does not ship a standalone agent runtime, third-party package manager, generic workflow engine, model router, task engine, or repository merge-queue service — intentionally.
-
-## License
-
-Apache-2.0. See `LICENSE`.
